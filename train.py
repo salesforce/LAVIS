@@ -1,6 +1,8 @@
 import argparse
 
-from config import OliveConfig
+from utils.config import Config
+from utils.logger import setup_logger
+from datasets.builders import *
 
 
 def parse_args():
@@ -29,11 +31,20 @@ def parse_args():
 
 
 def main():
+    setup_logger()
+
     args = parse_args()
 
-    configs = OliveConfig(args)
+    cfg = Config(args)
+    cfg.pretty_print()
 
-    pass
+    # [TODO]
+    # 1. task = BaseTask().setup_taks(cfg.run.task)
+    # 2. task.build_model(cfg.model)
+    # 3. datasets = task.build_datasets(cfg.datasets) 
+    # 4. criterion = task.build_criterion(cfg.run.criterion)
+    # 5. optimizer = build_optimizer(cfg.run.optimizer)
+    # 6. runner = Runner(cfg, task, model, criterion, optimizer)
 
 if __name__ == '__main__':
     main()

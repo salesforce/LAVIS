@@ -1,0 +1,10 @@
+datasets:
+  flickr30k:
+    # data_dir: ${env.data_dir}/datasets
+    annotations:
+      train:
+        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_train.json
+      val:
+        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_val.json
+      test:
+        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_test.json

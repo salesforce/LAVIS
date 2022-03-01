@@ -1,0 +1,10 @@
+datasets:
+  coco:
+    # data_dir: ${env.data_dir}/datasets
+    annotations:
+      train:
+        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
+      val:
+        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
+      test:
+        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
