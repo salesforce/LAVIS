@@ -21,15 +21,7 @@ class OliveConfig:
         # registry.register("config", self._default_config)
         # registry.register("configuration", self)
 
-        # if default_only:
-        #     other_configs = {}
-        # else:
-
         user_config = self._build_opt_list(self.args.options)
-        # user_config = self._build_user_config(opts_config)
-        # self._user_config = user_config
-
-        # self._user_config = user_config
 
         # self.import_user_dir()
 
@@ -116,6 +108,12 @@ class OliveConfig:
     #         import_user_module(user_dir)
 
     def _build_model_config(self, config_path):
+        config = OmegaConf.load(config_path)
+
+        root_keys = config.keys()
+        assert len(root_keys) == 1, "Missing or duplicate root keys for runner configuration file."
+        assert "model" in config, \
+            "Root key for model configuration is expected to be 'model', found '{}'.".format(list(root_keys)[0])
 
         # model = config.model
         # if model is None:
@@ -138,11 +136,18 @@ class OliveConfig:
 
         # return load_yaml(default_model_config_path)
 
-        return OmegaConf.load(config_path)
+        return config 
 
 
     def _build_runner_config(self, config_path):
-        return OmegaConf.load(config_path)
+        config = OmegaConf.load(config_path)
+
+        root_keys = config.keys()
+        assert len(root_keys) == 1, "Missing or duplicate root keys for runner configuration file."
+        assert "run" in config, \
+            "Root key for runner configuration is expected to be 'run', found '{}'.".format(list(root_keys)[0])
+
+        return config
 
 
     def _build_dataset_config(self, config_path):
@@ -185,9 +190,9 @@ class OliveConfig:
         # return dataset_config
         return OmegaConf.load(config_path)
 
-    def get_config(self):
-        self._register_resolvers()
-        return self.config
+    # def get_config(self):
+    #     self._register_resolvers()
+    #     return self.config
 
     # def _build_demjson_config(self, demjson_string):
     #     if demjson_string is None:
@@ -202,9 +207,9 @@ class OliveConfig:
     #     demjson_dict = demjson.decode(demjson_string)
     #     return OmegaConf.create(demjson_dict)
 
-    def _get_args_config(self, args):
-        args_dict = vars(args)
-        return OmegaConf.create(args_dict)
+    # def _get_args_config(self, args):
+    #     args_dict = vars(args)
+    #     return OmegaConf.create(args_dict)
 
     # def _register_resolvers(self):
     #     OmegaConf.clear_resolvers()
