@@ -20,9 +20,6 @@ class BaseDatasetBuilder:
             def test_dataloader(self):
                 test_split = Dataset(...)
                 return DataLoader(test_split)
-            def teardown(self):
-                # clean up after fit or test
-                # called on every process in DDP
     """
 
     def __init__(self):

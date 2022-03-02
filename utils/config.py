@@ -18,7 +18,6 @@ class Config:
 
         user_config = self._build_opt_list(self.args.options)
 
-
         runner_config = self._build_runner_config(self.args.cfg_run)
         model_config = self._build_model_config(self.args.cfg_model)
         dataset_config = self._build_dataset_config(self.args.cfg_data)

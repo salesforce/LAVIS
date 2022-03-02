@@ -1,5 +1,5 @@
 from common.registry import registry
-from datasets.base_dataset_builder import BaseDatasetBuilder
+from datasets.builders.base_dataset_builder import BaseDatasetBuilder
 
 
 @registry.register_builder("flickr30k")
