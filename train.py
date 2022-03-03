@@ -1,8 +1,11 @@
 import argparse
 
+import tasks
+
 from utils.config import Config
 from utils.logger import setup_logger
 from datasets.builders import *
+from tasks import *
 
 
 def parse_args():
@@ -38,8 +41,8 @@ def main():
     cfg = Config(args)
     cfg.pretty_print()
 
+    task = tasks.setup_task(cfg)
     # [TODO]
-    # 1. task = BaseTask().setup_taks(cfg.run.task)
     # 2. task.build_model(cfg.model)
     # 3. datasets = task.build_datasets(cfg.datasets) 
     # 4. criterion = task.build_criterion(cfg.run.criterion)

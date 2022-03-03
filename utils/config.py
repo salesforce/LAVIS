@@ -110,6 +110,12 @@ class Config:
 
         return [(opt + "=" + value) for opt, value in zip(opts[0::2], opts[1::2])]
 
+    def get_config(self):
+        return self.config
+
+    def get_runner_config(self):
+        return self.config.run
+
     def pretty_print(self):
         logger.info("\n=====  Running Parameters    =====")
         logger.info(self._convert_node_to_json(self.config.run))
