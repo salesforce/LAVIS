@@ -43,8 +43,9 @@ def main():
 
     task = tasks.setup_task(cfg)
     # [TODO]
-    # 2. task.build_model(cfg.model)
-    # 3. datasets = task.build_datasets(cfg.datasets) 
+    datasets = task.build_datasets(cfg) 
+
+    # 3. task.build_model(cfg.model)
     # 4. criterion = task.build_criterion(cfg.run.criterion)
     # 5. optimizer = build_optimizer(cfg.run.optimizer)
     # 6. runner = Runner(cfg, task, model, criterion, optimizer)

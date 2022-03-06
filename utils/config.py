@@ -116,6 +116,9 @@ class Config:
     def get_runner_config(self):
         return self.config.run
 
+    def get_datasets_config(self):
+        return self.config.datasets
+
     def pretty_print(self):
         logger.info("\n=====  Running Parameters    =====")
         logger.info(self._convert_node_to_json(self.config.run))

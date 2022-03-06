@@ -1,10 +1,28 @@
 datasets:
-  coco:
+  coco_retrieval:
     # data_dir: ${env.data_dir}/datasets
-    annotations:
-      train:
-        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
-      val:
-        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
-      test:
-        url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
+    data_type: images # [images|videos|features]
+    
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
+        val:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
+        test:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
+      images:
+        train: ''
+        val: ''
+        test: ''
+    
+    storage:
+      annotations:
+        train: tmp/annotations/coco_karpathy_train.json
+        val: tmp/annotations/coco_karpathy_val.json
+        test: tmp/annotations/coco_karpathy_test.json
+      images:
+        train: /export/share/datasets/vision/coco/images/
+        val: /export/share/datasets/vision/coco/images/
+        test: /export/share/datasets/vision/coco/images/

@@ -22,14 +22,42 @@ class BaseDatasetBuilder:
                 return DataLoader(test_split)
     """
 
-    def __init__(self):
+    def __init__(self, cfg):
         super().__init__()
+
+        self.config = cfg
     
-    def prepare_data(self, train_transforms=None, val_transforms=None, test_transforms=None):
+    def build_datasets(self):
         # download, split, etc...
         # only called on 1 GPU/TPU in distributed
-        pass
+
+        self._download_data()
+        # at this point, all the annotations and image/videos should be all downloaded to the specified locations.
+
+        datasets = self.build() # dataset['train'/'val'/'test']
+
+        return datasets
 
     @classmethod
     def default_config_path(cls):
         return None
+
+    def _download_data(self):
+        # [TODO] error-handling
+        self._download_ann()
+        self._download_vis()
+
+    # We need some downloading utilities to help.
+    def _download_ann(self):
+        """"Check whether the required data already exist."""
+        local_anns = self.config.storage.annotations
+        remote_anns = self.config.build_info.annotations
+    
+    # We need some downloading utilities to help.
+    def _download_vis(self):
+        # downloading images/videos can be dataset-specific.
+        raise NotImplementedError
+
+    def build(self):
+        # __getitem__() can be dataset-specific.
+        raise NotImplementedError

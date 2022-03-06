@@ -1,5 +1,7 @@
 import torch
 
+from common.registry import registry
+
 class BaseTask:
     def __init__(self, cfg):
         super().__init__()
@@ -29,9 +31,21 @@ class BaseTask:
     def build_criterion(self, cfg):
         raise NotImplementedError
 
-    def build_dataset(self, cfg):
-        raise NotImplementedError
-    
+    def build_datasets(self, cfg):
+        multi_datasets = dict()
+
+        datasets_config = cfg.get_datasets_config()
+
+        for name in datasets_config:
+            dataset_config = datasets_config[name]
+
+            builder = registry.get_builder_class(name)(dataset_config)
+            datasets = builder.build_datasets()
+
+            multi_datasets[name] = datasets
+        
+        return multi_datasets
+
     def train_step(self, sample, model, criterion, optimizer):
         """
         Do forward and backward, and return the loss as computed by *criterion*
