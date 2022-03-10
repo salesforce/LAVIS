@@ -1,3 +1,10 @@
+import os
+
+from common.registry import registry
+
+from torchvision.datasets.utils import download_url
+
+
 class BaseDatasetBuilder:
     """A BaseDatasetBuilder standardizes the training, val, test splits, data preparation and transforms. The main
     advantage is consistent data splits, data preparation and transforms across models.
@@ -26,6 +33,7 @@ class BaseDatasetBuilder:
         super().__init__()
 
         self.config = cfg
+        self.data_type = cfg.data_type
     
     def build_datasets(self):
         # download, split, etc...
@@ -49,10 +57,28 @@ class BaseDatasetBuilder:
 
     # We need some downloading utilities to help.
     def _download_ann(self):
-        """"Check whether the required data already exist."""
+        """
+        Download annotation files if necessary.
+
+        Local annotation paths should be relative. 
+        """        
         local_anns = self.config.storage.annotations
         remote_anns = self.config.build_info.annotations
-    
+
+        local_splits = local_anns.keys()
+        remote_splits = remote_anns.keys()
+
+        assert local_splits == remote_splits, "Inconsistent remote and local splits, found {} and {}.".format(remote_splits, local_splits)
+
+        cache_root = registry.get_path('cache_root')
+
+        for split in local_splits:
+            rel_path = local_anns[split]
+            ann_dir, filename = os.path.split(os.path.join(cache_root, rel_path))
+
+            if not os.path.exists(ann_dir): os.makedirs(ann_dir)
+            download_url(url=remote_anns[split], root=ann_dir, filename=filename)
+        
     # We need some downloading utilities to help.
     def _download_vis(self):
         # downloading images/videos can be dataset-specific.
