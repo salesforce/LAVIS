@@ -1,3 +1,5 @@
+import os
+
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
@@ -48,10 +50,14 @@ class RetrievalBuilder(BaseDatasetBuilder):
             dataset_cls = RetrievalDataset if is_train else RetrievalEvalDataset
             transform = transform_train if is_train else transform_test
 
+            ann_path = ann_paths.get(split)
+            if not os.path.isabs(ann_path):
+                ann_path = os.path.join(registry.get_path("cache_root"), ann_path) 
+
             datasets[split] = dataset_cls(
                     transform=transform,
                     image_root=vis_paths.get(split),
-                    ann_path=ann_paths.get(split)
+                    ann_path=ann_path
             )
 
         return datasets

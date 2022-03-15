@@ -32,9 +32,23 @@ class BaseTask:
         raise NotImplementedError
 
     def build_datasets(self, cfg):
+        """
+        Build a dictionary of datasets, keyed by split 'train', 'valid', 'test'.
+        Download dataset and annotations automatically if not exist.
+
+        Args:
+            cfg (utils.config.Config): _description_
+
+        Returns:
+            multi_datasets (List): _description_
+        """        
+
         multi_datasets = dict()
 
         datasets_config = cfg.get_datasets_config()
+
+        # [TODO] to support multiple datasets
+        assert len(datasets_config) == 1, "Do not support multiple datasets for now."
 
         for name in datasets_config:
             dataset_config = datasets_config[name]

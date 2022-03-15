@@ -1,4 +1,5 @@
 import os
+from tkinter import E
 
 from common.registry import registry
 
@@ -51,14 +52,17 @@ class BaseDatasetBuilder:
         return None
 
     def _download_data(self):
-        # [TODO] error-handling
         self._download_ann()
         self._download_vis()
 
-    # We need some downloading utilities to help.
     def _download_ann(self):
         """
-        Download annotation files if necessary.
+        Download annotation files if necessary. 
+        All the vision-language datasets should have annotations of unified format.
+
+        storage_path can be:
+          (1) relative/absolute: will be prefixed with env.cache_root to make full path if relative.
+          (2) basename/dirname: will be suffixed with base name of URL if dirname is provided.
 
         Local annotation paths should be relative. 
         """        
@@ -73,11 +77,24 @@ class BaseDatasetBuilder:
         cache_root = registry.get_path('cache_root')
 
         for split in local_splits:
-            rel_path = local_anns[split]
-            ann_dir, filename = os.path.split(os.path.join(cache_root, rel_path))
+            storage_path = local_anns[split]
+            remote_info = remote_anns[split]
 
-            if not os.path.exists(ann_dir): os.makedirs(ann_dir)
-            download_url(url=remote_anns[split], root=ann_dir, filename=filename)
+            # if storage_path is relative, make it full by prefixing with cache_root.
+            if not os.path.isabs(storage_path):
+                storage_path = os.path.join(cache_root, storage_path)
+
+            # create the directory if not exist
+            dirname = os.path.dirname(storage_path)
+            if not os.path.exists(dirname): os.makedirs(dirname)
+
+            if os.path.isdir(storage_path):
+                # if only dirname is provided, suffix with basename of URL.
+                raise ValueError('Expecting storage_path to be a file path, got directory {}'.format(storage_path))
+            else:
+                filename = os.path.basename(storage_path)
+
+            download_url(url=remote_info.url, root=dirname, filename=filename, md5=remote_info.md5)
         
     # We need some downloading utilities to help.
     def _download_vis(self):

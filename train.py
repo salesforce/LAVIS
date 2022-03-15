@@ -1,10 +1,14 @@
 import argparse
+import os
+
+from omegaconf import OmegaConf
 
 import tasks
 
 from utils.config import Config
 from utils.logger import setup_logger
 from datasets.builders import *
+from common.registry import registry
 from tasks import *
 
 
@@ -33,7 +37,16 @@ def parse_args():
     return args
 
 
+def setup_path():
+    root_dir = os.getcwd()
+    default_cfg = OmegaConf.load(os.path.join(root_dir, 'configs/default.yaml'))
+
+    registry.register_path('library_root', root_dir)
+    registry.register_path('cache_root', default_cfg.env.cache_root)
+
+
 def main():
+    setup_path()
     setup_logger()
 
     args = parse_args()

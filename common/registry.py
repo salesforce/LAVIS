@@ -7,6 +7,7 @@ class Registry:
         "task_name_mapping": {},
 
         "state": {},
+        "paths": {}
     }
 
     @classmethod
@@ -56,6 +57,22 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_path(cls, name, path):
+        r"""Register a path to registry with key 'name'
+
+        Args:
+            name: Key with which the path will be registered.
+
+        Usage:
+
+            from common.registry import registry
+        """
+        assert isinstance(
+            path, str
+        ), "All path must be str."
+        cls.mapping["paths"][name] = path
+
+    @classmethod
     def register(cls, name, obj):
         r"""Register an item to registry with key 'name'
 
@@ -89,6 +106,10 @@ class Registry:
     @classmethod
     def get_task_class(cls, name):
         return cls.mapping["task_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_path(cls, name):
+        return cls.mapping["paths"].get(name, None)
 
     @classmethod
     def get(cls, name, default=None, no_warning=False):
