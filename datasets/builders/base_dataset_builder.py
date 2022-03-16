@@ -35,6 +35,9 @@ class BaseDatasetBuilder:
 
         self.config = cfg
         self.data_type = cfg.data_type
+
+        self.vis_processors = dict()
+        self.text_processors = dict()
     
     def build_datasets(self):
         # download, split, etc...
@@ -46,6 +49,9 @@ class BaseDatasetBuilder:
         datasets = self.build() # dataset['train'/'val'/'test']
 
         return datasets
+
+    def build_processors(self):
+        raise NotImplementedError
 
     @classmethod
     def default_config_path(cls):
@@ -102,5 +108,5 @@ class BaseDatasetBuilder:
         raise NotImplementedError
 
     def build(self):
-        # __getitem__() can be dataset-specific.
+        # build() can be dataset-specific.
         raise NotImplementedError

@@ -1,10 +1,8 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# from mmf.utils.env import setup_imports
-
 class Registry:
     mapping = {
         "builder_name_mapping": {},
         "task_name_mapping": {},
+        "processor_name_mapping": {},
 
         "state": {},
         "paths": {}
@@ -53,6 +51,28 @@ class Registry:
             ), "All tasks must inherit BaseTask class"
             cls.mapping["task_name_mapping"][name] = task_cls
             return task_cls
+        
+        return wrap
+
+    @classmethod
+    def register_processor(cls, name):
+        r"""Register a processor to registry with key 'name'
+
+        Args:
+            name: Key with which the task will be registered.
+
+        Usage:
+
+            from common.registry import registry
+        """
+        def wrap(processor_cls):
+            from processors import BaseProcessor
+
+            assert issubclass(
+                processor_cls, BaseProcessor
+            ), "All processors must inherit BaseProcessor class"
+            cls.mapping["processor_name_mapping"][name] = processor_cls
+            return processor_cls
         
         return wrap
 
@@ -106,6 +126,10 @@ class Registry:
     @classmethod
     def get_task_class(cls, name):
         return cls.mapping["task_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_processor_class(cls, name):
+        return cls.mapping["processor_name_mapping"].get(name, None)
 
     @classmethod
     def get_path(cls, name):

@@ -5,11 +5,13 @@ from omegaconf import OmegaConf
 
 import tasks
 
+from common.registry import registry
 from utils.config import Config
 from utils.logger import setup_logger
+
 from datasets.builders import *
-from common.registry import registry
 from tasks import *
+from processors import *
 
 
 def parse_args():
@@ -55,7 +57,6 @@ def main():
     cfg.pretty_print()
 
     task = tasks.setup_task(cfg)
-    # [TODO]
     datasets = task.build_datasets(cfg) 
 
     # 3. task.build_model(cfg.model)

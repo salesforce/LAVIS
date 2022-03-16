@@ -1,27 +1,9 @@
 import os
 
-from torchvision import transforms
-from torchvision.transforms.functional import InterpolationMode
-
 from common.registry import registry
 from datasets.builders.base_dataset_builder import BaseDatasetBuilder
 from datasets.datasets.retrieval_datasets import RetrievalDataset, RetrievalEvalDataset
 
-
-# [TODO] to relocate
-normalize = transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))
-
-transform_test = transforms.Compose([
-    transforms.Resize((224,224),interpolation=InterpolationMode.BICUBIC),
-    transforms.ToTensor(),
-    normalize,
-    ])  
-
-transform_train = transforms.Compose([
-    transforms.Resize((224,224),interpolation=InterpolationMode.BICUBIC),
-    transforms.ToTensor(),
-    normalize,
-    ])  
 
 @registry.register_builder("retrieval")
 class RetrievalBuilder(BaseDatasetBuilder):
@@ -32,10 +14,24 @@ class RetrievalBuilder(BaseDatasetBuilder):
     def default_config_path(cls):
         raise NotImplementedError
     
+    def build_processors(self):
+        """
+        Building processors is task-specific.
+
+        Some tasks require both visual and text processors, e.g. retrieval, QA.
+        Some tasks require only visual processors, e.g. captioning.
+        """
+        self.vis_processors['train'] = registry.get_processor_class(self.config.vis_processor['train'])()
+        self.vis_processors['eval'] = registry.get_processor_class(self.config.vis_processor['eval'])()
+
+        self.text_processors['train'] = registry.get_processor_class(self.config.text_processor['train'])()
+        self.text_processors['eval'] = registry.get_processor_class(self.config.text_processor['eval'])()
+
     def build(self):
         """
         Create by split datasets inheriting torch.utils.data.Datasets.
         """
+        self.build_processors()
 
         storage_info = self.config.storage
         
@@ -47,17 +43,26 @@ class RetrievalBuilder(BaseDatasetBuilder):
             assert split in ['train', 'val', 'test'], "Invalid split name {}, must be one of 'train', 'val' and 'test'."
             is_train = split == 'train'
 
-            dataset_cls = RetrievalDataset if is_train else RetrievalEvalDataset
-            transform = transform_train if is_train else transform_test
+            # processors
+            vis_processor = self.vis_processors['train'] if is_train else self.vis_processors['eval']
+            text_processor = self.text_processors['train'] if is_train else self.text_processors['eval']
 
+            # annotation path
             ann_path = ann_paths.get(split)
             if not os.path.isabs(ann_path):
                 ann_path = os.path.join(registry.get_path("cache_root"), ann_path) 
+            
+            vis_path = vis_paths.get(split)
+            if not os.path.isabs(vis_path):
+                vis_path = os.path.join(registry.get_path("cache_root"), vis_path) 
 
+            # create datasets
+            dataset_cls = RetrievalDataset if is_train else RetrievalEvalDataset
             datasets[split] = dataset_cls(
-                    transform=transform,
-                    image_root=vis_paths.get(split),
-                    ann_path=ann_path
-            )
+                    vis_processor=vis_processor,
+                    text_processor=text_processor,
+                    ann_path=ann_path,
+                    image_root=vis_path
+                )
 
         return datasets
