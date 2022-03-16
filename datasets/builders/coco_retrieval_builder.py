@@ -16,7 +16,7 @@ class COCORetrievalBuilder(RetrievalBuilder):
     
     @classmethod
     def default_config_path(cls):
-        return "configs/datasets/coco/defaults.yaml"
+        return "configs/datasets/coco/defaults_ret.yaml"
     
     def _download_vis(self):
         local_paths = self.config.storage.get(self.data_type)
