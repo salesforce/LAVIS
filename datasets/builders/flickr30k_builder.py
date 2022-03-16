@@ -1,9 +1,9 @@
 from common.registry import registry
-from datasets.builders.retrieval_builder import RetrievalBuilder
+from datasets.builders.base_dataset_builder import BaseDatasetBuilder
 
 
 @registry.register_builder("flickr30k")
-class Flickr30kBuilder(RetrievalBuilder):
+class Flickr30kBuilder(BaseDatasetBuilder):
     def __init__(self, cfg):
         super().__init__(cfg)
     

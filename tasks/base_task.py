@@ -48,6 +48,7 @@ class BaseTask:
         datasets_config = cfg.get_datasets_config()
 
         # [TODO] to support multiple datasets
+        assert len(datasets_config) > 0, "At least one dataset has to be specified."
         assert len(datasets_config) == 1, "Do not support multiple datasets for now."
 
         for name in datasets_config:

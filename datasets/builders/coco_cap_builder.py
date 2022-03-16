@@ -3,24 +3,24 @@ import logging
 
 from torchvision.datasets.utils import download_url
 
+from datasets.datasets.coco_caption_datasets import COCOCapDataset, COCOCapEvalDataset 
 from datasets.builders.base_dataset_builder import BaseDatasetBuilder
-from datasets.datasets.retrieval_datasets import RetrievalDataset, RetrievalEvalDataset
 
 from utils.file_utils import extract_archive
 from common.registry import registry
 
 
-@registry.register_builder("coco_retrieval")
-class COCORetrievalBuilder(BaseDatasetBuilder):
-    train_dataset_cls = RetrievalDataset
-    test_dataset_cls = RetrievalEvalDataset
+@registry.register_builder("coco_caption")
+class COCOCapBuilder(BaseDatasetBuilder):
+    train_dataset_cls = COCOCapDataset
+    eval_dataset_cls = COCOCapEvalDataset
 
     def __init__(self, cfg):
         super().__init__(cfg)
     
     @classmethod
     def default_config_path(cls):
-        return "configs/datasets/coco/defaults_ret.yaml"
+        return "configs/datasets/coco/defaults_cap.yaml"
     
     def _download_vis(self):
         local_paths = self.config.storage.get(self.data_type)

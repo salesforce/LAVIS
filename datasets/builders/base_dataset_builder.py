@@ -29,6 +29,7 @@ class BaseDatasetBuilder:
                 test_split = Dataset(...)
                 return DataLoader(test_split)
     """
+    train_dataset_cls, eval_dataset_cls = None, None
 
     def __init__(self, cfg):
         super().__init__()
@@ -51,7 +52,19 @@ class BaseDatasetBuilder:
         return datasets
 
     def build_processors(self):
-        raise NotImplementedError
+        """
+        Building processors is task-specific.
+
+        Some tasks require both visual and text processors, e.g. retrieval, QA.
+        Some tasks require only visual processors, e.g. captioning.
+
+        Overwrite for data-specific processors.
+        """
+        self.vis_processors['train'] = registry.get_processor_class(self.config.vis_processor['train'])()
+        self.vis_processors['eval'] = registry.get_processor_class(self.config.vis_processor['eval'])()
+
+        self.text_processors['train'] = registry.get_processor_class(self.config.text_processor['train'])()
+        self.text_processors['eval'] = registry.get_processor_class(self.config.text_processor['eval'])()
 
     @classmethod
     def default_config_path(cls):
@@ -108,5 +121,46 @@ class BaseDatasetBuilder:
         raise NotImplementedError
 
     def build(self):
-        # build() can be dataset-specific.
         raise NotImplementedError
+
+    def build(self):
+        """
+        Create by split datasets inheriting torch.utils.data.Datasets.
+
+        # build() can be dataset-specific. Overwrite to customize.
+        """
+        self.build_processors()
+
+        storage_info = self.config.storage
+        
+        ann_paths = storage_info.get('annotations')
+        vis_paths = storage_info.get(self.data_type)
+
+        datasets = dict()
+        for split in ann_paths.keys():
+            assert split in ['train', 'val', 'test'], "Invalid split name {}, must be one of 'train', 'val' and 'test'."
+            is_train = split == 'train'
+
+            # processors
+            vis_processor = self.vis_processors['train'] if is_train else self.vis_processors['eval']
+            text_processor = self.text_processors['train'] if is_train else self.text_processors['eval']
+
+            # annotation path
+            ann_path = ann_paths.get(split)
+            if not os.path.isabs(ann_path):
+                ann_path = os.path.join(registry.get_path("cache_root"), ann_path) 
+            
+            vis_path = vis_paths.get(split)
+            if not os.path.isabs(vis_path):
+                vis_path = os.path.join(registry.get_path("cache_root"), vis_path) 
+
+            # create datasets
+            dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
+            datasets[split] = dataset_cls(
+                    vis_processor=vis_processor,
+                    text_processor=text_processor,
+                    ann_path=ann_path,
+                    image_root=vis_path
+                )
+
+        return datasets

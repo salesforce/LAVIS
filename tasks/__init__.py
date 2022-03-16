@@ -2,6 +2,7 @@ from common.registry import registry
 
 from tasks.base_task import BaseTask
 from tasks.retrieval import RetrievalTask
+from tasks.captioning import CaptionTask
 
 def setup_task(cfg):
     assert 'task' in cfg.get_runner_config(), 'Task name must be provided.'
@@ -13,5 +14,5 @@ def setup_task(cfg):
     return task
 
 __all__ = [
-        'BaseTask', 'RetrievalTask',
+        'BaseTask', 'RetrievalTask', 'CaptionTask'
         ]
