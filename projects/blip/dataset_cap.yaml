@@ -1,0 +1,8 @@
+datasets:
+  coco_caption: # name of the dataset builder
+    vis_processor: 
+        train: "blip_coco_ret_vis_train"
+        eval: "blip_coco_ret_vis_eval"
+    text_processor:
+        train: "blip_coco_ret_text"
+        eval: "blip_coco_ret_text"

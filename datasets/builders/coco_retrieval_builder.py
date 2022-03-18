@@ -13,7 +13,7 @@ from common.registry import registry
 @registry.register_builder("coco_retrieval")
 class COCORetrievalBuilder(BaseDatasetBuilder):
     train_dataset_cls = RetrievalDataset
-    test_dataset_cls = RetrievalEvalDataset
+    eval_dataset_cls = RetrievalEvalDataset
 
     def __init__(self, cfg):
         super().__init__(cfg)

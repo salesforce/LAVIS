@@ -1,0 +1,7 @@
+run:
+  task: retrieval
+  # task: captioning
+  # optimizer
+  weight_decay: 0.05
+  min_lr: 0
+  max_epoch: 6
