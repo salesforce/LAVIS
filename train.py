@@ -9,9 +9,11 @@ from common.registry import registry
 from utils.config import Config
 from utils.logger import setup_logger
 
+# imports modules for registration
 from datasets.builders import *
 from tasks import *
 from processors import *
+from models import *
 
 import utils.blip_utils as utils
 
@@ -100,8 +102,12 @@ def evaluate(model, data_loader, device, config):
         
         image = image.to(device)       
         
-        captions = model.generate(image, sample=False, num_beams=config['num_beams'], max_length=config['max_length'], 
+        samples = {"vis_data": image, "id": image_id}
+
+        captions = model.generate(samples, use_nucleus_sampling=False, num_beams=config['num_beams'], max_length=config['max_length'], 
                                   min_length=config['min_length'])
+        # captions = model.generate(image, sample=False, num_beams=config['num_beams'], max_length=config['max_length'], 
+        #                           min_length=config['min_length'])
         
         for caption, img_id in zip(captions, image_id):
             result.append({"image_id": img_id.item(), "caption": caption})
@@ -172,10 +178,11 @@ def main():
                                                           collate_fns=[None, None, None])
 
     #### Model ####
-    print("Creating model")
-    model = blip_decoder(pretrained=config['pretrained'], image_size=config['image_size'], vit=config['vit'],
-                         vit_grad_ckpt=config['vit_grad_ckpt'], vit_ckpt_layer=config['vit_ckpt_layer'],
-                         prompt=config['prompt'])
+    # print("Creating model")
+    model = task.build_model(cfg)
+    # model = blip_decoder(pretrained=config['pretrained'], image_size=config['image_size'], vit=config['vit'],
+    #                      vit_grad_ckpt=config['vit_grad_ckpt'], vit_ckpt_layer=config['vit_ckpt_layer'],
+    #                      prompt=config['prompt'])
 
     model = model.to(device)
 
@@ -190,7 +197,7 @@ def main():
     best = 0
     best_epoch = 0
 
-    print("Start training")
+    # print("Start training")
     start_time = time.time()
     for epoch in range(0, config['max_epoch']):
         if not args.evaluate:

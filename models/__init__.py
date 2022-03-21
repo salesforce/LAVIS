@@ -6,10 +6,13 @@ from .base_model import (
     # BaseEncoderDecoderModel
 )
 
+from .blip_model import BlipEncoderDecoder
+
 __all__ = [
     # "BaseEncoder",
     # "BaseDecoder",
     "BaseModel",
+    "BlipEncoderDecoder"
     # "BaseEncoderModel",
     # "BaseEncoderDecoderModel",
 ]

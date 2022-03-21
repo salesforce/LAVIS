@@ -26,7 +26,10 @@ class BaseTask:
         return self.datasets[split]
 
     def build_model(self, cfg):
-        raise NotImplementedError
+        model_config = cfg.get_model_config()
+
+        model_cls = registry.get_model_class(model_config.arch)
+        return model_cls.build_model(model_config)
 
     def build_criterion(self, cfg):
         raise NotImplementedError

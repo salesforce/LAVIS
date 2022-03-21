@@ -1,15 +1,14 @@
 model:
-  arch: BLIP
-  pretrained: 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth'
+  arch: blip_enc_dec
 
   # size of vit model; base or large
 
-  vit: 'base'
-  batch_size_train: 32
-  batch_size_test: 64
-  vit_grad_ckpt: True
-  vit_ckpt_layer: 4
-  init_lr: 1e-5
+  # vit: 'base'
+  # batch_size_train: 32
+  # batch_size_test: 64
+  # vit_grad_ckpt: True
+  # vit_ckpt_layer: 4
+  # init_lr: 1e-5
 
   # vit: 'large'
   # batch_size_train: 16
@@ -18,8 +17,8 @@ model:
   # vit_ckpt_layer: 12
   # init_lr: 5e-6
 
-  image_size: 384
-  queue_size: 57600
-  alpha: 0.4
-  k_test: 256
-  negative_all_rank: True
+  # image_size: 384
+  # queue_size: 57600
+  # alpha: 0.4
+  # k_test: 256
+  # negative_all_rank: True

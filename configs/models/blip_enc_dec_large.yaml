@@ -1,0 +1,14 @@
+model:
+  vit_type: "large"
+  vit_grad_ckpt: True
+  vit_ckpt_layer: 5
+  batch_size: 16
+  init_lr: 2e-6
+
+  image_size: 384
+
+  # generation configs
+  max_length: 20  
+  min_length: 5
+  num_beams: 3
+  prompt: "a picture of "

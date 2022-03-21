@@ -3,6 +3,7 @@ class Registry:
         "builder_name_mapping": {},
         "task_name_mapping": {},
         "processor_name_mapping": {},
+        "model_name_mapping": {},
 
         "state": {},
         "paths": {}
@@ -26,7 +27,7 @@ class Registry:
 
             assert issubclass(
                 builder_cls, BaseDatasetBuilder
-            ), "All builders must inherit BaseDatasetBuilder class"
+            ), "All builders must inherit BaseDatasetBuilder class, found {}".format(builder_cls)
             if name in cls.mapping["builder_name_mapping"]:
                 raise KeyError("Name '{}' already registered for {}.".format(name, cls.mapping["builder_name_mapping"][name]))
             cls.mapping["builder_name_mapping"][name] = builder_cls
@@ -83,6 +84,30 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_model(cls, name):
+        r"""Register a model to registry with key 'name'
+
+        Args:
+            name: Key with which the task will be registered.
+
+        Usage:
+
+            from common.registry import registry
+        """
+        def wrap(model_cls):
+            from models import BaseModel
+
+            assert issubclass(
+                model_cls, BaseModel
+            ), "All models must inherit BaseModel class"
+            if name in cls.mapping["model_name_mapping"]:
+                raise KeyError("Name '{}' already registered for {}.".format(name, cls.mapping["processor_name_mapping"][name]))
+            cls.mapping["model_name_mapping"][name] = model_cls
+            return model_cls
+        
+        return wrap
+
+    @classmethod
     def register_path(cls, name, path):
         r"""Register a path to registry with key 'name'
 
@@ -130,6 +155,10 @@ class Registry:
     @classmethod
     def get_builder_class(cls, name):
         return cls.mapping["builder_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_model_class(cls, name):
+        return cls.mapping["model_name_mapping"].get(name, None)
     
     @classmethod
     def get_task_class(cls, name):

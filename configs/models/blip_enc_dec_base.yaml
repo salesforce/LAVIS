@@ -1,0 +1,18 @@
+model:
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base_caption.pth"
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: False
+  vit_ckpt_layer: 0
+
+  image_size: 384
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"
+
+  # generation configs
+  max_length: 20
+  min_length: 5
+  num_beams: 3
+  prompt: "a picture of "
