@@ -1,5 +1,5 @@
 env:
   # For default users
-  # cache_root: "~/.cache/lava" 
+  # cache_root: "~/.cache/lavis" 
   # For internal use with persistent storage
-  cache_root: "/export/home/.cache/lava" 
+  cache_root: "/export/home/.cache/lavis" 
