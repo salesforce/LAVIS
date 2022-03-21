@@ -1,5 +1,6 @@
 import logging
 import json
+import warnings
 
 from omegaconf import OmegaConf
 from common.registry import registry
@@ -37,32 +38,29 @@ class Config:
         config = OmegaConf.load(config_path)
 
         root_keys = config.keys()
-        assert len(root_keys) == 1, "Missing or duplicate root keys for runner configuration file."
+        assert len(root_keys) == 1, "Missing or duplicate root keys for model configuration file."
         assert "model" in config, \
             "Root key for model configuration is expected to be 'model', found '{}'.".format(list(root_keys)[0])
 
-        # model = config.model
-        # if model is None:
-        #     raise KeyError("Required argument 'model' not passed")
-        # model_cls = registry.get_model_class(model)
+        model = config.get('model', None)
+        assert model is not None, "Missing model configuration file."
 
-        # if model_cls is None:
-        #     warning = f"No model named '{model}' has been registered"
-        #     warnings.warn(warning)
-        #     return OmegaConf.create()
+        model_cls = registry.get_model_class(model.arch)
 
-        # default_model_config_path = model_cls.config_path()
+        if model_cls is None:
+            warning = f"No model named '{model.arch}' has been registered"
+            warnings.warn(warning)
+            return OmegaConf.create()
 
-        # if default_model_config_path is None:
-        #     warning = "Model {}'s class has no default configuration provided".format(
-        #         model
-        #     )
-        #     warnings.warn(warning)
-        #     return OmegaConf.create()
+        default_model_config_path = model_cls.default_config_path()
 
-        # return load_yaml(default_model_config_path)
+        model_config = OmegaConf.create()
+        # hiararchy override, customized config > default config
+        model_config = OmegaConf.merge(
+            model_config, OmegaConf.load(default_model_config_path), config
+        )
 
-        return config 
+        return model_config 
 
 
     def _build_runner_config(self, config_path):
@@ -119,6 +117,9 @@ class Config:
     def get_datasets_config(self):
         return self.config.datasets
 
+    def get_model_config(self):
+        return self.config.model
+
     def pretty_print(self):
         logger.info("\n=====  Running Parameters    =====")
         logger.info(self._convert_node_to_json(self.config.run))
@@ -133,7 +134,6 @@ class Config:
                 logger.info(self._convert_node_to_json(dataset_config))
             else:
                 logger.warning(f"No dataset named '{dataset}' in config. Skipping")
-
 
         logger.info(f"\n======  Model Attributes  ======")
         logger.info(
