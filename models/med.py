@@ -956,46 +956,43 @@ class BertLMHeadModel(BertPreTrainedModel):
         return reordered_past
 
 
-class BertLMHeadDecoder(BaseDecoder):
-    def __init__(self, cfg):
-        super().__init__()
-        
-        self.cfg = cfg
+class BertXLMHeadDecoder(BertLMHeadModel, BaseDecoder):
+    @classmethod
+    def build_model(cls, cfg):
 
-        med_config_path = self.cfg.get("med_config_path")
+        med_config_path = cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)
 
-        self.text_decoder = BertLMHeadModel(config=med_config)
+        return cls(config=med_config)
 
-    def forward(self, samples, enc_out, **kwargs):
-        raise NotImplementedError
-
-    def generate(self, image_embeds, input_ids, tokenizer, do_sample=False, num_beams=3, max_length=30, min_length=10, top_p=0.9, repetition_penalty=1.0):
+    def generate_from_visual(self, image_embeds, input_ids, tokenizer, do_sample=False, num_beams=3, max_length=30, min_length=10, top_p=0.9, repetition_penalty=1.0):
 
         image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(image_embeds.device)
         model_kwargs = {"encoder_hidden_states": image_embeds, "encoder_attention_mask":image_atts}
 
         if do_sample:
             #nucleus sampling
-            outputs = self.text_decoder.generate(input_ids=input_ids,
-                                                  max_length=max_length,
-                                                  min_length=min_length,
-                                                  do_sample=True,
-                                                  top_p=top_p,
-                                                  num_return_sequences=1,
-                                                  eos_token_id=tokenizer.sep_token_id,
-                                                  pad_token_id=tokenizer.pad_token_id, 
-                                                  repetition_penalty=1.1,                                            
-                                                  **model_kwargs)
+            outputs = self.generate(input_ids=input_ids,
+                                    max_length=max_length,
+                                    min_length=min_length,
+                                    do_sample=True,
+                                    top_p=top_p,
+                                    num_return_sequences=1,
+                                    eos_token_id=tokenizer.sep_token_id,
+                                    pad_token_id=tokenizer.pad_token_id, 
+                                    repetition_penalty=1.1,                                            
+                                    **model_kwargs
+                                    )
         else:
             #beam search
-            outputs = self.text_decoder.generate(input_ids=input_ids,
-                                                  max_length=max_length,
-                                                  min_length=min_length,
-                                                  num_beams=num_beams,
-                                                  eos_token_id=tokenizer.sep_token_id,
-                                                  pad_token_id=tokenizer.pad_token_id,     
-                                                  repetition_penalty=repetition_penalty,
-                                                  **model_kwargs)            
+            outputs = self.generate(input_ids=input_ids,
+                                    max_length=max_length,
+                                    min_length=min_length,
+                                    num_beams=num_beams,
+                                    eos_token_id=tokenizer.sep_token_id,
+                                    pad_token_id=tokenizer.pad_token_id,     
+                                    repetition_penalty=repetition_penalty,
+                                    **model_kwargs
+                                    )            
             
         return outputs

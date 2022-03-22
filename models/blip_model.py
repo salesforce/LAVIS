@@ -7,8 +7,8 @@ from timm.models.hub import download_cached_file
 
 from models.base_model import EncoderDecoderModel
 from models.blip import init_tokenizer
-from models.med import BertLMHeadDecoder
-from models.vit import VisionTransformer, interpolate_pos_embed
+from models.med import BertXLMHeadDecoder
+from models.vit import VisionTransformerEncoder, interpolate_pos_embed
 
 
 # [TODO] move to utils for reuse
@@ -70,7 +70,7 @@ class BlipEncoderDecoder(EncoderDecoderModel):
             enc_out['image_embeds'] = image_embeds
 
         # get decoded text 
-        decoder_out = self.decoder.generate(
+        decoder_out = self.decoder.generate_from_visual(
             input_ids=input_ids,
             max_length=max_length,
             min_length=min_length,
@@ -92,11 +92,11 @@ class BlipEncoderDecoder(EncoderDecoderModel):
     def build_model(cls, cfg):
         # vision encoder
         # encoder = VisionTransformerEncoder.build_model(cfg) 
-        encoder = VisionTransformer.build_model(cfg) 
+        encoder = VisionTransformerEncoder.build_model(cfg) 
         if "vision_width" not in cfg:
             cfg.vision_width = encoder.vision_width
         # text encoder + multimodal decoder
-        decoder = BertLMHeadDecoder(cfg)
+        decoder = BertXLMHeadDecoder.build_model(cfg)
 
         model = cls(encoder, decoder)
 
@@ -136,7 +136,7 @@ class BlipEncoderDecoder(EncoderDecoderModel):
             if "visual_encoder" in key:
                 new_key = key.replace("visual_encoder", "encoder")
             elif "text_decoder" in key:
-                new_key = key.replace("text_decoder", "decoder.text_decoder")
+                new_key = key.replace("text_decoder", "decoder")
             else:
                 new_key = key
             new_state_dict[new_key] = state_dict[key]
