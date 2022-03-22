@@ -201,13 +201,13 @@ def main():
     # print("Start training")
     start_time = time.time()
     for epoch in range(0, config['max_epoch']):
-        if not args.evaluate:
-            if args.distributed:
-                train_loader.sampler.set_epoch(epoch)
+        # if not args.evaluate:
+        #     if args.distributed:
+        #         train_loader.sampler.set_epoch(epoch)
 
-            utils.cosine_lr_schedule(optimizer, epoch, int(config['max_epoch']), float(config['init_lr']), float(config['min_lr']))
+        #     utils.cosine_lr_schedule(optimizer, epoch, int(config['max_epoch']), float(config['init_lr']), float(config['min_lr']))
 
-            train_stats = train(model, train_loader, optimizer, epoch, device)
+        #     train_stats = train(model, train_loader, optimizer, epoch, device)
 
         val_result = evaluate(model_without_ddp, val_loader, device, config)
         val_result_file = utils.save_result(val_result, args.result_dir, 'val_epoch%d' % epoch,
