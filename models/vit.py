@@ -19,7 +19,7 @@ from timm.models.layers import trunc_normal_, DropPath
 from timm.models.helpers import named_apply, adapt_input_conv
 
 from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
-from models.base_model import BaseEncoderModel
+from models.base_model import BaseEncoder
 
 class Mlp(nn.Module):
     """ MLP as used in Vision Transformer, MLP-Mixer and related networks
@@ -111,7 +111,8 @@ class Block(nn.Module):
         return x
 
     
-class VisionTransformer(nn.Module):
+# class VisionTransformer(nn.Module):
+class VisionTransformer(BaseEncoder):
     """ Vision Transformer
     A PyTorch impl of : `An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale`  -
         https://arxiv.org/abs/2010.11929
@@ -164,6 +165,32 @@ class VisionTransformer(nn.Module):
         trunc_normal_(self.pos_embed, std=.02)
         trunc_normal_(self.cls_token, std=.02)
         self.apply(self._init_weights)
+
+    @classmethod
+    def build_model(cls, cfg):
+
+        vit_type = cfg.get('vit_type', 'base')
+        image_size = cfg.get('image_size', 384)
+        use_grad_checkpointing = cfg.get('vit_grad_ckpt', False)
+        ckpt_layer = cfg.get('vit_ckpt_layer', 0)
+        drop_path_rate = cfg.get('vit_drop_path_rate', 0)
+
+        assert vit_type in ['base', 'large'], "vit parameter must be base or large"
+        if vit_type == 'base':
+            vision_width = 768
+            visual_encoder = cls(img_size=image_size, patch_size=16, embed_dim=vision_width, depth=12, 
+                                            num_heads=12, use_grad_checkpointing=use_grad_checkpointing, ckpt_layer=ckpt_layer,
+                                            drop_path_rate=0 or drop_path_rate
+                                            )   
+        elif vit_type == 'large':
+            vision_width = 1024
+            visual_encoder = cls(img_size=image_size, patch_size=16, embed_dim=vision_width, depth=24, 
+                                            num_heads=16, use_grad_checkpointing=use_grad_checkpointing, ckpt_layer=ckpt_layer,
+                                            drop_path_rate=0.1 or drop_path_rate
+                                            )   
+
+        visual_encoder.vision_width = vision_width
+        return visual_encoder
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -304,46 +331,3 @@ def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
         return new_pos_embed    
     else:
         return pos_embed_checkpoint
-
-
-class VisionTransformerEncoder(BaseEncoderModel):
-    def __init__(self, cfg):
-        super().__init__(cfg)
-
-        vit_type = cfg.get('vit_type', 'base')
-        image_size = cfg.get('image_size', 384)
-        vit_grad_ckpt = cfg.get('enable_grad_ckpt', False)
-        vit_ckpt_layer = cfg.get('vit_ckpt_layer', 0)
-
-        vit_model, vision_width = create_vit(
-            vit=vit_type,
-            image_size=image_size,
-            use_grad_checkpointing=vit_grad_ckpt,
-            ckpt_layer=vit_ckpt_layer
-        )
-
-        self.vit = vit_model
-        self.vision_width = vision_width
-    
-    def forward(self, images):
-        image_embeds = self.vit(images)
-
-        return image_embeds
-
-
-def create_vit(vit, image_size, use_grad_checkpointing=False, ckpt_layer=0, drop_path_rate=0):
-        
-    assert vit in ['base', 'large'], "vit parameter must be base or large"
-    if vit=='base':
-        vision_width = 768
-        visual_encoder = VisionTransformer(img_size=image_size, patch_size=16, embed_dim=vision_width, depth=12, 
-                                           num_heads=12, use_grad_checkpointing=use_grad_checkpointing, ckpt_layer=ckpt_layer,
-                                           drop_path_rate=0 or drop_path_rate
-                                          )   
-    elif vit=='large':
-        vision_width = 1024
-        visual_encoder = VisionTransformer(img_size=image_size, patch_size=16, embed_dim=vision_width, depth=24, 
-                                           num_heads=16, use_grad_checkpointing=use_grad_checkpointing, ckpt_layer=ckpt_layer,
-                                           drop_path_rate=0.1 or drop_path_rate
-                                          )   
-    return visual_encoder, vision_width

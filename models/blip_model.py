@@ -8,7 +8,7 @@ from timm.models.hub import download_cached_file
 from models.base_model import EncoderDecoderModel
 from models.blip import init_tokenizer
 from models.med import BertLMHeadDecoder
-from models.vit import VisionTransformerEncoder, interpolate_pos_embed
+from models.vit import VisionTransformer, interpolate_pos_embed
 
 
 # [TODO] move to utils for reuse
@@ -91,7 +91,8 @@ class BlipEncoderDecoder(EncoderDecoderModel):
     @classmethod
     def build_model(cls, cfg):
         # vision encoder
-        encoder = VisionTransformerEncoder(cfg) 
+        # encoder = VisionTransformerEncoder.build_model(cfg) 
+        encoder = VisionTransformer.build_model(cfg) 
         if "vision_width" not in cfg:
             cfg.vision_width = encoder.vision_width
         # text encoder + multimodal decoder
@@ -127,15 +128,13 @@ class BlipEncoderDecoder(EncoderDecoderModel):
 
         state_dict = checkpoint['model']
         
-        state_dict['encoder.vit.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.vit) 
-        del state_dict['visual_encoder.pos_embed']
-        # state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'],model.visual_encoder) 
+        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder) 
 
         # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
         new_state_dict = dict()
         for key in state_dict.keys():
             if "visual_encoder" in key:
-                new_key = key.replace("visual_encoder", "encoder.vit")
+                new_key = key.replace("visual_encoder", "encoder")
             elif "text_decoder" in key:
                 new_key = key.replace("text_decoder", "decoder.text_decoder")
             else:

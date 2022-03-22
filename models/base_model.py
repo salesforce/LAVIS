@@ -24,21 +24,19 @@ class BaseModel(nn.Module):
         """
         raise NotImplementedError
 
-class BaseEncoderModel(nn.Module):
-    """Base class for models."""
+class BaseEncoder(nn.Module):
+    """
+    Base class for primitive encoders, such as ViT, TimeSformer, etc.
+    """
 
-    def __init__(self, cfg):
+    def __init__(self):
         super().__init__()
-
-        self.cfg = cfg
     
     def forward(self, samples, **kwargs):
-        """
-        """
         raise NotImplementedError
 
 
-class BaseDecoderModel(nn.Module):
+class BaseDecoder(nn.Module):
     """Base class for decoders."""
 
     def __init__(self):
@@ -50,7 +48,7 @@ class BaseDecoderModel(nn.Module):
         raise NotImplementedError
 
 
-class DualEncoderModel(BaseEncoderModel):
+class DualEncoderModel(BaseEncoder):
     def __init__(self, vis_encoder, text_encoder):
         super().__init__()
 
@@ -74,8 +72,8 @@ class EncoderDecoderModel(BaseModel):
 
         self.encoder = encoder
         self.decoder = decoder
-        assert isinstance(self.encoder, BaseEncoderModel)
-        assert isinstance(self.decoder, BaseDecoderModel)
+        assert isinstance(self.encoder, BaseEncoder)
+        assert isinstance(self.decoder, BaseDecoder)
     
     def forward(self, samples, **kwargs):
         encoder_out = self.forward_encoder(samples, **kwargs)

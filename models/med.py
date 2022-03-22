@@ -45,7 +45,7 @@ from transformers.modeling_utils import (
 from transformers.utils import logging
 from transformers.models.bert.configuration_bert import BertConfig
 
-from models.base_model import BaseDecoderModel
+from models.base_model import BaseDecoder
 
 
 logger = logging.get_logger(__name__)
@@ -956,10 +956,12 @@ class BertLMHeadModel(BertPreTrainedModel):
         return reordered_past
 
 
-class BertLMHeadDecoder(BaseDecoderModel):
+class BertLMHeadDecoder(BaseDecoder):
     def __init__(self, cfg):
-        super().__init__(cfg)
+        super().__init__()
         
+        self.cfg = cfg
+
         med_config_path = self.cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)
 
