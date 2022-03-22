@@ -34,11 +34,11 @@ class BlipEncoderDecoder(EncoderDecoderModel):
 
     def forward_encoder(self, samples):
         """
-        The forward_encoder() and forward_decoder() allows the compositional
+        The forward_encoder() and forward_decoder() allows the constituent
         encoder decoder class to be reuse without coupling to a specific vision-language model.
 
         If instead call encoder(samples), then the forward() definition of
-        the compositional encoder has to return in a specific form, 
+        the constituent encoder has to return in a specific form, 
             e.g. {"image_embeds": image_embeds}
 
         However, in different vision-language models, different return values may be needed.

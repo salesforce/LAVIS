@@ -9,9 +9,19 @@ class BaseModel(nn.Module):
     
     def extract_features(self, *args, **kwargs):
         """Similar to *forward* but only return features."""
-        return self(*args, **kwargs)
+        raise NotImplementedError
 
     def load_from_pretrained(self, url_or_filename):
+        raise NotImplementedError
+    
+    @classmethod
+    def build_model(cls, cfg):
+        """
+        A factory method to create instance from cfg.
+
+        This is to ensure the definition of __init__() is not coupled to the cfg.
+        Namely, even without cfg file, one should be able to recreate the instance.
+        """
         raise NotImplementedError
 
 class BaseEncoderModel(nn.Module):
@@ -31,10 +41,8 @@ class BaseEncoderModel(nn.Module):
 class BaseDecoderModel(nn.Module):
     """Base class for decoders."""
 
-    def __init__(self, cfg):
+    def __init__(self):
         super().__init__()
-
-        self.cfg = cfg
 
     def forward(self, samples, enc_out, **kwargs):
         """

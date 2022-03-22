@@ -128,6 +128,7 @@ def main():
     datasets = task.build_datasets(cfg)
 
     # ======================================
+    # code below has to be reorganized into a trainer.
     # [TODO] to remove
     import torch
     import random, time, json, datetime
