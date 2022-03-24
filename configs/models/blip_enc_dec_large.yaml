@@ -1,4 +1,6 @@
 model:
+  arch: blip_enc_dec
+
   vit_type: "large"
   vit_grad_ckpt: True
   vit_ckpt_layer: 5
@@ -6,6 +8,9 @@ model:
   init_lr: 2e-6
 
   image_size: 384
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"
 
   # generation configs
   max_length: 20  

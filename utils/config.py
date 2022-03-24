@@ -19,9 +19,9 @@ class Config:
 
         user_config = self._build_opt_list(self.args.options)
 
-        runner_config = self._build_runner_config(self.args.cfg_run)
-        model_config = self._build_model_config(self.args.cfg_model)
-        dataset_config = self._build_dataset_config(self.args.cfg_data)
+        runner_config = self.build_runner_config(self.args.cfg_run)
+        model_config = self.build_model_config(self.args.cfg_model, **user_config)
+        dataset_config = self.build_dataset_config(self.args.cfg_data)
         
         # Override the default configuration with user options.
         self.config = OmegaConf.merge(
@@ -33,8 +33,8 @@ class Config:
         opts_dot_list = self._convert_to_dot_list(opts)
         return OmegaConf.from_dotlist(opts_dot_list)
 
-
-    def _build_model_config(self, config_path):
+    @staticmethod
+    def build_model_config(config_path, **kwargs):
         config = OmegaConf.load(config_path)
 
         root_keys = config.keys()
@@ -52,7 +52,16 @@ class Config:
             warnings.warn(warning)
             return OmegaConf.create()
 
-        default_model_config_path = model_cls.default_config_path()
+        user_model_config = kwargs.get("model", None)
+        if user_model_config:
+            model_type = user_model_config.get("model_type", None)
+        else: 
+            model_type = None
+
+        if model_type:
+            default_model_config_path = model_cls.default_config_path(model_type=model_type)
+        else:
+            default_model_config_path = model_cls.default_config_path()
 
         model_config = OmegaConf.create()
         # hiararchy override, customized config > default config
@@ -63,7 +72,8 @@ class Config:
         return model_config 
 
 
-    def _build_runner_config(self, config_path):
+    @staticmethod
+    def build_runner_config(config_path):
         config = OmegaConf.load(config_path)
 
         root_keys = config.keys()
@@ -73,8 +83,9 @@ class Config:
 
         return config
 
-
-    def _build_dataset_config(self, config_path):
+ 
+    @staticmethod
+    def build_dataset_config(config_path):
         config = OmegaConf.load(config_path)
 
         datasets = config.get('datasets', None)

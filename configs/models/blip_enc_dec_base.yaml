@@ -1,4 +1,5 @@
 model:
+  arch: blip_enc_dec
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base_caption.pth"
 
   # vit encoder

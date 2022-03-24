@@ -23,14 +23,14 @@ class BlipEncoderDecoder(EncoderDecoderModel):
         super().__init__(encoder, decoder)
 
     @classmethod
-    def default_config_path(cls, vit_type="base"):
+    def default_config_path(cls, model_type="base"):
         paths = {
             "base": "configs/models/blip_enc_dec_base.yaml",
             "large": "configs/models/blip_enc_dec_large.yaml"
         }
 
-        assert vit_type in paths, "Unknown ViT type {}".format(vit_type)
-        return paths[vit_type]
+        assert model_type in paths, "Unknown model type {}".format(model_type)
+        return paths[model_type]
 
     def forward_encoder(self, samples):
         """
@@ -89,9 +89,17 @@ class BlipEncoderDecoder(EncoderDecoderModel):
         return captions
 
     @classmethod
-    def build_model(cls, cfg):
+    def build_model(cls, cfg=None, model_type="base"):
+        if not cfg:
+            # useful when building model without provided configuration file
+            from utils.config import Config
+            cfg = Config.build_model_config(config_path=cls.default_config_path(model_type)).model
+        
+        return cls._build_model_from_config(cfg)
+    
+    @classmethod
+    def _build_model_from_config(cls, cfg):
         # vision encoder
-        # encoder = VisionTransformerEncoder.build_model(cfg) 
         encoder = VisionTransformerEncoder.build_model(cfg) 
         if "vision_width" not in cfg:
             cfg.vision_width = encoder.vision_width
@@ -110,8 +118,9 @@ class BlipEncoderDecoder(EncoderDecoderModel):
         if pretrain_path is not None:
             model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
         
-        assert len(msg.missing_keys) == 0, "Missing keys {}.".format(msg.missing_keys)
-        assert len(msg.unexpected_keys) == 0, "Unexpected keys {}.".format(msg.unexpected_keys)
+            assert len(msg.missing_keys) == 0, "Missing keys {}.".format(msg.missing_keys)
+            assert len(msg.unexpected_keys) == 0, "Unexpected keys {}.".format(msg.unexpected_keys)
+
         return model 
 
 
