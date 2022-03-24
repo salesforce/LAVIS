@@ -87,11 +87,15 @@ class BaseTask:
         model.train()
         pass
 
-    def valid_step(self, sample, model, criterion):
-        model.eval()
-        with torch.no_grad():
-            loss, sample_size, logging_output = criterion(model, sample)
-        return loss, sample_size, logging_output
+    def valid_step(self, model, samples):
+        # model.eval()
+        # with torch.no_grad():
+        #     loss, sample_size, logging_output = criterion(model, sample)
+        # return loss, sample_size, logging_output
+        raise NotImplementedError
+    
+    def on_finish_validation(self, **kwargs):
+        pass
     
     def inference_step(self):
         raise NotImplementedError

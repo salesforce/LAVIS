@@ -24,6 +24,7 @@ class CaptionDataset(BaseDataset):
         
     def __getitem__(self, index):    
         
+        # TODO this assumes image input, not general enough
         ann = self.annotation[index]
         
         image_path = os.path.join(self.image_root, ann['image'])        
@@ -51,5 +52,5 @@ class CaptionEvalDataset(BaseDataset):
 
         image = self.vis_processor(image)  
 
-        return image, index
+        return {"vis_data": image, "image_id": index}
     

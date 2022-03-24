@@ -1,7 +1,23 @@
 run:
-  task: retrieval
-  # task: captioning
+  # task: retrieval
+  task: captioning
   # optimizer
-  weight_decay: 0.05
+  init_lr: 1e-5
   min_lr: 0
-  max_epoch: 6
+  weight_decay: 0.05
+  max_epoch: 5
+  batch_size: 64
+
+  max_length: 20
+  min_length: 5
+  num_beams: 3
+
+  seed: 42 
+  output_dir: "output/Caption_coco"
+  evaluate: True
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  
