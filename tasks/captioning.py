@@ -26,7 +26,7 @@ class CaptionTask(BaseTask):
     def valid_step(self, model, samples):
         results = []
 
-        run_cfg = self.cfg.get_runner_config()
+        run_cfg = self.cfg.run_cfg
         captions = model.generate(
                         samples, 
                         use_nucleus_sampling=False, 
@@ -42,7 +42,7 @@ class CaptionTask(BaseTask):
 
         return results
     
-    def on_finish_validation(self, val_result, split_name, epoch, **kwargs):
+    def after_validation(self, val_result, split_name, epoch, **kwargs):
         val_result_file = utils.save_result(
             result=val_result, 
             result_dir=registry.get_path("result_dir"),
@@ -59,7 +59,7 @@ class CaptionTask(BaseTask):
 
     def _report_metrics(self, val_result_file, epoch, split_name):
 
-        run_cfg = self.cfg.get_runner_config()
+        run_cfg = self.cfg.run_cfg
         coco_gt_root = "annotation/coco_gt"
 
         if utils.is_main_process():

@@ -26,7 +26,7 @@ class BaseTask:
         return self.datasets[split]
 
     def build_model(self, cfg):
-        model_config = cfg.get_model_config()
+        model_config = cfg.model_cfg
 
         model_cls = registry.get_model_class(model_config.arch)
         return model_cls.build_model(model_config)
@@ -48,7 +48,7 @@ class BaseTask:
 
         multi_datasets = dict()
 
-        datasets_config = cfg.get_datasets_config()
+        datasets_config = cfg.datasets_cfg
 
         # [TODO] to support multiple datasets
         assert len(datasets_config) > 0, "At least one dataset has to be specified."
@@ -94,7 +94,7 @@ class BaseTask:
         # return loss, sample_size, logging_output
         raise NotImplementedError
     
-    def on_finish_validation(self, **kwargs):
+    def after_validation(self, **kwargs):
         pass
     
     def inference_step(self):

@@ -19,9 +19,11 @@ class Config:
 
         user_config = self._build_opt_list(self.args.options)
 
-        runner_config = self.build_runner_config(self.args.cfg_run)
-        model_config = self.build_model_config(self.args.cfg_model, **user_config)
-        dataset_config = self.build_dataset_config(self.args.cfg_data)
+        config = OmegaConf.load(self.args.cfg_path)
+
+        runner_config = self.build_runner_config(config)
+        model_config = self.build_model_config(config, **user_config)
+        dataset_config = self.build_dataset_config(config)
         
         # Override the default configuration with user options.
         self.config = OmegaConf.merge(
@@ -34,14 +36,7 @@ class Config:
         return OmegaConf.from_dotlist(opts_dot_list)
 
     @staticmethod
-    def build_model_config(config_path, **kwargs):
-        config = OmegaConf.load(config_path)
-
-        root_keys = config.keys()
-        assert len(root_keys) == 1, "Missing or duplicate root keys for model configuration file."
-        assert "model" in config, \
-            "Root key for model configuration is expected to be 'model', found '{}'.".format(list(root_keys)[0])
-
+    def build_model_config(config, **kwargs):
         model = config.get('model', None)
         assert model is not None, "Missing model configuration file."
 
@@ -52,11 +47,7 @@ class Config:
             warnings.warn(warning)
             return OmegaConf.create()
 
-        user_model_config = kwargs.get("model", None)
-        if user_model_config:
-            model_type = user_model_config.get("model_type", None)
-        else: 
-            model_type = None
+        model_type = kwargs.get("model.model_type", None)
 
         if model_type:
             default_model_config_path = model_cls.default_config_path(model_type=model_type)
@@ -73,21 +64,12 @@ class Config:
 
 
     @staticmethod
-    def build_runner_config(config_path):
-        config = OmegaConf.load(config_path)
-
-        root_keys = config.keys()
-        assert len(root_keys) == 1, "Missing or duplicate root keys for runner configuration file."
-        assert "run" in config, \
-            "Root key for runner configuration is expected to be 'run', found '{}'.".format(list(root_keys)[0])
-
-        return config
+    def build_runner_config(config):
+        return config.run
 
  
     @staticmethod
-    def build_dataset_config(config_path):
-        config = OmegaConf.load(config_path)
-
+    def build_dataset_config(config):
         datasets = config.get('datasets', None)
         if datasets is None:
             raise KeyError("Expecting 'datasets' as the root key for dataset configuration.")
@@ -122,13 +104,16 @@ class Config:
     def get_config(self):
         return self.config
 
-    def get_runner_config(self):
+    @property
+    def run_cfg(self):
         return self.config.run
 
-    def get_datasets_config(self):
+    @property
+    def datasets_cfg(self):
         return self.config.datasets
 
-    def get_model_config(self):
+    @property
+    def model_cfg(self):
         return self.config.model
 
     def pretty_print(self):

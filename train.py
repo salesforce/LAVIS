@@ -21,43 +21,18 @@ import utils.blip_utils as utils
 def parse_args():
     parser = argparse.ArgumentParser(description='Training')
 
-    # [TODO] Might not be necessary to have three seperate files.
-    # Consider relocating to one file.
-    parser.add_argument('--cfg-run', required=True, help='runner-specific config file path.')
-    parser.add_argument('--cfg-data', required=True, help='dataset-specific config file path.')
-    parser.add_argument('--cfg-model', required=True, help='model-specific config file path.')
-    
+    parser.add_argument('--cfg-path', required=True, help="path to configuration file.")
     parser.add_argument('--options',
         nargs='+',
         help='override some settings in the used config, the key-value pair '
         'in xxx=yyy format will be merged into config file (deprecate), '
         'change to --cfg-options instead.')
 
-    # TODO to relocate to run configuration
-    # parser.add_argument('--config', default='./temp/caption_coco.yaml')
-    # parser.add_argument('--output_dir', default='output/Caption_coco')        
-    # parser.add_argument('--evaluate', action='store_true')    
-    # parser.add_argument('--device', default='cuda')
-    # parser.add_argument('--seed', default=42, type=int)
-    # parser.add_argument('--world_size', default=1, type=int, help='number of distributed processes')    
-    # parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
-    # parser.add_argument('--distributed', default=True, type=bool)
-
-    # parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
     # if 'LOCAL_RANK' not in os.environ:
     #     os.environ['LOCAL_RANK'] = str(args.local_rank)
 
     return args
-
-
-def setup_path():
-    root_dir = os.getcwd()
-    default_cfg = OmegaConf.load(os.path.join(root_dir, 'configs/default.yaml'))
-
-    registry.register_path('library_root', root_dir)
-    registry.register_path('cache_root', default_cfg.env.cache_root)
-
 
 # def train(model, data_loader, optimizer, epoch, device):
 #     # train
@@ -115,17 +90,20 @@ def setup_path():
 
 
 def main():
-
     # model = registry.get_model_class("blip_enc_dec").build_model()
-    # import pdb; pdb.set_trace()
 
-    setup_path()
+    root_dir = os.getcwd()
+    default_cfg = OmegaConf.load(os.path.join(root_dir, 'configs/default.yaml'))
+
+    registry.register_path('library_root', root_dir)
+    registry.register_path('cache_root', default_cfg.env.cache_root)
+
     setup_logger()
 
-    args = parse_args()
+    cfg = Config(parse_args())
 
-    cfg = Config(args)
-    # cfg.pretty_print()
+    if utils.is_main_process():
+        cfg.pretty_print()
 
     task = tasks.setup_task(cfg)
 
@@ -135,9 +113,9 @@ def main():
 
     model = task.build_model(cfg)
 
-    utils.init_distributed_mode(cfg.get_runner_config())
+    utils.init_distributed_mode(cfg.run_cfg)
 
-    runner = Runner(cfg=cfg.get_runner_config(), task=task, model=model, datasets=datasets)
+    runner = Runner(cfg=cfg.run_cfg, task=task, model=model, datasets=datasets)
     runner.train_loop()
 
     # ======================================

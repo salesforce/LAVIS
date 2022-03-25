@@ -58,7 +58,7 @@ class Runner():
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
 
-        output_dir = lib_root / 'output'
+        output_dir = lib_root / self.config.output_dir 
         result_dir = output_dir / 'result'
 
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -130,51 +130,10 @@ class Runner():
             #     train_stats = self.train(epoch)
 
             # for split_name in val_split_names:
-            val_result = self.validation(split_name='val')
-            self.task.on_finish_validation(val_result=val_result, split_name='val', epoch=epoch)
+            for split_name in self.config.valid_splits:
+                val_result = self.validate(split_name=split_name)
 
-            # val_result_file = utils.save_result(val_result, self.result_dir, 'val_epoch%d' % epoch,
-            #                             remove_duplicate='image_id')
-            # val_result_file = utils.save_result(val_result, self.result_dir, 'val_epoch%d' % epoch, remove_duplicate='id')
-
-            test_result = self.validation(split_name='test')
-            self.task.on_finish_validation(val_result=test_result, split_name='test', epoch=epoch)
-            # test_result_file = utils.save_result(test_result, self.result_dir, 'test_epoch%d' % epoch,
-            #                             remove_duplicate='image_id')
-            # test_result_file = utils.save_result(test_result, self.result_dir, 'test_epoch%d' % epoch, remove_duplicate='id')
-
-
-            # if utils.is_main_process():
-            #     coco_val = utils.coco_caption_eval(self.config['coco_gt_root'], val_result_file, 'val')
-            #     coco_test = utils.coco_caption_eval(self.config['coco_gt_root'], test_result_file, 'test')
-
-            #     if self.args.evaluate:
-            #         log_stats = {**{f'val_{k}': v for k, v in coco_val.eval.items()},
-            #                     **{f'test_{k}': v for k, v in coco_test.eval.items()},
-            #                     }
-            #         with open(os.path.join(self.args.output_dir, "evaluate.txt"), "a") as f:
-            #             f.write(json.dumps(log_stats) + "\n")
-            #     else:
-            #         save_obj = {
-            #             'model': self.model_without_ddp.state_dict(),
-            #             'optimizer': self.optimizer.state_dict(),
-            #             'config': self.config,
-            #             'epoch': epoch,
-            #         }
-
-            #         if coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4'] > best:
-            #             best = coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4']
-            #             best_epoch = epoch
-            #             torch.save(save_obj, os.path.join(self.output_dir, 'checkpoint_best.pth'))
-
-            #         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-            #                     **{f'val_{k}': v for k, v in coco_val.eval.items()},
-            #                     **{f'test_{k}': v for k, v in coco_test.eval.items()},
-            #                     'epoch': epoch,
-            #                     'best_epoch': best_epoch,
-            #                     }
-            #         with open(os.path.join(self.output_dir, "log.txt"), "a") as f:
-            #             f.write(json.dumps(log_stats) + "\n")
+                self.task.after_validation(val_result=val_result, split_name=split_name, epoch=epoch)
 
             if self.config.evaluate:
                 break
@@ -213,7 +172,7 @@ class Runner():
     #     return {k: "{:.3f}".format(meter.global_avg) for k, meter in metric_logger.meters.items()}  
 
     @torch.no_grad()
-    def validation(self, split_name):
+    def validate(self, split_name):
         # TODO In validation, you need to compute loss as well as metrics
         model = self.model_without_ddp
         model.eval()
