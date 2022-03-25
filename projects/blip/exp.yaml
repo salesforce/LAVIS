@@ -1,0 +1,37 @@
+model:
+  arch: blip_enc_dec
+
+datasets:
+  coco_caption: # name of the dataset builder
+    vis_processor: 
+        train: "blip_coco_ret_vis_train"
+        eval: "blip_coco_ret_vis_eval"
+    text_processor:
+        train: "blip_coco_ret_text"
+        eval: "blip_coco_ret_text"
+
+run:
+  # task: retrieval
+  task: captioning
+  # optimizer
+  init_lr: 1e-5
+  min_lr: 0
+  weight_decay: 0.05
+  max_epoch: 5
+  batch_size: 64
+
+  max_length: 20
+  min_length: 5
+  num_beams: 3
+
+  seed: 42 
+  output_dir: "output/Caption_coco"
+
+  evaluate: True
+  valid_splits: ["val", "test"] 
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  
