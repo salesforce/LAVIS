@@ -116,7 +116,7 @@ def main():
     utils.init_distributed_mode(cfg.run_cfg)
 
     runner = Runner(cfg=cfg.run_cfg, task=task, model=model, datasets=datasets)
-    runner.train_loop()
+    runner.train()
 
     # ======================================
     # code below has to be reorganized into a trainer.

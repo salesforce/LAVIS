@@ -1,3 +1,4 @@
+from ipaddress import collapse_addresses
 import os
 
 import torch
@@ -17,23 +18,17 @@ class Runner():
         self.config = cfg
 
         self.task = task
-        self._model = model
-
-        # TODO handle cases where some splits are missing.
         self.datasets = datasets
-        self.train_dataset = datasets.get('train', None)
-        self.val_dataset = datasets.get('val', None)
-        self.test_dataset = datasets.get('test', None)
+
+        self._model = model
 
         self._wrapped_model = None
         self._device = None
         self._optimizer = None
+        self._dataloaders = None
 
         self.setup_seeds()
-
         self.setup_output_dir()
-
-        self.setup_dataloaders()
 
 
     def setup_seeds(self):
@@ -90,40 +85,41 @@ class Runner():
         return self._optimizer
 
     @property
+    def dataloaders(self):
+        if self._dataloaders is None:
+
+            split_names = sorted(self.datasets.keys())
+
+            datasets = [self.datasets[split] for split in split_names]
+            is_train = [split in self.config.train_splits for split in split_names]
+
+            if self.config.distributed:
+                samplers = utils.create_sampler(
+                    datasets=datasets,
+                    shuffles=is_train,
+                    num_tasks=utils.get_world_size(), 
+                    global_rank=utils.get_rank()
+                )
+            else:
+                samplers = [None] * len(self.datasets)
+
+            dataloaders = utils.create_loader(
+                datasets=datasets,
+                samplers=samplers,
+                batch_size=[self.config.batch_size] * len(datasets),
+                num_workers=[self.config.num_workers] * len(datasets),
+                is_trains=is_train,
+                collate_fns=[None] * len(datasets)
+            )
+
+            self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
+        
+        return self._dataloaders
+
+
+    @property
     def cuda_enabled(self):
         return self.device.type == "cuda"
-
-    def setup_dataloaders(self):
-        # TODO this method has to be rewritten
-        # TODO make number of workers configurable
-        if self.config.distributed:
-            num_tasks = utils.get_world_size()
-            global_rank = utils.get_rank()
-            samplers = utils.create_sampler(
-                [self.train_dataset, self.val_dataset, self.test_dataset], 
-                [True, False, False], 
-                num_tasks, 
-                global_rank
-            )
-        else:
-            samplers = [None, None, None]
-
-        # TODO handle cases where some splits are missing.
-        train_loader, val_loader, test_loader = utils.create_loader(
-            [self.train_dataset, self.val_dataset, self.test_dataset], 
-            samplers,
-            batch_size=[self.config.batch_size] * 3,
-            num_workers=[4, 4, 4],
-            is_trains=[True, False, False],
-            collate_fns=[None, None, None]
-        )
-
-        # TODO handle cases where some splits are missing.
-        self.dataloaders = {
-            "train": train_loader,
-            "val": val_loader,
-            "test": test_loader
-        } 
 
 
     def setup_output_dir(self):
@@ -142,7 +138,7 @@ class Runner():
         self.output_dir = output_dir
         
         
-    def train_loop(self):
+    def train(self):
         best = 0
         best_epoch = 0
 

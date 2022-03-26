@@ -19,6 +19,7 @@ run:
   weight_decay: 0.05
   max_epoch: 5
   batch_size: 64
+  num_workers: 4
 
   max_len: 20
   min_len: 5
@@ -28,6 +29,7 @@ run:
   output_dir: "output/Caption_coco"
 
   evaluate: True
+  train_splits: ["train"]
   valid_splits: ["val", "test"] 
 
   device: "cuda"
