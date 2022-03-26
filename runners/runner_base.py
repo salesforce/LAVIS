@@ -91,9 +91,9 @@ class Runner():
             split_names = sorted(self.datasets.keys())
 
             datasets = [self.datasets[split] for split in split_names]
-            is_train = [split in self.config.train_splits for split in split_names]
+            is_train = [split in self.train_splits for split in split_names]
 
-            if self.config.distributed:
+            if self.use_distributed:
                 samplers = utils.create_sampler(
                     datasets=datasets,
                     shuffles=is_train,
@@ -116,11 +116,25 @@ class Runner():
         
         return self._dataloaders
 
-
     @property
     def cuda_enabled(self):
         return self.device.type == "cuda"
 
+    @property
+    def max_epoch(self):
+        return self.config.max_epoch
+
+    @property
+    def valid_splits(self):
+        return self.config.valid_splits
+
+    @property
+    def train_splits(self):
+        return self.config.train_splits
+
+    @property
+    def evaluate_only(self):
+        return self.config.evaluate
 
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
@@ -144,7 +158,7 @@ class Runner():
 
         # print("Start training")
         start_time = time.time()
-        for epoch in range(0, self.config.max_epoch):
+        for epoch in range(0, self.max_epoch):
             # if not self.args.evaluate:
             #     if self.args.distributed:
             #         self.train_loader.sampler.set_epoch(epoch)
@@ -153,13 +167,12 @@ class Runner():
 
             #     train_stats = self.train(epoch)
 
-            # for split_name in val_split_names:
-            for split_name in self.config.valid_splits:
+            for split_name in self.valid_splits:
                 val_result = self.validate(split_name=split_name)
 
                 self.task.after_validation(val_result=val_result, split_name=split_name, epoch=epoch)
 
-            if self.config.evaluate:
+            if self.evaluate_only:
                 break
             dist.barrier()
 
