@@ -27,12 +27,11 @@ class Runner():
 
         self._wrapped_model = None
         self._device = None
+        self._optimizer = None
 
         self.setup_seeds()
 
         self.setup_output_dir()
-
-        self.setup_optimizer()
 
         self.setup_dataloaders()
 
@@ -77,30 +76,18 @@ class Runner():
             return self.model.module
         else:
             return self.model
-        
 
-    def setup_output_dir(self):
-        lib_root = Path(registry.get_path("library_root"))
-
-        output_dir = lib_root / self.config.output_dir 
-        result_dir = output_dir / 'result'
-
-        output_dir.mkdir(parents=True, exist_ok=True)
-        result_dir.mkdir(parents=True, exist_ok=True)
-
-        registry.register_path("result_dir", str(result_dir))
-        registry.register_path("output_dir", str(output_dir))
-
-        self.result_dir = result_dir
-        self.output_dir = output_dir
-
-    def setup_optimizer(self):
+    @property
+    def optimizer(self):
         # TODO make optimizer class and configurations
-        self.optimizer = torch.optim.AdamW(
-            params=self.model.parameters(), 
-            lr=float(self.config.init_lr),
-            weight_decay=float(self.config.weight_decay)
-        )
+        if self._optimizer is None:
+            self._optimizer = torch.optim.AdamW(
+                params=self.model.parameters(), 
+                lr=float(self.config.init_lr),
+                weight_decay=float(self.config.weight_decay)
+            )
+        
+        return self._optimizer
 
     @property
     def cuda_enabled(self):
@@ -138,6 +125,23 @@ class Runner():
             "test": test_loader
         } 
 
+
+    def setup_output_dir(self):
+        lib_root = Path(registry.get_path("library_root"))
+
+        output_dir = lib_root / self.config.output_dir 
+        result_dir = output_dir / 'result'
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        result_dir.mkdir(parents=True, exist_ok=True)
+
+        registry.register_path("result_dir", str(result_dir))
+        registry.register_path("output_dir", str(output_dir))
+
+        self.result_dir = result_dir
+        self.output_dir = output_dir
+        
+        
     def train_loop(self):
         best = 0
         best_epoch = 0
