@@ -23,6 +23,11 @@ class BaseModel(nn.Module):
         Namely, even without cfg file, one should be able to recreate the instance.
         """
         raise NotImplementedError
+    
+    @property
+    def device(self):
+        return list(self.parameters())[0].device
+
 
 class BaseEncoder(nn.Module):
     """
@@ -61,7 +66,7 @@ class DualEncoderModel(BaseEncoder):
 
         assert not vis_input or not txt_input, "Visual and text inputs are both None."
         vis_enc_out = self.vis_encoder(vis_input)
-        txt_enc_out = self.vis_enc_out(txt_input)
+        txt_enc_out = self.text_encoder(txt_input)
 
         return {"vis_enc_out": vis_enc_out, "txt_enc_out": txt_enc_out}
 

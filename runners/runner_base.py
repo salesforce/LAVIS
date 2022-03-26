@@ -17,7 +17,7 @@ class Runner():
         self.config = cfg
 
         self.task = task
-        self.model = model
+        self._model = model
 
         # TODO handle cases where some splits are missing.
         self.datasets = datasets
@@ -25,11 +25,12 @@ class Runner():
         self.val_dataset = datasets.get('val', None)
         self.test_dataset = datasets.get('test', None)
 
+        self._wrapped_model = None
+        self._device = None
+
         self.setup_seeds()
 
         self.setup_output_dir()
-
-        self.setup_model()
 
         self.setup_optimizer()
 
@@ -45,18 +46,38 @@ class Runner():
 
     @property
     def device(self):
-        if not hasattr(self, "_device"): 
+        if self._device is None:
             self._device = torch.device(self.config.device)
         
         return self._device
 
-    def setup_model(self):
-        self.model = self.model.to(self.device)
+    @property
+    def use_distributed(self):
+        return self.config.distributed
 
-        self.model_without_ddp = self.model
-        if self.config.distributed:
-            self.model = torch.nn.parallel.DistributedDataParallel(self.model, device_ids=[self.config.gpu])
-            self.model_without_ddp = self.model.module
+    @property
+    def model(self):
+        if self._model.device != self.device:
+            self._model = self._model.to(self.device)
+
+            if self.use_distributed:
+                if self._wrapped_model is None:
+                    self._wrapped_model = torch.nn.parallel.DistributedDataParallel(
+                                            self._model, 
+                                            device_ids=[self.config.gpu]
+                                        )
+            else:
+                self._wrapped_model = self._model
+                    
+        return self._wrapped_model
+         
+    @property
+    def model_without_ddp(self):
+        if self.use_distributed:
+            return self.model.module
+        else:
+            return self.model
+        
 
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
