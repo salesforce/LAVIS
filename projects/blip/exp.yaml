@@ -20,8 +20,8 @@ run:
   max_epoch: 5
   batch_size: 64
 
-  max_length: 20
-  min_length: 5
+  max_len: 20
+  min_len: 5
   num_beams: 3
 
   seed: 42 

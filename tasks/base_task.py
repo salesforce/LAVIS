@@ -3,10 +3,9 @@ import torch
 from common.registry import registry
 
 class BaseTask:
-    def __init__(self, cfg):
+    def __init__(self, **kwargs):
         super().__init__()
 
-        self.cfg = cfg
         # Dict: split (str) -> dataset (Dataset)
         self.datasets = dict()
 
@@ -31,8 +30,8 @@ class BaseTask:
         model_cls = registry.get_model_class(model_config.arch)
         return model_cls.build_model(model_config)
 
-    def build_criterion(self, cfg):
-        raise NotImplementedError
+    # def build_criterion(self, cfg):
+    #     raise NotImplementedError
 
     def build_datasets(self, cfg):
         """

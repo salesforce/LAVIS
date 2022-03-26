@@ -26,7 +26,7 @@ class Runner():
         self.test_dataset = datasets.get('test', None)
 
         self.setup_seeds()
-        self.setup_device()
+
         self.setup_output_dir()
 
         self.setup_model()
@@ -43,13 +43,16 @@ class Runner():
         random.seed(seed)
         cudnn.benchmark = True
 
-    def setup_device(self):
-        self.device = torch.device(self.config.device)
+    @property
+    def device(self):
+        if not hasattr(self, "_device"): 
+            self._device = torch.device(self.config.device)
+        
+        return self._device
 
     def setup_model(self):
         self.model = self.model.to(self.device)
 
-        # setup_dist_model()
         self.model_without_ddp = self.model
         if self.config.distributed:
             self.model = torch.nn.parallel.DistributedDataParallel(self.model, device_ids=[self.config.gpu])
