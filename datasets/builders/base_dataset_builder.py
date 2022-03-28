@@ -1,5 +1,7 @@
 import os
-from tkinter import E
+
+import torch.distributed as dist
+import utils.blip_utils as utils
 
 from common.registry import registry
 
@@ -7,28 +9,6 @@ from torchvision.datasets.utils import download_url
 
 
 class BaseDatasetBuilder:
-    """A BaseDatasetBuilder standardizes the training, val, test splits, data preparation and transforms. The main
-    advantage is consistent data splits, data preparation and transforms across models.
-    Example::
-        class MyDatasetBuilder(BaseDatasetBuilder):
-            def __init__(self):
-                super().__init__()
-            def prepare_data(self):
-                # download, split, etc...
-                # only called on 1 GPU/TPU in distributed
-            def setup(self, stage):
-                # make assignments here (val/train/test split)
-                # called on every process in DDP
-            def train_dataloader(self):
-                train_split = Dataset(...)
-                return DataLoader(train_split)
-            def val_dataloader(self):
-                val_split = Dataset(...)
-                return DataLoader(val_split)
-            def test_dataloader(self):
-                test_split = Dataset(...)
-                return DataLoader(test_split)
-    """
     train_dataset_cls, eval_dataset_cls = None, None
 
     def __init__(self, cfg):
@@ -44,9 +24,13 @@ class BaseDatasetBuilder:
         # download, split, etc...
         # only called on 1 GPU/TPU in distributed
 
-        self._download_data()
-        # at this point, all the annotations and image/videos should be all downloaded to the specified locations.
+        if utils.is_main_process():
+            self._download_data()
 
+        if utils.is_dist_avail_and_initialized():
+            dist.barrier()
+
+        # at this point, all the annotations and image/videos should be all downloaded to the specified locations.
         datasets = self.build() # dataset['train'/'val'/'test']
 
         return datasets
@@ -60,11 +44,21 @@ class BaseDatasetBuilder:
 
         Overwrite for data-specific processors.
         """
-        self.vis_processors['train'] = registry.get_processor_class(self.config.vis_processor['train'])()
-        self.vis_processors['eval'] = registry.get_processor_class(self.config.vis_processor['eval'])()
+        vis_train_cfg = self.config.vis_processor.train
+        vis_eval_cfg = self.config.vis_processor.eval
 
-        self.text_processors['train'] = registry.get_processor_class(self.config.text_processor['train'])()
-        self.text_processors['eval'] = registry.get_processor_class(self.config.text_processor['eval'])()
+        text_train_cfg = self.config.text_processor.train
+        text_eval_cfg = self.config.text_processor.eval
+
+        self.vis_processors['train'] = self._build_from_config(vis_train_cfg)
+        self.vis_processors['eval'] = self._build_from_config(vis_eval_cfg)
+
+        self.text_processors['train'] = self._build_from_config(text_train_cfg)
+        self.text_processors['eval'] = self._build_from_config(text_eval_cfg)
+        
+    @staticmethod
+    def _build_from_config(cfg):
+        return registry.get_processor_class(cfg.name).build_processor(cfg)
 
     @classmethod
     def default_config_path(cls):
@@ -118,9 +112,6 @@ class BaseDatasetBuilder:
     # We need some downloading utilities to help.
     def _download_vis(self):
         # downloading images/videos can be dataset-specific.
-        raise NotImplementedError
-
-    def build(self):
         raise NotImplementedError
 
     def build(self):

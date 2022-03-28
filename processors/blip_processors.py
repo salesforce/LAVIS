@@ -16,7 +16,7 @@ class BlipCOCOImage(BaseProcessor):
 
 @registry.register_processor("blip_coco_ret_text")
 class BlipCOCOText(BaseProcessor):
-    def __init__(self, prompt='', max_words=30):
+    def __init__(self, prompt, max_words):
         self.prompt = prompt
         self.max_words = max_words
 
@@ -24,6 +24,13 @@ class BlipCOCOText(BaseProcessor):
         caption = self.prompt + self.pre_caption(caption)
         
         return caption
+    
+    @classmethod
+    def build_processor(cls, cfg):
+        prompt = cfg.get("prompt", "")
+        max_words = cfg.get("max_words", 30)
+
+        return cls(prompt=prompt, max_words=max_words)
 
     def pre_caption(self, caption):
         caption = re.sub(
