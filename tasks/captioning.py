@@ -15,7 +15,6 @@ class CaptionTask(BaseTask):
     CAP_KEY = "caption"
 
     def __init__(self, num_beams, max_len, min_len, evaluate):
-        # TODO this has to be better defined by build_task(cfg) factory method and decouple Task from Config
         super().__init__()
 
         self.num_beams = num_beams
@@ -39,6 +38,9 @@ class CaptionTask(BaseTask):
             evaluate=evaluate
         )
 
+    def train_step(self, model, samples):
+        loss = model(samples)
+        return loss
 
     def valid_step(self, model, samples):
         results = []
@@ -60,51 +62,39 @@ class CaptionTask(BaseTask):
         return results
     
     def after_validation(self, val_result, split_name, epoch, **kwargs):
-        val_result_file = utils.save_result(
+        eval_result_file = utils.save_result(
             result=val_result, 
             result_dir=registry.get_path("result_dir"),
             filename='{}_epoch{}'.format(split_name, epoch), 
             remove_duplicate=self.ID_KEY
             )
         
-        self._report_metrics(
-            val_result_file=val_result_file,
-            epoch=epoch,
+        metrics = self._report_metrics(
+            eval_result_file=eval_result_file,
             split_name=split_name
         )
 
+        return metrics
 
-    def _report_metrics(self, val_result_file, epoch, split_name):
 
+    def _report_metrics(self, eval_result_file, split_name):
+
+        # TODO better way to define this
         coco_gt_root = "annotation/coco_gt"
 
         if utils.is_main_process():
             # coco_val = utils.coco_caption_eval(self.config['coco_gt_root'], val_result_file, 'val')
-            coco_val = utils.coco_caption_eval(coco_gt_root, val_result_file, split_name)
+            coco_val = utils.coco_caption_eval(coco_gt_root, eval_result_file, split_name)
 
-            if self.evaluate:
-                log_stats = {**{f'val_{k}': v for k, v in coco_val.eval.items()}}
+            agg_metrics = coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4']
+            log_stats = {split_name: {k: v for k, v in coco_val.eval.items()}}
 
-                with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
-                    f.write(json.dumps(log_stats) + "\n")
-            else:
-                # save_obj = {
-                #     'model': self.model_without_ddp.state_dict(),
-                #     'optimizer': self.optimizer.state_dict(),
-                #     'config': self.config,
-                #     'epoch': epoch,
-                # }
+            with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
+                f.write(json.dumps(log_stats) + "\n")
+            
 
-                # best ckpt
-                # if coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4'] > best:
-                #     best = coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4']
-                #     best_epoch = epoch
-                #     torch.save(save_obj, os.path.join(self.output_dir, 'checkpoint_best.pth'))
+            coco_res = {k: v for k, v in coco_val.eval.items()}
+            coco_res["agg_metrics"] = agg_metrics
 
-                log_stats = {
-                            **{f'val_{k}': v for k, v in coco_val.eval.items()},
-                            'epoch': epoch,
-                            # 'best_epoch': best_epoch,
-                            }
-                with open(os.path.join(self.output_dir, "log.txt"), "a") as f:
-                    f.write(json.dumps(log_stats) + "\n")
+            return coco_res
+

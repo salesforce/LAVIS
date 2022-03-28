@@ -71,10 +71,6 @@ class BaseTask:
         Args:
             sample (dict): the mini-batch.
             model (models.BaseModel): the model
-            criterion (Criterion): the criterion
-            optimizer (Optimizer): the optimizer
-            update_num (int): the current update
-            ignore_grad (bool): multiply loss by 0 if this is set to True
 
         Returns:
             tuple:
@@ -83,8 +79,7 @@ class BaseTask:
                   gradient
                 - logging outputs to display while training
         """ 
-        model.train()
-        pass
+        raise NotImplementedError
 
     def valid_step(self, model, samples):
         # model.eval()

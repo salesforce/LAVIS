@@ -48,8 +48,34 @@ class BlipEncoderDecoder(EncoderDecoderModel):
         """
         return {'image_embeds': self.encoder(samples['vis_data'])}
     
-    def forward_decoder(self, **kwargs):
-        raise NotImplementedError
+    def forward_decoder(self, samples, encoder_out, **kwargs):
+        image_embeds = encoder_out["image_embeds"]
+        image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(self.device)
+
+        raw_text = samples["text_data"]
+        text = self.tokenizer(
+            raw_text, 
+            padding='longest',
+            truncation=True,
+            max_length=40, 
+            return_tensors="pt"
+        ).to(self.device)
+
+        text.input_ids[:, 0] = self.tokenizer.bos_token_id
+        
+        decoder_targets = text.input_ids.masked_fill(text.input_ids==self.tokenizer.pad_token_id, -100)         
+        decoder_targets[:,:self.prompt_length] = -100
+     
+        decoder_output = self.decoder(text.input_ids,
+                                      attention_mask=text.attention_mask, 
+                                      encoder_hidden_states=image_embeds,
+                                      encoder_attention_mask=image_atts,                  
+                                      labels=decoder_targets,
+                                      return_dict=True,   
+                                    )   
+        loss_lm = decoder_output.loss
+        
+        return loss_lm
 
     def generate(self, samples, use_nucleus_sampling=False, num_beams=3, max_length=30, min_length=10, top_p=0.9, repetition_penalty=1.0):
         # get image embeddings
@@ -123,7 +149,6 @@ class BlipEncoderDecoder(EncoderDecoderModel):
 
         return model 
 
-
     @staticmethod
     def load_from_pretrained(model, url_or_filename):
         # [TODO] move to utils for reuse
@@ -137,12 +162,27 @@ class BlipEncoderDecoder(EncoderDecoderModel):
 
         state_dict = checkpoint['model']
         
-        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder) 
+        if "visual_encoder.pos_embed" in state_dict.keys():
+            state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder) 
+        elif "encoder.pos_embed" in state_dict.keys():
+            state_dict['encoder.pos_embed'] = interpolate_pos_embed(state_dict['encoder.pos_embed'], model.encoder) 
 
+        pretrain_specific_keys = set([
+            "temp", "image_queue", "text_queue", "queue_ptr", 
+            "vision_proj.weight", "vision_proj.bias",
+            "text_proj.weight", "text_proj.bias",
+            "itm_head.weight", "itm_head.bias"]
+        )
         # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
         new_state_dict = dict()
         for key in state_dict.keys():
-            if "visual_encoder" in key:
+            if key in pretrain_specific_keys:
+                continue
+            elif "text_encoder" in key:
+                continue
+            elif "_m" in key:
+                continue
+            elif "visual_encoder" in key:
                 new_key = key.replace("visual_encoder", "encoder")
             elif "text_decoder" in key:
                 new_key = key.replace("text_decoder", "decoder")

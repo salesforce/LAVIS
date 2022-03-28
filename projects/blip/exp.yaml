@@ -1,14 +1,21 @@
 model:
   arch: blip_enc_dec
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
+  # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
 
 datasets:
   coco_caption: # name of the dataset builder
     vis_processor: 
-        train: "blip_coco_ret_vis_train"
-        eval: "blip_coco_ret_vis_eval"
+        train: 
+          name: "blip_coco_ret_vis_train"
+        eval:
+          name: "blip_coco_ret_vis_eval"
     text_processor:
-        train: "blip_coco_ret_text"
-        eval: "blip_coco_ret_text"
+        train: 
+          name: "blip_coco_ret_text"
+          prompt: "a picture of "
+        eval: 
+          name: "blip_coco_ret_text"
 
 run:
   # task: retrieval
@@ -18,7 +25,7 @@ run:
   min_lr: 0
   weight_decay: 0.05
   max_epoch: 5
-  batch_size: 64
+  batch_size: 32
   num_workers: 4
 
   max_len: 20
@@ -28,7 +35,7 @@ run:
   seed: 42 
   output_dir: "output/Caption_coco"
 
-  evaluate: True
+  evaluate: False
   train_splits: ["train"]
   valid_splits: ["val", "test"] 
 

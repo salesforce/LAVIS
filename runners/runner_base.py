@@ -1,16 +1,17 @@
-from ipaddress import collapse_addresses
+import datetime
 import os
+import json
+import random
+import time
+from pathlib import Path
 
-import torch
-import random, time, json, datetime
 import numpy as np
+import torch
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 import utils.blip_utils as utils
-
-import yaml
-from pathlib import Path
 from common.registry import registry
+from torch.utils.data import DataLoader
 
 
 class Runner():
@@ -122,19 +123,40 @@ class Runner():
 
     @property
     def max_epoch(self):
-        return self.config.max_epoch
+        return int(self.config.max_epoch)
+
+    @property
+    def init_lr(self):
+        return float(self.config.init_lr)
+
+    @property
+    def min_lr(self):
+        return float(self.config.min_lr)
 
     @property
     def valid_splits(self):
-        return self.config.valid_splits
+        valid_splits = self.config.valid_splits
+
+        assert len(valid_splits) > 0, "Empty validation splits."
+        return valid_splits
 
     @property
     def train_splits(self):
-        return self.config.train_splits
+        train_splits = self.config.train_splits
+
+        assert len(train_splits) > 0, "Empty train splits."
+        return train_splits
 
     @property
     def evaluate_only(self):
         return self.config.evaluate
+
+    @property
+    def train_loader(self):
+        train_loader = self.dataloaders["train"]
+
+        assert isinstance(train_loader, DataLoader)
+        return train_loader
 
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
@@ -158,19 +180,50 @@ class Runner():
 
         # print("Start training")
         start_time = time.time()
-        for epoch in range(0, self.max_epoch):
-            # if not self.args.evaluate:
-            #     if self.args.distributed:
-            #         self.train_loader.sampler.set_epoch(epoch)
+        best_agg_metric = 0
+        for cur_epoch in range(0, self.max_epoch):
 
-            #     utils.cosine_lr_schedule(self.optimizer, epoch, int(self.config['max_epoch']), float(self.config['init_lr']), float(self.config['min_lr']))
+            if not self.evaluate_only:
+                if self.use_distributed:
+                    self.train_loader.sampler.set_epoch(cur_epoch)
 
-            #     train_stats = self.train(epoch)
+                # lr_scheduler.before_epoch()
+                utils.cosine_lr_schedule(optimizer=self.optimizer, 
+                                        epoch=cur_epoch, 
+                                        max_epoch=self.max_epoch,
+                                        init_lr=self.init_lr,
+                                        min_lr=self.min_lr
+                                        )
+
+                train_stats = self.train_epoch(cur_epoch)
+
+                if utils.is_main_process():
+                    log_stats = {**{f'train_{k}': v for k, v in train_stats.items()}}
+                    with open(os.path.join(self.output_dir, "log.txt".format()),"a") as f:
+                        f.write(json.dumps(log_stats) + "\n")     
 
             for split_name in self.valid_splits:
                 val_result = self.validate(split_name=split_name)
 
-                self.task.after_validation(val_result=val_result, split_name=split_name, epoch=epoch)
+                val_log = self.task.after_validation(val_result=val_result, split_name=split_name, epoch=cur_epoch)
+
+                if utils.is_main_process():
+                    agg_metrics = val_log["agg_metrics"]
+                    if agg_metrics > best_agg_metric and split_name == "val":
+                        # best_epoch = cur_epoch
+                    
+                        save_obj = {
+                            'model': self.model_without_ddp.state_dict(),
+                            'optimizer': self.optimizer.state_dict(),
+                            # 'config': self.config,
+                            'epoch': cur_epoch,
+                        }
+                        torch.save(save_obj, os.path.join(self.output_dir, 'checkpoint_best.pth')) 
+                    
+                    log_stats = {**{f"{split_name}_{k}": v for k, v in val_log.items()}}
+                    with open(os.path.join(self.output_dir, "log.txt"),"a") as f:
+                        f.write(json.dumps(log_stats) + "\n")     
+
 
             if self.evaluate_only:
                 break
@@ -181,32 +234,35 @@ class Runner():
         print('Training time {}'.format(total_time_str))
 
 
-    # def train(self, epoch):
-    #     # train
-    #     self.model.train()  
+    def train_epoch(self, epoch):
+        # train
+        self.model.train()  
         
-    #     metric_logger = utils.MetricLogger(delimiter="  ")
-    #     metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
-    #     metric_logger.add_meter('loss', utils.SmoothedValue(window_size=1, fmt='{value:.4f}'))
-    #     header = 'Train Caption Epoch: [{}]'.format(epoch)
-    #     print_freq = 50
+        metric_logger = utils.MetricLogger(delimiter="  ")
+        metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
+        metric_logger.add_meter('loss', utils.SmoothedValue(window_size=1, fmt='{value:.4f}'))
+        header = 'Train Caption Epoch: [{}]'.format(epoch)
+        print_freq = 50
 
-    #     for i, (image, caption, _) in enumerate(metric_logger.log_every(self.train_loader, print_freq, header)):
-    #         image = image.to(self.device)
-            
-    #         loss = self.model(image, caption)      
-            
-    #         self.optimizer.zero_grad()
-    #         loss.backward()
-    #         self.optimizer.step()    
-            
-    #         metric_logger.update(loss=loss.item())
-    #         metric_logger.update(lr=self.optimizer.param_groups[0]["lr"])
+        for i, samples in enumerate(metric_logger.log_every(self.train_loader, print_freq, header)):
+            samples = self._prepare_sample(samples)
 
-    #     # gather the stats from all processes
-    #     metric_logger.synchronize_between_processes()
-    #     print("Averaged stats:", metric_logger.global_avg())     
-    #     return {k: "{:.3f}".format(meter.global_avg) for k, meter in metric_logger.meters.items()}  
+            loss = self.task.train_step(model=self.model, samples=samples)
+            
+            # after_train_step()
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()    
+            
+            metric_logger.update(loss=loss.item())
+            metric_logger.update(lr=self.optimizer.param_groups[0]["lr"])
+
+        # after train_epoch()
+        # gather the stats from all processes
+        metric_logger.synchronize_between_processes()
+        print("Averaged stats:", metric_logger.global_avg())     
+        return {k: "{:.3f}".format(meter.global_avg) for k, meter in metric_logger.meters.items()}  
+
 
     @torch.no_grad()
     def validate(self, split_name):
