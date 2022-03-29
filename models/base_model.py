@@ -89,6 +89,19 @@ class EncoderDecoderModel(BaseModel):
     def generate(self, samples, **kwargs):
         raise NotImplementedError
 
-class CascadeEncoderModel(BaseModel):
-    def __init__(self, encoders):
+
+class EncoderEncoderModel(BaseModel):
+    def __init__(self, encoder_pre, encoder_pst):
         super().__init__()
+
+        self.encoder_pre = encoder_pre
+        self.encoder_pst = encoder_pst
+
+        assert isinstance(self.encoder_pre, BaseEncoder)
+        assert isinstance(self.encoder_pst, BaseEncoder)
+
+    def forward(self, samples, **kwargs):
+        encoder_pre_out = self.forward_encoder_pre(samples, **kwargs)
+        encoder_pst_out = self.forward_encoder_pst(samples, encoder_pre_out, **kwargs)
+
+        return encoder_pst_out

@@ -9,6 +9,7 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
+from tasks.retrieval import RetrievalTask
 import utils.blip_utils as utils
 from common.registry import registry
 from torch.utils.data import DataLoader
@@ -203,7 +204,10 @@ class Runner():
                         f.write(json.dumps(log_stats) + "\n")     
 
             for split_name in self.valid_splits:
-                val_result = self.validate(split_name=split_name)
+                if isinstance(self.task, RetrievalTask):
+                    val_result = self.validate_retrieval(split_name=split_name)
+                else:
+                    val_result = self.validate(split_name=split_name)
 
                 val_log = self.task.after_validation(val_result=val_result, split_name=split_name, epoch=cur_epoch)
 
@@ -241,7 +245,7 @@ class Runner():
         metric_logger = utils.MetricLogger(delimiter="  ")
         metric_logger.add_meter('lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
         metric_logger.add_meter('loss', utils.SmoothedValue(window_size=1, fmt='{value:.4f}'))
-        header = 'Train Caption Epoch: [{}]'.format(epoch)
+        header = 'Train Epoch: [{}]'.format(epoch)
         print_freq = 50
 
         for i, samples in enumerate(metric_logger.log_every(self.train_loader, print_freq, header)):
@@ -277,7 +281,7 @@ class Runner():
         # TODO doesn't look like a good place to define logger
         # Possibly called multiple times on different splits.
         metric_logger = utils.MetricLogger(delimiter="  ")
-        header = 'Caption generation:'
+        header = 'Validation'
         # TODO make it configurable
         print_freq = 10
 
@@ -290,6 +294,18 @@ class Runner():
             results.extend(eval_output)
     
         return results
+
+    @torch.no_grad()
+    def validate_retrieval(self, split_name):
+        model = self.model_without_ddp
+        model.eval()
+
+        data_loader = self.dataloaders.get(split_name, None)
+        import pdb; pdb.set_trace()
+
+        assert data_loader, "data_loader for split {} is None.".format(split_name)
+
+
 
     def _prepare_sample(self, samples):
         if self.cuda_enabled:
