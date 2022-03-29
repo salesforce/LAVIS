@@ -1,0 +1,45 @@
+model:
+  arch: blip_enc_dec
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
+  # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
+
+datasets:
+  coco_retrieval: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_coco_ret_vis_train"
+        eval:
+          name: "blip_coco_ret_vis_eval"
+    text_processor:
+        train: 
+          name: "blip_coco_ret_text"
+          prompt: "a picture of "
+        eval: 
+          name: "blip_coco_ret_text"
+
+run:
+  task: retrieval
+  # optimizer
+  init_lr: 1e-5
+  min_lr: 0
+  weight_decay: 0.05
+  max_epoch: 5
+  batch_size: 32
+  num_workers: 4
+
+  max_len: 20
+  min_len: 5
+  num_beams: 3
+
+  seed: 42 
+  output_dir: "output/Retrieval_coco"
+
+  evaluate: False
+  train_splits: ["train"]
+  valid_splits: ["val", "test"] 
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  
