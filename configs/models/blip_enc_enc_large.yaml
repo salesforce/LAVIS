@@ -1,6 +1,5 @@
 model:
   arch: blip_enc_dec
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth"
 
   vit_type: "large"
   vit_grad_ckpt: True
@@ -8,10 +7,12 @@ model:
   batch_size: 16
   init_lr: 2e-6
 
+  embed_dim: 256
+
   image_size: 384
 
   # bert config
-  med_config_path: "configs/models/med_large_config.json"
+  med_config_path: "configs/models/med_config.json"
 
   # generation configs
   # max_length: 20  

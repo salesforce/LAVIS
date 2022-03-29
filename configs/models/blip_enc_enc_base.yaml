@@ -1,11 +1,13 @@
 model:
-  arch: blip_enc_dec
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
+  arch: blip_enc_enc
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base_caption.pth"
 
   # vit encoder
   vit_type: "base"
   vit_grad_ckpt: False
   vit_ckpt_layer: 0
+
+  embed_dim: 256
 
   image_size: 384
 
