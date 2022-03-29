@@ -5,5 +5,11 @@ from common.registry import registry
 
 @registry.register_task('retrieval')
 class RetrievalTask(BaseTask):
-    def __init__(self, cfg):
-        super().__init__(cfg)
+    def __init__(self):
+        super().__init__()
+    
+    @classmethod
+    def setup_task(cls, cfg):
+        run_cfg = cfg.run_cfg
+
+        return cls()

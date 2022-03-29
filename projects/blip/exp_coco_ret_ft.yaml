@@ -1,7 +1,8 @@
 model:
-  arch: blip_enc_dec
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
+  arch: blip_enc_enc
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
   # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
 
 datasets:
   coco_retrieval: # name of the dataset builder
@@ -34,7 +35,7 @@ run:
   seed: 42 
   output_dir: "output/Retrieval_coco"
 
-  evaluate: False
+  evaluate: True
   train_splits: ["train"]
   valid_splits: ["val", "test"] 
 

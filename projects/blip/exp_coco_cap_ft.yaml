@@ -1,6 +1,8 @@
 model:
   arch: blip_enc_dec
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
   # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
 
 datasets:
