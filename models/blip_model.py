@@ -1,5 +1,6 @@
 import os
 from urllib.parse import urlparse
+from omegaconf import OmegaConf
 
 import torch
 from common.registry import registry
@@ -115,11 +116,16 @@ class BlipEncoderDecoder(EncoderDecoderModel):
         return captions
 
     @classmethod
+    def build_default_model(cls, model_type="base"):
+        return cls.build_model(cfg=None, model_type=model_type)
+
+    @classmethod
     def build_model(cls, cfg=None, model_type="base"):
         if not cfg:
             # useful when building model without provided configuration file
             from utils.config import Config
-            cfg = Config.build_model_config(config_path=cls.default_config_path(model_type)).model
+            default_config = OmegaConf.load(cls.default_config_path(model_type))
+            cfg = Config.build_model_config(default_config).model
         
         return cls._build_model_from_config(cfg)
     

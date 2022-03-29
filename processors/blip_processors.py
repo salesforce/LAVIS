@@ -1,4 +1,5 @@
 import re
+from omegaconf import OmegaConf
 
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
@@ -26,7 +27,9 @@ class BlipCOCOText(BaseProcessor):
         return caption
     
     @classmethod
-    def build_processor(cls, cfg):
+    def build_processor(cls, cfg=None):
+        if cfg is None: cfg = OmegaConf.create()
+
         prompt = cfg.get("prompt", "")
         max_words = cfg.get("max_words", 30)
 

@@ -6,5 +6,5 @@ class BaseProcessor:
         raise NotImplementedError
 
     @classmethod
-    def build_processor(cls, cfg):
+    def build_processor(cls, cfg=None):
         return cls()
