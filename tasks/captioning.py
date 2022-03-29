@@ -38,10 +38,6 @@ class CaptionTask(BaseTask):
             evaluate=evaluate
         )
 
-    def train_step(self, model, samples):
-        loss = model(samples)
-        return loss
-
     def valid_step(self, model, samples):
         results = []
 

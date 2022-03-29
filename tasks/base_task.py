@@ -63,7 +63,7 @@ class BaseTask:
         
         return multi_datasets
 
-    def train_step(self, sample, model, criterion, optimizer):
+    def train_step(self, model, samples):
         """
         Do forward and backward, and return the loss as computed by *criterion*
         for the given *model* and *sample*.
@@ -79,7 +79,8 @@ class BaseTask:
                   gradient
                 - logging outputs to display while training
         """ 
-        raise NotImplementedError
+        loss = model(samples)
+        return loss
 
     def valid_step(self, model, samples):
         # model.eval()
