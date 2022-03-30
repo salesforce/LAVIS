@@ -22,6 +22,14 @@ class COCOCapBuilder(BaseDatasetBuilder):
     def default_config_path(cls):
         return "configs/datasets/coco/defaults_cap.yaml"
     
+    @staticmethod
+    def save_build_info(build_info_path, url):
+        from datetime import datetime
+        import json
+
+        info = {"date": str(datetime.now()), "from": url}
+        json.dump(info, open(build_info_path, 'w+'))
+
     def _download_vis(self):
         local_paths = self.config.storage.get(self.data_type)
         remote_paths = self.config.build_info.get(self.data_type)
@@ -38,6 +46,9 @@ class COCOCapBuilder(BaseDatasetBuilder):
         dl_cache_dir = os.path.join(cache_root, 'temp')
         os.makedirs(dl_cache_dir, exist_ok=True)
 
+        build_info_dir = os.path.join(cache_root, 'build_info')
+        os.makedirs(build_info_dir, exist_ok=True)
+
         # Download *.zip files
         for split in local_splits:
             # extract the downloaded archive files.
@@ -47,11 +58,14 @@ class COCOCapBuilder(BaseDatasetBuilder):
             if not os.path.isabs(storage_path):
                 storage_path = os.path.join(cache_root, storage_path)
 
-            if os.path.exists(storage_path):
-                logging.info("Path {} exists, skip downloading.".format(storage_path))
+            build_info_path = os.path.join(build_info_dir, "coco_" + os.path.splitext(os.path.basename(remote_paths[split].url))[0] + '.build')
+
+            if os.path.exists(build_info_path):
+                logging.info("Path {} exists, skip downloading.".format(build_info_path))
                 continue
 
-            download_url(url=remote_paths[split].url, root=dl_cache_dir, md5=remote_paths[split].md5)
+            # download_url(url=remote_paths[split].url, root=dl_cache_dir, md5=remote_paths[split].md5)
+            download_url(url=remote_paths[split].url, root=dl_cache_dir)
 
             dirname = os.path.dirname(storage_path)
             assert os.path.normpath(dirname) == os.path.normpath(storage_path), "Local path to store COCO images has to be a directory, found {}.".format(storage_path)
@@ -61,3 +75,6 @@ class COCOCapBuilder(BaseDatasetBuilder):
             # extracting
             archive_path = os.path.join(dl_cache_dir, os.path.basename(remote_paths[split].url))
             extract_archive(from_path=archive_path, to_path=storage_path, overwrite=False)
+
+            # save build info
+            self.save_build_info(build_info_path, remote_paths[split].url)
