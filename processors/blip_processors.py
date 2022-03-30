@@ -80,7 +80,7 @@ class BlipCOCORetImageTrain(BlipCOCOImage):
 
 @registry.register_processor("blip_coco_ret_vis_eval")
 class BlipCOCORetImageEval(BlipCOCOImage):
-    def __init__(self, image_size, mean, std):
+    def __init__(self, image_size=384, mean=None, std=None):
         super().__init__(mean=mean, std=std)
 
         self.transform = transforms.Compose([
