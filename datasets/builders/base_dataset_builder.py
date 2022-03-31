@@ -60,6 +60,14 @@ class BaseDatasetBuilder:
     def _build_from_config(cfg):
         return registry.get_processor_class(cfg.name).build_processor(cfg)
 
+    @staticmethod
+    def save_build_info(build_info_path, url):
+        from datetime import datetime
+        import json
+
+        info = {"date": str(datetime.now()), "from": url}
+        json.dump(info, open(build_info_path, 'w+'))
+
     @classmethod
     def default_config_path(cls):
         return None

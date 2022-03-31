@@ -22,14 +22,6 @@ class COCOCapBuilder(BaseDatasetBuilder):
     def default_config_path(cls):
         return "configs/datasets/coco/defaults_cap.yaml"
     
-    @staticmethod
-    def save_build_info(build_info_path, url):
-        from datetime import datetime
-        import json
-
-        info = {"date": str(datetime.now()), "from": url}
-        json.dump(info, open(build_info_path, 'w+'))
-
     def _download_vis(self):
         local_paths = self.config.storage.get(self.data_type)
         remote_paths = self.config.build_info.get(self.data_type)
