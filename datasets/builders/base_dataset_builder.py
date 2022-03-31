@@ -87,35 +87,38 @@ class BaseDatasetBuilder:
 
         Local annotation paths should be relative. 
         """        
-        local_anns = self.config.storage.annotations
-        remote_anns = self.config.build_info.annotations
+        anns = self.config.build_info.annotations
 
-        local_splits = local_anns.keys()
-        remote_splits = remote_anns.keys()
-
-        assert local_splits == remote_splits, "Inconsistent remote and local splits, found {} and {}.".format(remote_splits, local_splits)
+        splits = anns.keys()
 
         cache_root = registry.get_path('cache_root')
 
-        for split in local_splits:
-            storage_path = local_anns[split]
-            remote_info = remote_anns[split]
+        for split in splits:
+            info = anns[split]
 
-            # if storage_path is relative, make it full by prefixing with cache_root.
-            if not os.path.isabs(storage_path):
-                storage_path = os.path.join(cache_root, storage_path)
+            urls, storage_paths = info.url, info.storage
 
-            # create the directory if not exist
-            dirname = os.path.dirname(storage_path)
-            if not os.path.exists(dirname): os.makedirs(dirname)
+            if isinstance(urls, str): urls = [urls]
+            if isinstance(storage_paths, str): storage_paths = [storage_paths]
 
-            if os.path.isdir(storage_path):
-                # if only dirname is provided, suffix with basename of URL.
-                raise ValueError('Expecting storage_path to be a file path, got directory {}'.format(storage_path))
-            else:
-                filename = os.path.basename(storage_path)
+            assert len(urls) == len(storage_paths)
 
-            download_url(url=remote_info.url, root=dirname, filename=filename, md5=remote_info.md5)
+            for url, storage_path in zip(urls, storage_paths):
+                # if storage_path is relative, make it full by prefixing with cache_root.
+                if not os.path.isabs(storage_path):
+                    storage_path = os.path.join(cache_root, storage_path)
+
+                dirname = os.path.dirname(storage_path)
+                if not os.path.exists(dirname): os.makedirs(dirname)
+
+                if os.path.isdir(storage_path):
+                    # if only dirname is provided, suffix with basename of URL.
+                    raise ValueError('Expecting storage_path to be a file path, got directory {}'.format(storage_path))
+                else:
+                    filename = os.path.basename(storage_path)
+
+                # download_url(url=url, root=dirname, filename=filename, md5=info.md5)
+                download_url(url=url, root=dirname, filename=filename)
         
     # We need some downloading utilities to help.
     def _download_vis(self):
