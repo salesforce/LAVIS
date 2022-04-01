@@ -13,10 +13,10 @@ datasets:
           name: "blip_coco_ret_vis_eval"
     text_processor:
         train: 
-          name: "blip_coco_ret_text"
+          name: "blip_coco_text"
           prompt: "a picture of "
         eval: 
-          name: "blip_coco_ret_text"
+          name: "blip_coco_text"
 
 run:
   task: retrieval

@@ -55,8 +55,6 @@ def main():
     task = tasks.setup_task(cfg)
 
     datasets = task.build_datasets(cfg)
-    # FIXME to support dataloaders for multiple datasets
-    datasets = datasets[list(datasets.keys())[0]]
 
     model = task.build_model(cfg)
 

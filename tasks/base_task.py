@@ -1,6 +1,7 @@
 import torch
 
 from common.registry import registry
+from utils.data_utils import concat_datasets
 
 class BaseTask:
     def __init__(self, **kwargs):
@@ -49,9 +50,7 @@ class BaseTask:
 
         datasets_config = cfg.datasets_cfg
 
-        # [TODO] to support multiple datasets
         assert len(datasets_config) > 0, "At least one dataset has to be specified."
-        assert len(datasets_config) == 1, "Do not support multiple datasets for now."
 
         for name in datasets_config:
             dataset_config = datasets_config[name]
@@ -61,7 +60,7 @@ class BaseTask:
 
             multi_datasets[name] = datasets
         
-        return multi_datasets
+        return concat_datasets(multi_datasets)
 
     def train_step(self, model, samples):
         """

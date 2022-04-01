@@ -1,12 +1,21 @@
 model:
   arch: blip_enc_dec
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
-  # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_vqa_capfilt_large.pth"
 
 datasets:
-  coco_caption: # name of the dataset builder
+  coco_vqa: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_coco_vis_train"
+        eval:
+          name: "blip_coco_vis_eval"
+    text_processor:
+        train: 
+          name: "blip_coco_text"
+          prompt: "a picture of "
+        eval: 
+          name: "blip_coco_text"
+  vg_vqa: # name of the dataset builder
     vis_processor: 
         train: 
           name: "blip_coco_vis_train"
@@ -20,8 +29,8 @@ datasets:
           name: "blip_coco_text"
 
 run:
-  # task: retrieval
-  task: captioning
+  # task: captioning
+  task: vqa
   # optimizer
   init_lr: 1e-5
   min_lr: 0
@@ -35,11 +44,11 @@ run:
   num_beams: 3
 
   seed: 42 
-  output_dir: "output/Caption_coco"
+  output_dir: "output/VQA"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"] 
+  valid_splits: ["test"] 
 
   device: "cuda"
   world_size: 1

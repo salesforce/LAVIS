@@ -18,7 +18,7 @@ class BlipCOCOImage(BaseProcessor):
         self.normalize = transforms.Normalize(mean, std)
 
 
-@registry.register_processor("blip_coco_ret_text")
+@registry.register_processor("blip_coco_text")
 class BlipCOCOText(BaseProcessor):
     def __init__(self, prompt, max_words):
         self.prompt = prompt
@@ -60,7 +60,7 @@ class BlipCOCOText(BaseProcessor):
         return caption
 
 
-@registry.register_processor("blip_coco_ret_vis_train")
+@registry.register_processor("blip_coco_vis_train")
 class BlipCOCORetImageTrain(BlipCOCOImage):
     def __init__(self):
         super().__init__()
@@ -78,7 +78,7 @@ class BlipCOCORetImageTrain(BlipCOCOImage):
         return self.transform(item) 
 
 
-@registry.register_processor("blip_coco_ret_vis_eval")
+@registry.register_processor("blip_coco_vis_eval")
 class BlipCOCORetImageEval(BlipCOCOImage):
     def __init__(self, image_size=384, mean=None, std=None):
         super().__init__(mean=mean, std=std)

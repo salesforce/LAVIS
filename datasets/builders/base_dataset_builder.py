@@ -133,13 +133,13 @@ class BaseDatasetBuilder:
         """
         self.build_processors()
 
-        storage_info = self.config.storage
+        build_info = self.config.build_info
         
-        ann_paths = storage_info.get('annotations')
-        vis_paths = storage_info.get(self.data_type)
+        ann_info = build_info.annotations
+        vis_info = build_info.get(self.data_type)
 
         datasets = dict()
-        for split in ann_paths.keys():
+        for split in ann_info.keys():
             assert split in ['train', 'val', 'test'], "Invalid split name {}, must be one of 'train', 'val' and 'test'."
             is_train = split == 'train'
 
@@ -148,21 +148,34 @@ class BaseDatasetBuilder:
             text_processor = self.text_processors['train'] if is_train else self.text_processors['eval']
 
             # annotation path
-            ann_path = ann_paths.get(split)
-            if not os.path.isabs(ann_path):
-                ann_path = os.path.join(registry.get_path("cache_root"), ann_path) 
-            
-            vis_path = vis_paths.get(split)
-            if not os.path.isabs(vis_path):
-                vis_path = os.path.join(registry.get_path("cache_root"), vis_path) 
+            ann_paths = ann_info.get(split).storage
+            if isinstance(ann_paths, str): ann_paths = [ann_paths]
+
+            abs_ann_paths = []
+            for ann_path in ann_paths:
+                if not os.path.isabs(ann_path):
+                    ann_path = os.path.join(registry.get_path("cache_root"), ann_path) 
+                abs_ann_paths.append(ann_path)
+            ann_paths = abs_ann_paths
+
+            # visual data paths
+            vis_paths = vis_info.get(split).storage
+            if isinstance(vis_paths, str): vis_paths = [vis_paths]
+
+            abs_vis_paths = []
+            for vis_path in vis_paths:
+                if not os.path.isabs(vis_path):
+                    vis_path = os.path.join(registry.get_path("cache_root"), vis_path) 
+                abs_vis_paths.append(vis_path)
+            vis_paths = abs_vis_paths
 
             # create datasets
             dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
             datasets[split] = dataset_cls(
                     vis_processor=vis_processor,
                     text_processor=text_processor,
-                    ann_path=ann_path,
-                    image_root=vis_path
+                    ann_paths=ann_paths,
+                    image_roots=vis_paths
                 )
 
         return datasets
