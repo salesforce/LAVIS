@@ -307,7 +307,7 @@ def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
 
 class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
     @classmethod
-    def build_model(cls, cfg):
+    def build_from_cfg(cls, cfg):
 
         vit_type = cfg.get('vit_type', 'base')
         image_size = cfg.get('image_size', 384)

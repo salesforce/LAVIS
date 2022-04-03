@@ -8,13 +8,16 @@ datasets:
       annotations:
         train: 
           url: 
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
+              - /export/share/dongxuli/data/lavis/vg/annotations/vg_qa.json
           storage:
               - vg/annotations/vg_qa.json
       images:
         train: 
           url: 
-              - [https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip, 
-                https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip] 
+              - [
+                https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip, 
+                https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip
+                ] 
           storage: 
               - vg/images/

@@ -1,4 +1,6 @@
+import logging
 import os
+import shutil
 
 import torch.distributed as dist
 import utils.blip_utils as utils
@@ -58,7 +60,7 @@ class BaseDatasetBuilder:
         
     @staticmethod
     def _build_from_config(cfg):
-        return registry.get_processor_class(cfg.name).build_processor(cfg)
+        return registry.get_processor_class(cfg.name).build_from_cfg(cfg)
 
     @staticmethod
     def save_build_info(build_info_path, url):
@@ -103,22 +105,29 @@ class BaseDatasetBuilder:
 
             assert len(urls) == len(storage_paths)
 
-            for url, storage_path in zip(urls, storage_paths):
+            for url_or_filename, storage_path in zip(urls, storage_paths):
                 # if storage_path is relative, make it full by prefixing with cache_root.
                 if not os.path.isabs(storage_path):
                     storage_path = os.path.join(cache_root, storage_path)
 
-                dirname = os.path.dirname(storage_path)
-                if not os.path.exists(dirname): os.makedirs(dirname)
-
-                if os.path.isdir(storage_path):
-                    # if only dirname is provided, suffix with basename of URL.
-                    raise ValueError('Expecting storage_path to be a file path, got directory {}'.format(storage_path))
+                if os.path.isfile(url_or_filename):
+                    src, dst = url_or_filename, storage_path
+                    if not os.path.exists(dst):
+                        shutil.copyfile(src=src, dst=dst)
+                    else:
+                        logging.info('Using existing file {}.'.format(url_or_filename))
                 else:
-                    filename = os.path.basename(storage_path)
+                    dirname = os.path.dirname(storage_path)
+                    if not os.path.exists(dirname): os.makedirs(dirname)
 
-                # download_url(url=url, root=dirname, filename=filename, md5=info.md5)
-                download_url(url=url, root=dirname, filename=filename)
+                    if os.path.isdir(storage_path):
+                        # if only dirname is provided, suffix with basename of URL.
+                        raise ValueError('Expecting storage_path to be a file path, got directory {}'.format(storage_path))
+                    else:
+                        filename = os.path.basename(storage_path)
+
+                    # download_url(url=url, root=dirname, filename=filename, md5=info.md5)
+                    download_url(url=url_or_filename, root=dirname, filename=filename)
         
     # We need some downloading utilities to help.
     def _download_vis(self):

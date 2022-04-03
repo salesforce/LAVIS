@@ -123,26 +123,26 @@ class BlipEncoderDecoder(EncoderDecoderModel):
 
     @classmethod
     def build_default_model(cls, model_type="base"):
-        return cls.build_model(cfg=None, model_type=model_type)
+        return cls.build_from_cfg(cfg=None, model_type=model_type)
 
     @classmethod
-    def build_model(cls, cfg=None, model_type="base"):
+    def build_from_cfg(cls, cfg=None, model_type="base"):
         if not cfg:
             # useful when building model without provided configuration file
             from utils.config import Config
             default_config = OmegaConf.load(cls.default_config_path(model_type))
             cfg = Config.build_model_config(default_config).model
         
-        return cls._build_model_from_config(cfg)
+        return cls._build_from_cfg(cfg)
     
     @classmethod
-    def _build_model_from_config(cls, cfg):
+    def _build_from_cfg(cls, cfg):
         # vision encoder
-        encoder = VisionTransformerEncoder.build_model(cfg) 
+        encoder = VisionTransformerEncoder.build_from_cfg(cfg) 
         if "vision_width" not in cfg:
             cfg.vision_width = encoder.vision_width
         # text encoder + multimodal decoder
-        decoder = XBertLMHeadDecoder.build_model(cfg)
+        decoder = XBertLMHeadDecoder.build_from_cfg(cfg)
 
         prompt = cfg.get("prompt", None)
         model = cls(encoder, decoder, prompt=prompt)
@@ -256,7 +256,7 @@ class BlipEncoderEncoder(EncoderEncoderModel):
         pass
 
     @classmethod
-    def build_model(cls, cfg=None, model_type="base"):
+    def build_from_cfg(cls, cfg=None, model_type="base"):
         if not cfg:
             # useful when building model without provided configuration file
             from utils.config import Config
@@ -269,13 +269,13 @@ class BlipEncoderEncoder(EncoderEncoderModel):
         embed_dim = cfg.get("embed_dim", 256)
 
         # vision encoder
-        encoder_vis = VisionTransformerEncoder.build_model(cfg) 
+        encoder_vis = VisionTransformerEncoder.build_from_cfg(cfg) 
         vision_width = encoder_vis.vision_width
         if "vision_width" not in cfg:
             cfg.vision_width = vision_width
 
         # text encoder + multimodal encoder
-        encoder_xmodal = XBertEncoder.build_model(cfg)
+        encoder_xmodal = XBertEncoder.build_from_cfg(cfg)
         model = cls(encoder_vis, encoder_xmodal, embed_dim=embed_dim)
 
         # load pre-trained weights

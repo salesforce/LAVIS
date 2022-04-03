@@ -1,4 +1,6 @@
-from torch.utils.data.dataset import ConcatDataset
+# from torch.utils.data.dataset import ConcatDataset
+from datasets.datasets.base_dataset import ConcatDataset
+
 
 def concat_datasets(datasets):
     if len(datasets) == 1:
@@ -21,3 +23,5 @@ def concat_datasets(datasets):
                 concat_datasets[split_name] = concat_datasets[split_name][0]
             else:
                 concat_datasets['train'] = ConcatDataset(concat_datasets['train'])
+        
+        return concat_datasets

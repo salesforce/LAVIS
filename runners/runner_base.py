@@ -111,7 +111,7 @@ class Runner():
                 batch_size=[self.config.batch_size] * len(datasets),
                 num_workers=[self.config.num_workers] * len(datasets),
                 is_trains=is_train,
-                collate_fns=[None] * len(datasets)
+                collate_fns=[dataset.collater for dataset in datasets]
             )
 
             self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
@@ -301,11 +301,8 @@ class Runner():
         model.eval()
 
         data_loader = self.dataloaders.get(split_name, None)
-        import pdb; pdb.set_trace()
 
         assert data_loader, "data_loader for split {} is None.".format(split_name)
-
-
 
     def _prepare_sample(self, samples):
         if self.cuda_enabled:

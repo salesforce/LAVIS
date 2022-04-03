@@ -1,6 +1,8 @@
 import json
+from typing import Iterable
 
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, ConcatDataset, default_collate
+
 
 class BaseDataset(Dataset):
     def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
@@ -22,3 +24,15 @@ class BaseDataset(Dataset):
 
     def __len__(self):
         return len(self.annotation)
+    
+    def collater(self, samples):
+        return default_collate(samples)
+
+
+class ConcatDataset(ConcatDataset):
+    def __init__(self, datasets: Iterable[Dataset]) -> None:
+        super().__init__(datasets)
+
+    def collater(self, samples):
+        # TODO For now only supports datasets with same underlying collater implementations
+        return self.datasets[0].collater(samples)

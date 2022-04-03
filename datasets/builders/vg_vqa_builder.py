@@ -4,7 +4,7 @@ import logging
 from torchvision.datasets.utils import download_url
 
 from datasets.builders.base_dataset_builder import BaseDatasetBuilder
-from datasets.datasets.vqa_datasets import VQADataset, VQAEvalDataset
+from datasets.datasets.vg_vqa_datasets import VGVQADataset
 
 from utils.file_utils import extract_archive
 from common.registry import registry
@@ -12,8 +12,7 @@ from common.registry import registry
 
 @registry.register_builder("vg_vqa")
 class VGVQABuilder(BaseDatasetBuilder):
-    train_dataset_cls = VQADataset
-    eval_dataset_cls = VQAEvalDataset
+    train_dataset_cls = VGVQADataset
 
     def __init__(self, cfg):
         super().__init__(cfg)

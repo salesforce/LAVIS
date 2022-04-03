@@ -1,7 +1,4 @@
-import os
-
-from PIL import Image
-
+import torch
 
 from datasets.datasets.base_dataset import BaseDataset
 
@@ -9,46 +6,26 @@ class VQADataset(BaseDataset):
     def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
         super().__init__(vis_processor, text_processor, image_roots, ann_paths)
     
-    def __getitem__(self, index):
-        ann = self.annotation[index]
-        
-        image_path = os.path.join(self.image_root, ann['image'])
-        image = Image.open(image_path).convert('RGB')
+    def collater(self, samples):
+        image_list, question_list, answer_list, weight_list = [], [], [], []
 
-        image = self.vis_processor(image)  
-        question = self.text_processor(ann['question'])
+        num_answers = []
 
-        # question = pre_question(ann['question'])        
-        
-        answer_weight = {}
-        for answer in ann['answer']:
-            if answer in answer_weight.keys():
-                answer_weight[answer] += 1/len(ann['answer'])
-            else:
-                answer_weight[answer] = 1/len(ann['answer'])
+        for sample in samples:
+            image_list.append(sample['image'])
+            question_list.append(sample['question'])
 
-        answers = list(answer_weight.keys())
-        weights = list(answer_weight.values())
+            weight_list.extend(sample['weights'])
 
-        return image, question, answers, weights
+            answers = sample['answers']
 
+            answer_list.extend(answers)
+            num_answers.append(len(answers))
 
-class VQAEvalDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
-        super().__init__(vis_processor, text_processor, image_roots, ann_paths)
-        
-    def __getitem__(self, index):
-        ann = self.annotation[index]
-
-        image_path = os.path.join(self.image_root, ann['image'])
-        image = Image.open(image_path).convert('RGB')
-
-        image = self.vis_processor(image)  
-        question = self.text_processor(ann['question'])
-
-        # image = self.vis_processor(image)  
-
-        # question = pre_question(ann['question'])   
-        question_id = ann['question_id']            
-
-        return image, question, question_id
+        return {
+            "images": torch.stack(image_list, dim=0),
+            "questions": question_list,
+            "answers": answer_list,
+            "weights": torch.Tensor(weight_list),
+            "n_answers": torch.LongTensor(num_answers)
+        }

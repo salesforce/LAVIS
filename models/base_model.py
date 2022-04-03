@@ -15,7 +15,7 @@ class BaseModel(nn.Module):
         raise NotImplementedError
     
     @classmethod
-    def build_model(cls, cfg):
+    def build_from_cfg(cls, cfg):
         """
         A factory method to create instance from cfg.
 

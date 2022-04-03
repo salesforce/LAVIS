@@ -30,7 +30,7 @@ class BlipCOCOText(BaseProcessor):
         return caption
     
     @classmethod
-    def build_processor(cls, cfg=None):
+    def build_from_cfg(cls, cfg=None):
         if cfg is None: cfg = OmegaConf.create()
 
         prompt = cfg.get("prompt", "")
@@ -61,12 +61,12 @@ class BlipCOCOText(BaseProcessor):
 
 
 @registry.register_processor("blip_coco_vis_train")
-class BlipCOCORetImageTrain(BlipCOCOImage):
-    def __init__(self):
-        super().__init__()
+class BlipCOCOImageTrain(BlipCOCOImage):
+    def __init__(self, image_size=384, mean=None, std=None, min_scale=0.5, max_scale=1.0):
+        super().__init__(mean=mean, std=std)
 
         self.transform = transforms.Compose([                        
-                transforms.RandomResizedCrop(384, scale=(0.5, 1.0),interpolation=InterpolationMode.BICUBIC),
+                transforms.RandomResizedCrop(image_size, scale=(min_scale, max_scale), interpolation=InterpolationMode.BICUBIC),
                 transforms.RandomHorizontalFlip(),
                 RandomAugment(2,5,isPIL=True,augs=['Identity','AutoContrast','Brightness','Sharpness','Equalize',
                                                 'ShearX', 'ShearY', 'TranslateX', 'TranslateY', 'Rotate']),     
@@ -77,9 +77,23 @@ class BlipCOCORetImageTrain(BlipCOCOImage):
     def __call__(self, item):
         return self.transform(item) 
 
+    @classmethod
+    def build_from_cfg(cls, cfg=None):
+        if cfg is None: cfg = OmegaConf.create()
+
+        image_size = cfg.get("image_size", 384)
+
+        mean = cfg.get("mean", None)
+        std = cfg.get("std", None)
+
+        min_scale = cfg.get("min_scale", 0.5)
+        max_scale = cfg.get("max_scale", 1.0)
+
+        return cls(image_size=image_size, mean=mean, std=std, min_scale=min_scale, max_scale=max_scale)
+
 
 @registry.register_processor("blip_coco_vis_eval")
-class BlipCOCORetImageEval(BlipCOCOImage):
+class BlipCOCOImageEval(BlipCOCOImage):
     def __init__(self, image_size=384, mean=None, std=None):
         super().__init__(mean=mean, std=std)
 
@@ -93,7 +107,7 @@ class BlipCOCORetImageEval(BlipCOCOImage):
         return self.transform(item) 
     
     @classmethod
-    def build_processor(cls, cfg=None):
+    def build_from_cfg(cls, cfg=None):
         if cfg is None: cfg = OmegaConf.create()
 
         image_size = cfg.get("image_size", 384)

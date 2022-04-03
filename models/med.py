@@ -958,7 +958,7 @@ class BertLMHeadModel(BertPreTrainedModel):
 
 class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
     @classmethod
-    def build_model(cls, cfg):
+    def build_from_cfg(cls, cfg):
 
         med_config_path = cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)
@@ -1000,7 +1000,7 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
 
 class XBertEncoder(BertModel, BaseEncoder):
     @classmethod
-    def build_model(cls, cfg):
+    def build_from_cfg(cls, cfg):
 
         med_config_path = cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)

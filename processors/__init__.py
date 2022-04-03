@@ -1,9 +1,9 @@
 from .base_processor import BaseProcessor
-from .blip_processors import BlipCOCORetImageTrain, BlipCOCORetImageEval
+from .blip_processors import BlipCOCOImageTrain, BlipCOCOImageEval
 
 
 __all__ = [
         'BaseProcessor',
-        'BlipCOCORetImageTrain',
-        'BlipCOCORetImageEval'
+        'BlipCOCOImageTrain',
+        'BlipCOCOImageEval'
         ]
