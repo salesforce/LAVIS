@@ -1,0 +1,13 @@
+model:
+  arch: blip_vqa
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_vqa_capfilt_large.pth"
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: False
+  vit_ckpt_layer: 0
+
+  image_size: 480
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"

@@ -1,5 +1,5 @@
 model:
-  arch: blip_enc_dec
+  arch: blip_vqa
 
   vit_type: "large"
   vit_grad_ckpt: True

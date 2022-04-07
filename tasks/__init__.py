@@ -5,8 +5,9 @@ from tasks.retrieval import RetrievalTask
 from tasks.captioning import CaptionTask
 from tasks.vqa import VQATask
 
+
 def setup_task(cfg):
-    assert 'task' in cfg.run_cfg, 'Task name must be provided.'
+    assert "task" in cfg.run_cfg, "Task name must be provided."
 
     task_name = cfg.run_cfg.task
     # task = registry.get_task_class(task_name)(cfg)
@@ -15,6 +16,5 @@ def setup_task(cfg):
 
     return task
 
-__all__ = [
-        'BaseTask', 'RetrievalTask', 'CaptionTask', 'VQATask'
-        ]
+
+__all__ = ["BaseTask", "RetrievalTask", "CaptionTask", "VQATask"]

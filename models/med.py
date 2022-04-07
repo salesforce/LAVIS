@@ -20,6 +20,7 @@ import torch.utils.checkpoint
 from torch import nn
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
+from transformers import BatchEncoding, PreTrainedTokenizer
 
 from transformers.activations import ACT2FN
 from transformers.file_utils import (
@@ -957,6 +958,11 @@ class BertLMHeadModel(BertPreTrainedModel):
 
 
 class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
+    """
+    This class decouples the decoder forward logic from the VL model.
+    In this way, different VL models can share this decoder as long as 
+    they feed encoder_embeds as required. 
+    """
     @classmethod
     def build_from_cfg(cls, cfg):
 
@@ -965,32 +971,76 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
 
         return cls(config=med_config)
 
-    def generate_from_visual(self, image_embeds, input_ids, tokenizer, do_sample=False, num_beams=3, max_length=30, min_length=10, top_p=0.9, repetition_penalty=1.0):
+    def forward_loss(self, 
+        text_tokenized: BatchEncoding,
+        visual_embeds: Tensor, 
+        decoder_targets: Tensor,
+        **kwargs
+    ) -> Tuple:
+        """
+        not to override forward(), which will be used for generation.
+        """
+        visual_atts = torch.ones(
+            visual_embeds.size()[:-1],
+            dtype=torch.long
+        ).to(self.device)
 
-        image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(image_embeds.device)
-        model_kwargs = {"encoder_hidden_states": image_embeds, "encoder_attention_mask":image_atts}
+        decoder_output = super().forward(
+            text_tokenized.input_ids,
+            attention_mask=text_tokenized.attention_mask,
+            encoder_hidden_states=visual_embeds,
+            encoder_attention_mask=visual_atts,
+            labels=decoder_targets,
+            return_dict=True,
+        )
+        loss_lm = decoder_output.loss
 
-        if do_sample:
+        return loss_lm, decoder_output
+
+    def generate_from_encoder(self, 
+        tokenized_prompt,
+        visual_embeds,
+        sep_token_id,
+        pad_token_id,
+        use_nucleus_sampling=False, 
+        num_beams=3,
+        max_length=30,
+        min_length=10,
+        top_p=0.9,
+        repetition_penalty=1.0,
+        **kwargs
+    ):
+
+        if not use_nucleus_sampling:
+            num_beams = num_beams
+            visual_embeds = visual_embeds.repeat_interleave(num_beams, dim=0)
+
+        image_atts = torch.ones(
+            visual_embeds.size()[:-1],dtype=torch.long).to(self.device)
+
+        model_kwargs = {"encoder_hidden_states": visual_embeds, "encoder_attention_mask":image_atts}
+
+        if use_nucleus_sampling:
             #nucleus sampling
-            outputs = self.generate(input_ids=input_ids,
+            outputs = self.generate(input_ids=tokenized_prompt.input_ids,
                                     max_length=max_length,
                                     min_length=min_length,
-                                    do_sample=True,
+                                    use_nucleus_sampling=True,
                                     top_p=top_p,
                                     num_return_sequences=1,
-                                    eos_token_id=tokenizer.sep_token_id,
-                                    pad_token_id=tokenizer.pad_token_id, 
+                                    eos_token_id=sep_token_id,
+                                    pad_token_id=pad_token_id, 
                                     repetition_penalty=1.1,                                            
                                     **model_kwargs
                                     )
         else:
             #beam search
-            outputs = self.generate(input_ids=input_ids,
+            outputs = self.generate(input_ids=tokenized_prompt.input_ids,
                                     max_length=max_length,
                                     min_length=min_length,
                                     num_beams=num_beams,
-                                    eos_token_id=tokenizer.sep_token_id,
-                                    pad_token_id=tokenizer.pad_token_id,     
+                                    eos_token_id=sep_token_id,
+                                    pad_token_id=pad_token_id,     
                                     repetition_penalty=repetition_penalty,
                                     **model_kwargs
                                     )            
@@ -1005,4 +1055,19 @@ class XBertEncoder(BertModel, BaseEncoder):
         med_config_path = cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)
 
-        return cls(config=med_config)
+        return cls(config=med_config, add_pooling_layer=False)
+    
+    def forward(self, tokenized_text, visual_embeds, **kwargs):
+        image_atts = torch.ones(visual_embeds.size()[:-1],
+                                dtype=torch.long).to(self.device)
+
+        text = tokenized_text
+        text_output = super().forward(
+            text.input_ids,
+            attention_mask=text.attention_mask,
+            encoder_hidden_states=visual_embeds,
+            encoder_attention_mask=image_atts,
+            return_dict=True
+        )
+
+        return text_output

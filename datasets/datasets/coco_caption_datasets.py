@@ -26,5 +26,4 @@ class COCOCapEvalDataset(CaptionEvalDataset):
 
         img_id = ann['image'].split('/')[-1].strip('.jpg').split('_')[-1]
 
-        # return image, int(img_id)
-        return {"vis_data": image, "image_id": int(img_id)}
+        return {"image": image, "image_id": int(img_id)}

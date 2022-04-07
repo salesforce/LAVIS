@@ -18,15 +18,18 @@ from models import *
 
 import utils.blip_utils as utils
 
-def parse_args():
-    parser = argparse.ArgumentParser(description='Training')
 
-    parser.add_argument('--cfg-path', required=True, help="path to configuration file.")
-    parser.add_argument('--options',
-        nargs='+',
-        help='override some settings in the used config, the key-value pair '
-        'in xxx=yyy format will be merged into config file (deprecate), '
-        'change to --cfg-options instead.')
+def parse_args():
+    parser = argparse.ArgumentParser(description="Training")
+
+    parser.add_argument("--cfg-path", required=True, help="path to configuration file.")
+    parser.add_argument(
+        "--options",
+        nargs="+",
+        help="override some settings in the used config, the key-value pair "
+        "in xxx=yyy format will be merged into config file (deprecate), "
+        "change to --cfg-options instead.",
+    )
 
     args = parser.parse_args()
     # if 'LOCAL_RANK' not in os.environ:
@@ -39,10 +42,10 @@ def main():
     # model = registry.get_model_class("blip_enc_dec").build_model()
 
     root_dir = os.getcwd()
-    default_cfg = OmegaConf.load(os.path.join(root_dir, 'configs/default.yaml'))
+    default_cfg = OmegaConf.load(os.path.join(root_dir, "configs/default.yaml"))
 
-    registry.register_path('library_root', root_dir)
-    registry.register_path('cache_root', default_cfg.env.cache_root)
+    registry.register_path("library_root", root_dir)
+    registry.register_path("cache_root", default_cfg.env.cache_root)
 
     setup_logger()
 
@@ -61,5 +64,6 @@ def main():
     runner = Runner(cfg=cfg.run_cfg, task=task, model=model, datasets=datasets)
     runner.train()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

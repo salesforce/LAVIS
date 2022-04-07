@@ -8,8 +8,8 @@ datasets:
       annotations:
         train: 
           url: 
-              # - https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
-              - /export/share/dongxuli/data/lavis/vg/annotations/vg_qa.json
+              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
+              # - /export/share/dongxuli/data/lavis/vg/annotations/vg_qa.json
           storage:
               - vg/annotations/vg_qa.json
       images:

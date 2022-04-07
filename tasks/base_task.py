@@ -7,29 +7,15 @@ class BaseTask:
     def __init__(self, **kwargs):
         super().__init__()
 
-        # Dict: split (str) -> dataset (Dataset)
-        self.datasets = dict()
-
     @classmethod
     def setup_task(cls, cfg, **kwargs):
         return cls(cfg, **kwargs)
     
-    def load_dataset(self, split):
-        raise NotImplementedError
-
-    def dataset(self, split):
-        """Return a dataset split."""
-        if split not in self.datasets:
-            raise KeyError('Dataset not loaded: ' + split)
-        # if not isinstance(self.datasets[split], FairseqDataset):
-        #     raise TypeError('Datasets are expected to be of type FairseqDataset')
-        return self.datasets[split]
-
     def build_model(self, cfg):
         model_config = cfg.model_cfg
 
         model_cls = registry.get_model_class(model_config.arch)
-        return model_cls.build_from_cfg(model_config)
+        return model_cls.build(model_config)
 
     # def build_criterion(self, cfg):
     #     raise NotImplementedError
@@ -78,7 +64,7 @@ class BaseTask:
                   gradient
                 - logging outputs to display while training
         """ 
-        loss = model(samples)
+        loss = model(samples)["loss"]
         return loss
 
     def valid_step(self, model, samples):

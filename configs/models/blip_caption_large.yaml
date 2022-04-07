@@ -1,5 +1,5 @@
 model:
-  arch: blip_enc_dec
+  arch: blip_caption
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth"
 
   vit_type: "large"
@@ -14,7 +14,4 @@ model:
   med_config_path: "configs/models/med_large_config.json"
 
   # generation configs
-  # max_length: 20  
-  # min_length: 5
-  # num_beams: 3
   prompt: "a picture of "

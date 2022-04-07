@@ -1,4 +1,5 @@
 import math
+import re
 
 
 def cosine_lr_schedule(optimizer, epoch, max_epoch, init_lr, min_lr):
@@ -448,3 +449,8 @@ def coco_caption_eval(coco_gt_root, results_file, split):
         print(f'{metric}: {score:.3f}')
     
     return coco_eval
+
+
+def build_default_model(name, model_type="base"):
+    from common.registry import registry
+    return registry.get_model_class(name).build_default_model(model_type=model_type)

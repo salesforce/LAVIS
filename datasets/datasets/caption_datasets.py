@@ -33,7 +33,7 @@ class CaptionDataset(BaseDataset):
         image = self.vis_processor(image)
         caption = self.text_processor(ann['caption'])
 
-        return {"vis_data": image, "text_data": caption, "image_id": self.img_ids[ann["image_id"]]}
+        return {"image": image, "text_input": caption, "image_id": self.img_ids[ann["image_id"]]}
 
 
 class CaptionEvalDataset(BaseDataset):
@@ -52,5 +52,5 @@ class CaptionEvalDataset(BaseDataset):
 
         image = self.vis_processor(image)  
 
-        return {"vis_data": image, "image_id": self.annotations[index]["image_id"]}
+        return {"image": image, "image_id": self.annotations[index]["image_id"]}
     

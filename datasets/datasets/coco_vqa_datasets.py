@@ -3,7 +3,7 @@ import json
 
 from PIL import Image
 
-from datasets.datasets.vqa_datasets import VQADataset
+from datasets.datasets.vqa_datasets import VQADataset, VQAEvalDataset
 
 
 class COCOVQADataset(VQADataset):
@@ -32,7 +32,7 @@ class COCOVQADataset(VQADataset):
         return {'image': image, 'question': question, 'answers': answers, 'weights': weights}
 
 
-class COCOVQAEvalDataset(VQADataset):
+class COCOVQAEvalDataset(VQAEvalDataset):
     def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
         '''
         image_root (string): Root directory of images (e.g. coco/images/)

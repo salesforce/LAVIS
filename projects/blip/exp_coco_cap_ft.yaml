@@ -1,8 +1,8 @@
 model:
-  arch: blip_enc_dec
+  arch: blip_caption
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
   # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
 
 datasets:
@@ -27,7 +27,8 @@ run:
   min_lr: 0
   weight_decay: 0.05
   max_epoch: 5
-  batch_size: 32
+  batch_size_train: 32
+  batch_size_eval: 64
   num_workers: 4
 
   max_len: 20

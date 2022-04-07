@@ -12,20 +12,20 @@ from common.registry import registry
 class COCOBuilder(BaseDatasetBuilder):
     def __init__(self, cfg):
         super().__init__(cfg)
-    
+
     def _download_vis(self):
         vis_sources = self.config.build_info.get(self.data_type)
 
         splits = vis_sources.keys()
 
-        cache_root = registry.get_path('cache_root')
+        cache_root = registry.get_path("cache_root")
 
         # check whether has been fully built
         # Create temp directory for caching.
-        dl_cache_dir = os.path.join(cache_root, 'temp/coco')
+        dl_cache_dir = os.path.join(cache_root, "temp/coco")
         os.makedirs(dl_cache_dir, exist_ok=True)
 
-        build_info_dir = os.path.join(cache_root, 'build_info/coco')
+        build_info_dir = os.path.join(cache_root, "build_info/coco")
         os.makedirs(build_info_dir, exist_ok=True)
 
         # Download *.zip files
@@ -42,7 +42,10 @@ class COCOBuilder(BaseDatasetBuilder):
                 if not os.path.isabs(storage_path):
                     storage_path = os.path.join(cache_root, storage_path)
 
-                build_info_path = os.path.join(build_info_dir, os.path.splitext(os.path.basename(url))[0] + '.build')
+                build_info_path = os.path.join(
+                    build_info_dir,
+                    os.path.splitext(os.path.basename(url))[0] + ".build",
+                )
 
                 if os.path.exists(build_info_path):
                     logging.info("Path {} exists, skip downloading.".format(build_info_path))
@@ -52,10 +55,12 @@ class COCOBuilder(BaseDatasetBuilder):
                 download_url(url=url, root=dl_cache_dir)
 
                 dirname = os.path.dirname(storage_path)
-                assert os.path.normpath(dirname) == os.path.normpath(storage_path), "Local path to store images has to be a directory, found {}.".format(storage_path)
+                assert os.path.normpath(dirname) == os.path.normpath(storage_path), \
+                "Local path to store images has to be a directory, found {}.".format(storage_path)
 
-                if not os.path.exists(dirname): os.makedirs(dirname)
-                
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+
                 # extracting
                 archive_path = os.path.join(dl_cache_dir, os.path.basename(url))
                 extract_archive(from_path=archive_path, to_path=storage_path, overwrite=False)

@@ -1,6 +1,7 @@
 model:
-  arch: blip_enc_dec
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_vqa_capfilt_large.pth"
+  arch: blip_vqa
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_vqa_capfilt_large.pth"
   image_size: 480
 
 datasets:
@@ -32,27 +33,31 @@ datasets:
           name: "blip_coco_text"
 
 run:
-  # task: captioning
   task: vqa
-  # optimizer
-  init_lr: 1e-5
+  # optimization-specific
+  init_lr: 2e-5
   min_lr: 0
   weight_decay: 0.05
-  max_epoch: 5
-  batch_size: 32
+  max_epoch: 10
+  batch_size_train: 16
+  batch_size_eval: 64
   num_workers: 4
 
-  max_len: 20
-  min_len: 5
+  # inference-specific
+  max_len: 10
+  min_len: 1
   num_beams: 3
+  num_ans_candidates: 128
+  inference_method: "rank" 
 
   seed: 42 
   output_dir: "output/VQA"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["test"] 
+  test_splits: ["test"] 
 
+  # distribution-specific
   device: "cuda"
   world_size: 1
   dist_url: "env://"

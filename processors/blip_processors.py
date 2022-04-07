@@ -20,7 +20,7 @@ class BlipCOCOImage(BaseProcessor):
 
 @registry.register_processor("blip_coco_text")
 class BlipCOCOText(BaseProcessor):
-    def __init__(self, prompt, max_words):
+    def __init__(self, prompt="", max_words=30):
         self.prompt = prompt
         self.max_words = max_words
 

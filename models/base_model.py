@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 import torch.nn as nn
 
 
@@ -6,14 +8,14 @@ class BaseModel(nn.Module):
 
     def __init__(self):
         super().__init__()
-    
+
     def extract_features(self, *args, **kwargs):
         """Similar to *forward* but only return features."""
         raise NotImplementedError
 
     def load_from_pretrained(self, url_or_filename):
         raise NotImplementedError
-    
+
     @classmethod
     def build_from_cfg(cls, cfg):
         """
@@ -23,7 +25,7 @@ class BaseModel(nn.Module):
         Namely, even without cfg file, one should be able to recreate the instance.
         """
         raise NotImplementedError
-    
+
     @property
     def device(self):
         return list(self.parameters())[0].device
@@ -36,9 +38,13 @@ class BaseEncoder(nn.Module):
 
     def __init__(self):
         super().__init__()
-    
+
     def forward(self, samples, **kwargs):
         raise NotImplementedError
+
+    @property
+    def device(self):
+        return list(self.parameters())[0].device
 
 
 class BaseDecoder(nn.Module):
@@ -48,27 +54,26 @@ class BaseDecoder(nn.Module):
         super().__init__()
 
     def forward(self, samples, enc_out, **kwargs):
-        """
-        """
+        """ """
         raise NotImplementedError
 
 
-class DualEncoderModel(BaseEncoder):
-    def __init__(self, vis_encoder, text_encoder):
-        super().__init__()
+# class DualEncoderModel(BaseEncoder):
+#     def __init__(self, vis_encoder, text_encoder):
+#         super().__init__()
 
-        self.vis_encoder = vis_encoder
-        self.text_encoder = text_encoder
-    
-    def forward(self, samples, **kwargs):
-        vis_input = samples.get("visual_input", None)
-        txt_input = samples.get("text_input", None)
+#         self.vis_encoder = vis_encoder
+#         self.text_encoder = text_encoder
 
-        assert not vis_input or not txt_input, "Visual and text inputs are both None."
-        vis_enc_out = self.vis_encoder(vis_input)
-        txt_enc_out = self.text_encoder(txt_input)
+#     def forward(self, samples, **kwargs):
+#         vis_input = samples.get("visual_input", None)
+#         txt_input = samples.get("text_input", None)
 
-        return {"vis_enc_out": vis_enc_out, "txt_enc_out": txt_enc_out}
+#         assert not vis_input or not txt_input, "Visual and text inputs are both None."
+#         vis_enc_out = self.vis_encoder(vis_input)
+#         txt_enc_out = self.text_encoder(txt_input)
+
+#         return {"vis_enc_out": vis_enc_out, "txt_enc_out": txt_enc_out}
 
 
 class EncoderDecoderModel(BaseModel):
@@ -79,18 +84,25 @@ class EncoderDecoderModel(BaseModel):
         self.decoder = decoder
         assert isinstance(self.encoder, BaseEncoder)
         assert isinstance(self.decoder, BaseDecoder)
-    
+
+    @abstractmethod
+    def forward_encoder(samples, **kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
+    def forward_decoder(samples, encoder_out, **kwargs):
+        raise NotImplementedError
+
     def forward(self, samples, **kwargs):
         encoder_out = self.forward_encoder(samples, **kwargs)
         decoder_out = self.forward_decoder(samples, encoder_out, **kwargs)
-
         return decoder_out
 
     def generate(self, samples, **kwargs):
         raise NotImplementedError
 
 
-class EncoderEncoderModel(BaseModel):
+class EncoderEncoderModel(BaseEncoder):
     def __init__(self, encoder_pre, encoder_pst):
         super().__init__()
 
@@ -99,6 +111,14 @@ class EncoderEncoderModel(BaseModel):
 
         assert isinstance(self.encoder_pre, BaseEncoder)
         assert isinstance(self.encoder_pst, BaseEncoder)
+
+    @abstractmethod
+    def forward_encoder_pre(samples, **kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
+    def forward_decoder_pst(samples, encoder_pre_out, **kwargs):
+        raise NotImplementedError
 
     def forward(self, samples, **kwargs):
         encoder_pre_out = self.forward_encoder_pre(samples, **kwargs)
