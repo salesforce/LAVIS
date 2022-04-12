@@ -1,7 +1,6 @@
 model:
   arch: blip_vqa
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_vqa_capfilt_large.pth"
   image_size: 480
 
 datasets:
@@ -23,13 +22,8 @@ datasets:
         train: 
           name: "blip_coco_vis_train"
           image_size: 480
-        eval:
-          name: "blip_coco_vis_eval"
-          image_size: 480
     text_processor:
         train: 
-          name: "blip_coco_text"
-        eval: 
           name: "blip_coco_text"
 
 run:

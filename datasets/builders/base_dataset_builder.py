@@ -46,11 +46,11 @@ class BaseDatasetBuilder:
 
         Overwrite for data-specific processors.
         """
-        vis_train_cfg = self.config.vis_processor.train
-        vis_eval_cfg = self.config.vis_processor.eval
+        vis_train_cfg = self.config.vis_processor.get('train', None)
+        vis_eval_cfg = self.config.vis_processor.get('eval', None)
 
-        text_train_cfg = self.config.text_processor.train
-        text_eval_cfg = self.config.text_processor.eval
+        text_train_cfg = self.config.text_processor.get('train', None)
+        text_eval_cfg = self.config.text_processor.get('eval', None)
 
         self.vis_processors['train'] = self._build_from_config(vis_train_cfg)
         self.vis_processors['eval'] = self._build_from_config(vis_eval_cfg)
@@ -60,7 +60,10 @@ class BaseDatasetBuilder:
         
     @staticmethod
     def _build_from_config(cfg):
-        return registry.get_processor_class(cfg.name).build_from_cfg(cfg)
+        if cfg is None:
+            return None
+        else:
+            return registry.get_processor_class(cfg.name).build_from_cfg(cfg)
 
     @staticmethod
     def save_build_info(build_info_path, url):

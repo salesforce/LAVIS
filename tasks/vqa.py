@@ -74,7 +74,7 @@ class VQATask(BaseTask):
         return pred_qa_pairs
 
     def after_validation(self, val_result, result_dir, **kwargs):
-        save_result(val_result, result_dir, filename='vqa_result')
+        save_result(val_result, result_dir, filename='vqa_result', remove_duplicate='question_id')
         return val_result
 
 
