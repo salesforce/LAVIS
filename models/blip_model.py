@@ -272,19 +272,6 @@ class BlipVQA(EncoderDecoderModel):
         return paths[model_type]
 
     def forward_encoder(self, samples):
-        """
-        The forward_encoder() and forward_decoder() allows the constituent
-        encoder decoder class to be reuse without coupling to a specific vision-language model.
-
-        If instead call encoder(samples), then the forward() definition of
-        the constituent encoder has to return in a specific form,
-            e.g. {"image_embeds": image_embeds}
-
-        However, in different vision-language models, different return values may be needed.
-        In this case, forward_encoder() which bounds to the specific vision-language model, will
-        handle this variation.
-
-        """
         questions = samples['question']
         questions = self.tokenizer(
             questions,

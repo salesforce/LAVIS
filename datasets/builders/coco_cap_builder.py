@@ -1,4 +1,4 @@
-from datasets.datasets.coco_caption_datasets import COCOCapDataset, COCOCapEvalDataset 
+from datasets.datasets.coco_caption_datasets import COCOCapDataset, COCOCapEvalDataset
 from datasets.builders.coco_builder import COCOBuilder
 
 from common.registry import registry
@@ -11,7 +11,7 @@ class COCOCapBuilder(COCOBuilder):
 
     def __init__(self, cfg):
         super().__init__(cfg)
-    
+
     @classmethod
     def default_config_path(cls):
         return "configs/datasets/coco/defaults_cap.yaml"

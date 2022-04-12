@@ -108,11 +108,17 @@ class Runner:
             dataloaders = utils.create_loader(
                 datasets=datasets,
                 samplers=samplers,
-                batch_size=[self.config.batch_size_train if split == "train"
-                       else self.config.batch_size_eval for split in split_names],
+                batch_size=[
+                    self.config.batch_size_train
+                    if split == "train"
+                    else self.config.batch_size_eval
+                    for split in split_names
+                ],
                 num_workers=[self.config.num_workers] * len(datasets),
                 is_trains=is_train,
-                collate_fns=[getattr(dataset, "collater", None) for dataset in datasets],
+                collate_fns=[
+                    getattr(dataset, "collater", None) for dataset in datasets
+                ],
             )
 
             self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
@@ -202,7 +208,7 @@ class Runner:
                 train_stats = self.train_epoch(cur_epoch)
 
                 if utils.is_main_process():
-                    self.log_stats(split_name='train', stats=train_stats)
+                    self.log_stats(split_name="train", stats=train_stats)
 
             if len(self.valid_splits) > 0:
                 for split_name in self.valid_splits:
@@ -232,10 +238,10 @@ class Runner:
             for split_name in self.test_splits:
                 test_result = self.validate(split_name=split_name)
                 test_log = self.task.after_validation(
-                    val_result=test_result, 
-                    split_name=split_name, 
+                    val_result=test_result,
+                    split_name=split_name,
                     epoch=cur_epoch,
-                    result_dir=self.result_dir
+                    result_dir=self.result_dir,
                 )
 
         total_time = time.time() - start_time
@@ -247,12 +253,18 @@ class Runner:
         self.model.train()
 
         metric_logger = utils.MetricLogger(delimiter="  ")
-        metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
-        metric_logger.add_meter("loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
+        metric_logger.add_meter(
+            "lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}")
+        )
+        metric_logger.add_meter(
+            "loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
+        )
         header = "Train Epoch: [{}]".format(epoch)
         print_freq = 50
 
-        for i, samples in enumerate(metric_logger.log_every(self.train_loader, print_freq, header)):
+        for i, samples in enumerate(
+            metric_logger.log_every(self.train_loader, print_freq, header)
+        ):
             samples = self._prepare_sample(samples)
 
             loss = self.task.train_step(model=self.model, samples=samples)
@@ -328,10 +340,11 @@ class Runner:
         torch.save(
             save_obj,
             os.path.join(
-                self.output_dir, 
-                "checkpoint_{}.pth".format('best' if is_best else cur_epoch)),
+                self.output_dir,
+                "checkpoint_{}.pth".format("best" if is_best else cur_epoch),
+            ),
         )
-    
+
     def log_stats(self, stats, split_name):
         if isinstance(stats, dict):
             log_stats = {**{f"{split_name}_{k}": v for k, v in stats.items()}}

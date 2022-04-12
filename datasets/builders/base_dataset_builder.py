@@ -21,7 +21,7 @@ class BaseDatasetBuilder:
 
         self.vis_processors = dict()
         self.text_processors = dict()
-    
+
     def build_datasets(self):
         # download, split, etc...
         # only called on 1 GPU/TPU in distributed
@@ -33,7 +33,7 @@ class BaseDatasetBuilder:
             dist.barrier()
 
         # at this point, all the annotations and image/videos should be all downloaded to the specified locations.
-        datasets = self.build() # dataset['train'/'val'/'test']
+        datasets = self.build()  # dataset['train'/'val'/'test']
 
         return datasets
 
@@ -46,18 +46,18 @@ class BaseDatasetBuilder:
 
         Overwrite for data-specific processors.
         """
-        vis_train_cfg = self.config.vis_processor.get('train', None)
-        vis_eval_cfg = self.config.vis_processor.get('eval', None)
+        vis_train_cfg = self.config.vis_processor.get("train", None)
+        vis_eval_cfg = self.config.vis_processor.get("eval", None)
 
-        text_train_cfg = self.config.text_processor.get('train', None)
-        text_eval_cfg = self.config.text_processor.get('eval', None)
+        text_train_cfg = self.config.text_processor.get("train", None)
+        text_eval_cfg = self.config.text_processor.get("eval", None)
 
-        self.vis_processors['train'] = self._build_from_config(vis_train_cfg)
-        self.vis_processors['eval'] = self._build_from_config(vis_eval_cfg)
+        self.vis_processors["train"] = self._build_from_config(vis_train_cfg)
+        self.vis_processors["eval"] = self._build_from_config(vis_eval_cfg)
 
-        self.text_processors['train'] = self._build_from_config(text_train_cfg)
-        self.text_processors['eval'] = self._build_from_config(text_eval_cfg)
-        
+        self.text_processors["train"] = self._build_from_config(text_train_cfg)
+        self.text_processors["eval"] = self._build_from_config(text_eval_cfg)
+
     @staticmethod
     def _build_from_config(cfg):
         if cfg is None:
@@ -71,7 +71,7 @@ class BaseDatasetBuilder:
         import json
 
         info = {"date": str(datetime.now()), "from": url}
-        json.dump(info, open(build_info_path, 'w+'))
+        json.dump(info, open(build_info_path, "w+"))
 
     @classmethod
     def default_config_path(cls):
@@ -83,28 +83,30 @@ class BaseDatasetBuilder:
 
     def _download_ann(self):
         """
-        Download annotation files if necessary. 
+        Download annotation files if necessary.
         All the vision-language datasets should have annotations of unified format.
 
         storage_path can be:
           (1) relative/absolute: will be prefixed with env.cache_root to make full path if relative.
           (2) basename/dirname: will be suffixed with base name of URL if dirname is provided.
 
-        Local annotation paths should be relative. 
-        """        
+        Local annotation paths should be relative.
+        """
         anns = self.config.build_info.annotations
 
         splits = anns.keys()
 
-        cache_root = registry.get_path('cache_root')
+        cache_root = registry.get_path("cache_root")
 
         for split in splits:
             info = anns[split]
 
             urls, storage_paths = info.url, info.storage
 
-            if isinstance(urls, str): urls = [urls]
-            if isinstance(storage_paths, str): storage_paths = [storage_paths]
+            if isinstance(urls, str):
+                urls = [urls]
+            if isinstance(storage_paths, str):
+                storage_paths = [storage_paths]
 
             assert len(urls) == len(storage_paths)
 
@@ -118,20 +120,25 @@ class BaseDatasetBuilder:
                     if not os.path.exists(dst):
                         shutil.copyfile(src=src, dst=dst)
                     else:
-                        logging.info('Using existing file {}.'.format(url_or_filename))
+                        logging.info("Using existing file {}.".format(url_or_filename))
                 else:
                     dirname = os.path.dirname(storage_path)
-                    if not os.path.exists(dirname): os.makedirs(dirname)
+                    if not os.path.exists(dirname):
+                        os.makedirs(dirname)
 
                     if os.path.isdir(storage_path):
                         # if only dirname is provided, suffix with basename of URL.
-                        raise ValueError('Expecting storage_path to be a file path, got directory {}'.format(storage_path))
+                        raise ValueError(
+                            "Expecting storage_path to be a file path, got directory {}".format(
+                                storage_path
+                            )
+                        )
                     else:
                         filename = os.path.basename(storage_path)
 
                     # download_url(url=url, root=dirname, filename=filename, md5=info.md5)
                     download_url(url=url_or_filename, root=dirname, filename=filename)
-        
+
     # We need some downloading utilities to help.
     def _download_vis(self):
         # downloading images/videos can be dataset-specific.
@@ -146,48 +153,62 @@ class BaseDatasetBuilder:
         self.build_processors()
 
         build_info = self.config.build_info
-        
+
         ann_info = build_info.annotations
         vis_info = build_info.get(self.data_type)
 
         datasets = dict()
         for split in ann_info.keys():
-            assert split in ['train', 'val', 'test'], "Invalid split name {}, must be one of 'train', 'val' and 'test'."
-            is_train = split == 'train'
+            assert split in [
+                "train",
+                "val",
+                "test",
+            ], "Invalid split name {}, must be one of 'train', 'val' and 'test'."
+            is_train = split == "train"
 
             # processors
-            vis_processor = self.vis_processors['train'] if is_train else self.vis_processors['eval']
-            text_processor = self.text_processors['train'] if is_train else self.text_processors['eval']
+            vis_processor = (
+                self.vis_processors["train"]
+                if is_train
+                else self.vis_processors["eval"]
+            )
+            text_processor = (
+                self.text_processors["train"]
+                if is_train
+                else self.text_processors["eval"]
+            )
 
             # annotation path
             ann_paths = ann_info.get(split).storage
-            if isinstance(ann_paths, str): ann_paths = [ann_paths]
+            if isinstance(ann_paths, str):
+                ann_paths = [ann_paths]
 
             abs_ann_paths = []
             for ann_path in ann_paths:
                 if not os.path.isabs(ann_path):
-                    ann_path = os.path.join(registry.get_path("cache_root"), ann_path) 
+                    ann_path = os.path.join(registry.get_path("cache_root"), ann_path)
                 abs_ann_paths.append(ann_path)
             ann_paths = abs_ann_paths
 
             # visual data paths
             vis_paths = vis_info.get(split).storage
-            if isinstance(vis_paths, str): vis_paths = [vis_paths]
+            if isinstance(vis_paths, str):
+                vis_paths = [vis_paths]
 
             abs_vis_paths = []
             for vis_path in vis_paths:
                 if not os.path.isabs(vis_path):
-                    vis_path = os.path.join(registry.get_path("cache_root"), vis_path) 
+                    vis_path = os.path.join(registry.get_path("cache_root"), vis_path)
                 abs_vis_paths.append(vis_path)
             vis_paths = abs_vis_paths
 
             # create datasets
             dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
             datasets[split] = dataset_cls(
-                    vis_processor=vis_processor,
-                    text_processor=text_processor,
-                    ann_paths=ann_paths,
-                    image_roots=vis_paths
-                )
+                vis_processor=vis_processor,
+                text_processor=text_processor,
+                ann_paths=ann_paths,
+                image_roots=vis_paths,
+            )
 
         return datasets

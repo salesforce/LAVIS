@@ -34,8 +34,10 @@ class COCOBuilder(BaseDatasetBuilder):
 
             urls, storage_paths = info.url, info.storage
 
-            if isinstance(urls, str): urls = [urls]
-            if isinstance(storage_paths, str): storage_paths = [storage_paths]
+            if isinstance(urls, str):
+                urls = [urls]
+            if isinstance(storage_paths, str):
+                storage_paths = [storage_paths]
 
             for url, storage_path in zip(urls, storage_paths):
                 # if storage_path is relative, make it full by prefixing with cache_root.
@@ -48,22 +50,29 @@ class COCOBuilder(BaseDatasetBuilder):
                 )
 
                 if os.path.exists(build_info_path):
-                    logging.info("Path {} exists, skip downloading.".format(build_info_path))
+                    logging.info(
+                        "Path {} exists, skip downloading.".format(build_info_path)
+                    )
                     continue
 
                 # download_url(url=remote_paths[split].url, root=dl_cache_dir, md5=remote_paths[split].md5)
                 download_url(url=url, root=dl_cache_dir)
 
                 dirname = os.path.dirname(storage_path)
-                assert os.path.normpath(dirname) == os.path.normpath(storage_path), \
-                "Local path to store images has to be a directory, found {}.".format(storage_path)
+                assert os.path.normpath(dirname) == os.path.normpath(
+                    storage_path
+                ), "Local path to store images has to be a directory, found {}.".format(
+                    storage_path
+                )
 
                 if not os.path.exists(dirname):
                     os.makedirs(dirname)
 
                 # extracting
                 archive_path = os.path.join(dl_cache_dir, os.path.basename(url))
-                extract_archive(from_path=archive_path, to_path=storage_path, overwrite=False)
+                extract_archive(
+                    from_path=archive_path, to_path=storage_path, overwrite=False
+                )
 
                 # save build info
                 self.save_build_info(build_info_path, url)

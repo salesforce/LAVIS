@@ -11,7 +11,7 @@ class COCOVQABuilder(COCOBuilder):
 
     def __init__(self, cfg):
         super().__init__(cfg)
-    
+
     @classmethod
     def default_config_path(cls):
         return "configs/datasets/coco/defaults_vqa.yaml"

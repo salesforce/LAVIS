@@ -4,9 +4,8 @@ class Registry:
         "task_name_mapping": {},
         "processor_name_mapping": {},
         "model_name_mapping": {},
-
         "state": {},
-        "paths": {}
+        "paths": {},
     }
 
     @classmethod
@@ -27,14 +26,20 @@ class Registry:
 
             assert issubclass(
                 builder_cls, BaseDatasetBuilder
-            ), "All builders must inherit BaseDatasetBuilder class, found {}".format(builder_cls)
+            ), "All builders must inherit BaseDatasetBuilder class, found {}".format(
+                builder_cls
+            )
             if name in cls.mapping["builder_name_mapping"]:
-                raise KeyError("Name '{}' already registered for {}.".format(name, cls.mapping["builder_name_mapping"][name]))
+                raise KeyError(
+                    "Name '{}' already registered for {}.".format(
+                        name, cls.mapping["builder_name_mapping"][name]
+                    )
+                )
             cls.mapping["builder_name_mapping"][name] = builder_cls
             return builder_cls
 
         return wrap
-    
+
     @classmethod
     def register_task(cls, name):
         r"""Register a task to registry with key 'name'
@@ -46,6 +51,7 @@ class Registry:
 
             from common.registry import registry
         """
+
         def wrap(task_cls):
             from tasks.base_task import BaseTask
 
@@ -53,10 +59,14 @@ class Registry:
                 task_cls, BaseTask
             ), "All tasks must inherit BaseTask class"
             if name in cls.mapping["task_name_mapping"]:
-                raise KeyError("Name '{}' already registered for {}.".format(name, cls.mapping["task_name_mapping"][name]))
+                raise KeyError(
+                    "Name '{}' already registered for {}.".format(
+                        name, cls.mapping["task_name_mapping"][name]
+                    )
+                )
             cls.mapping["task_name_mapping"][name] = task_cls
             return task_cls
-        
+
         return wrap
 
     @classmethod
@@ -70,6 +80,7 @@ class Registry:
 
             from common.registry import registry
         """
+
         def wrap(processor_cls):
             from processors import BaseProcessor
 
@@ -77,10 +88,14 @@ class Registry:
                 processor_cls, BaseProcessor
             ), "All processors must inherit BaseProcessor class"
             if name in cls.mapping["processor_name_mapping"]:
-                raise KeyError("Name '{}' already registered for {}.".format(name, cls.mapping["processor_name_mapping"][name]))
+                raise KeyError(
+                    "Name '{}' already registered for {}.".format(
+                        name, cls.mapping["processor_name_mapping"][name]
+                    )
+                )
             cls.mapping["processor_name_mapping"][name] = processor_cls
             return processor_cls
-        
+
         return wrap
 
     @classmethod
@@ -94,6 +109,7 @@ class Registry:
 
             from common.registry import registry
         """
+
         def wrap(model_cls):
             from models import BaseModel
 
@@ -101,10 +117,14 @@ class Registry:
                 model_cls, BaseModel
             ), "All models must inherit BaseModel class"
             if name in cls.mapping["model_name_mapping"]:
-                raise KeyError("Name '{}' already registered for {}.".format(name, cls.mapping["processor_name_mapping"][name]))
+                raise KeyError(
+                    "Name '{}' already registered for {}.".format(
+                        name, cls.mapping["processor_name_mapping"][name]
+                    )
+                )
             cls.mapping["model_name_mapping"][name] = model_cls
             return model_cls
-        
+
         return wrap
 
     @classmethod
@@ -118,9 +138,7 @@ class Registry:
 
             from common.registry import registry
         """
-        assert isinstance(
-            path, str
-        ), "All path must be str."
+        assert isinstance(path, str), "All path must be str."
         if name in cls.mapping["paths"]:
             raise KeyError("Name '{}' already registered.".format(name))
         cls.mapping["paths"][name] = path
@@ -159,7 +177,7 @@ class Registry:
     @classmethod
     def get_model_class(cls, name):
         return cls.mapping["model_name_mapping"].get(name, None)
-    
+
     @classmethod
     def get_task_class(cls, name):
         return cls.mapping["task_name_mapping"].get(name, None)

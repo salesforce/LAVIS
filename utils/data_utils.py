@@ -15,13 +15,15 @@ def concat_datasets(datasets):
                     concat_datasets[split_name] = [dataset_split]
                 else:
                     concat_datasets[split_name].append(dataset_split)
-        
+
         # concatenate datasets in the same split
         for split_name in concat_datasets:
-            if split_name != 'train':
-                assert len(concat_datasets[split_name]) == 1, "Do not support multiple {} datasets.".format(split_name)
+            if split_name != "train":
+                assert (
+                    len(concat_datasets[split_name]) == 1
+                ), "Do not support multiple {} datasets.".format(split_name)
                 concat_datasets[split_name] = concat_datasets[split_name][0]
             else:
-                concat_datasets['train'] = ConcatDataset(concat_datasets['train'])
-        
+                concat_datasets["train"] = ConcatDataset(concat_datasets["train"])
+
         return concat_datasets

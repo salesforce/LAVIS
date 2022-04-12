@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    def __init__(self, args): # , default_only=False):
+    def __init__(self, args):  # , default_only=False):
         self.config = {}
 
         self.args = args
@@ -24,12 +24,11 @@ class Config:
         runner_config = self.build_runner_config(config)
         model_config = self.build_model_config(config, **user_config)
         dataset_config = self.build_dataset_config(config)
-        
+
         # Override the default configuration with user options.
         self.config = OmegaConf.merge(
-           runner_config, model_config, dataset_config, user_config
+            runner_config, model_config, dataset_config, user_config
         )
-
 
     def _build_opt_list(self, opts):
         opts_dot_list = self._convert_to_dot_list(opts)
@@ -37,7 +36,7 @@ class Config:
 
     @staticmethod
     def build_model_config(config, **kwargs):
-        model = config.get('model', None)
+        model = config.get("model", None)
         assert model is not None, "Missing model configuration file."
 
         model_cls = registry.get_model_class(model.arch)
@@ -50,7 +49,9 @@ class Config:
         model_type = kwargs.get("model.model_type", None)
 
         if model_type:
-            default_model_config_path = model_cls.default_config_path(model_type=model_type)
+            default_model_config_path = model_cls.default_config_path(
+                model_type=model_type
+            )
         else:
             default_model_config_path = model_cls.default_config_path()
 
@@ -60,19 +61,19 @@ class Config:
             model_config, OmegaConf.load(default_model_config_path), config
         )
 
-        return model_config 
-
+        return model_config
 
     @staticmethod
     def build_runner_config(config):
         return config.run
 
- 
     @staticmethod
     def build_dataset_config(config):
-        datasets = config.get('datasets', None)
+        datasets = config.get("datasets", None)
         if datasets is None:
-            raise KeyError("Expecting 'datasets' as the root key for dataset configuration.")
+            raise KeyError(
+                "Expecting 'datasets' as the root key for dataset configuration."
+            )
 
         dataset_config = OmegaConf.create()
 
@@ -132,9 +133,7 @@ class Config:
                 logger.warning(f"No dataset named '{dataset}' in config. Skipping")
 
         logger.info(f"\n======  Model Attributes  ======")
-        logger.info(
-            self._convert_node_to_json(self.config.model)
-        )
+        logger.info(self._convert_node_to_json(self.config.model))
 
     def _convert_node_to_json(self, node):
         container = OmegaConf.to_container(node, resolve=True)
