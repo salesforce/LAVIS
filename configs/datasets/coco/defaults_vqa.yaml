@@ -10,11 +10,9 @@ datasets:
           url: 
               - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_train.json
               - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_val.json
-              # - https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
           storage:
               - coco/annotations/vqa_train.json
               - coco/annotations/vqa_val.json
-              # - vqa/annotations/vg_qa.json
         test: 
           url: 
               - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_test.json

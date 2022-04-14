@@ -1,0 +1,17 @@
+model:
+  arch: blip_pretrain
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: False
+  vit_ckpt_layer: 0
+
+  image_size: 224
+
+  # bert config
+  med_config_path: "configs/models/bert_config.json"
+
+  embed_dim: 256
+
+  # generation configs
+  prompt: "a picture of "

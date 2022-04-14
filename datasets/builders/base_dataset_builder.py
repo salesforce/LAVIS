@@ -101,7 +101,7 @@ class BaseDatasetBuilder:
         for split in splits:
             info = anns[split]
 
-            urls, storage_paths = info.url, info.storage
+            urls, storage_paths = info.get("url", None), info.storage
 
             if isinstance(urls, str):
                 urls = [urls]
@@ -142,7 +142,7 @@ class BaseDatasetBuilder:
     # We need some downloading utilities to help.
     def _download_vis(self):
         # downloading images/videos can be dataset-specific.
-        raise NotImplementedError
+        pass
 
     def build(self):
         """

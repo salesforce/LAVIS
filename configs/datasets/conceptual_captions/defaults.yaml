@@ -1,0 +1,17 @@
+datasets:
+  conceptual_captions:
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+    
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train: 
+          url: 
+              - /export/share/junnan-li/VL_pretrain/cc3m_train.json
+          storage:
+              - conceptual_captions/annotations/cc3m_train.json
+      images:
+        train: 
+          storage: 
+              - /export/share/datasets/vision_language/cc3m_resize 

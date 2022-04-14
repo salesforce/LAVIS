@@ -201,11 +201,6 @@ class Registry:
             no_warning (bool): If passed as True, warning when key doesn't exist
                                will not be generated. Useful for MMF's
                                internal operations. Default: False
-        Usage::
-
-            from mmf.common.registry import registry
-
-            config = registry.get("config")
         """
         original_name = name
         name = name.split(".")

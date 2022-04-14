@@ -48,7 +48,7 @@ from transformers.models.bert.configuration_bert import BertConfig
 
 from models.base_model import BaseDecoder, BaseEncoder
 
-
+logging.set_verbosity_error()
 logger = logging.get_logger(__name__)
 
 
@@ -964,12 +964,15 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
     they feed encoder_embeds as required. 
     """
     @classmethod
-    def build_from_cfg(cls, cfg):
+    def build_from_cfg(cls, cfg, from_pretrained=False):
 
         med_config_path = cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)
 
-        return cls(config=med_config)
+        if from_pretrained:
+            return cls.from_pretrained("bert-base-uncased", config=med_config)
+        else:
+            return cls(config=med_config)
 
     def forward_loss(self, 
         text_tokenized: BatchEncoding,
@@ -1050,12 +1053,15 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
 
 class XBertEncoder(BertModel, BaseEncoder):
     @classmethod
-    def build_from_cfg(cls, cfg):
+    def build_from_cfg(cls, cfg, from_pretrained=False):
 
         med_config_path = cfg.get("med_config_path")
         med_config = BertConfig.from_json_file(med_config_path)
 
-        return cls(config=med_config, add_pooling_layer=False)
+        if from_pretrained:
+            return cls.from_pretrained('bert-base-uncased', config=med_config, add_pooling_layer=False)
+        else:
+            return cls(config=med_config, add_pooling_layer=False)
     
     def forward(self, tokenized_text, visual_embeds, **kwargs):
         image_atts = torch.ones(visual_embeds.size()[:-1],
@@ -1068,6 +1074,17 @@ class XBertEncoder(BertModel, BaseEncoder):
             encoder_hidden_states=visual_embeds,
             encoder_attention_mask=image_atts,
             return_dict=True
+        )
+
+        return text_output
+    
+    def forward_features(self, tokenized_text, **kwargs):
+        text = tokenized_text
+        text_output = super().forward(
+            text.input_ids,
+            attention_mask=text.attention_mask,
+            return_dict=True,
+            mode="text"
         )
 
         return text_output

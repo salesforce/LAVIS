@@ -1,0 +1,43 @@
+model:
+  arch: blip_pretrain
+  queue_size: 65536
+
+datasets:
+  conceptual_captions: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_coco_vis_train"
+          image_size: 224
+    text_processor:
+        train: 
+          name: "blip_coco_text"
+          prompt: "a picture of "
+
+run:
+  task: image_text_pretrain
+  # optimizer
+  init_lr: 3e-4 
+  min_lr: 1e-6
+  warmup_lr: 1e-6
+  lr_decay_rate: 0.9
+
+  weight_decay: 0.05
+  max_epoch: 20
+  batch_size_train: 75
+  num_workers: 4
+  warmup_steps: 3000
+
+  queue_size: 65536
+  alpha: 0.4
+
+  seed: 42 
+  output_dir: "output/Pretrain"
+
+  evaluate: False
+  train_splits: ["train"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  

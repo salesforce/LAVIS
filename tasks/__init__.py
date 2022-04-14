@@ -4,6 +4,7 @@ from tasks.base_task import BaseTask
 from tasks.retrieval import RetrievalTask
 from tasks.captioning import CaptionTask
 from tasks.vqa import VQATask
+from tasks.image_text_pretrain import ImageTextPretrainTask
 
 
 def setup_task(cfg):
@@ -17,4 +18,10 @@ def setup_task(cfg):
     return task
 
 
-__all__ = ["BaseTask", "RetrievalTask", "CaptionTask", "VQATask"]
+__all__ = [
+    "BaseTask",
+    "RetrievalTask",
+    "CaptionTask",
+    "VQATask",
+    "ImageTextPretrainTask",
+]

@@ -40,13 +40,14 @@ class Config:
         assert model is not None, "Missing model configuration file."
 
         model_cls = registry.get_model_class(model.arch)
-
-        if model_cls is None:
-            warning = f"No model named '{model.arch}' has been registered"
-            warnings.warn(warning)
-            return OmegaConf.create()
+        assert (
+            model_cls is not None
+        ), f"No model named '{model.arch}' has been registered"
 
         model_type = kwargs.get("model.model_type", None)
+        if not model_type:
+            model_type = model.get("model_type", None)
+        # else use the model type selected by user.
 
         if model_type:
             default_model_config_path = model_cls.default_config_path(

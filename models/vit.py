@@ -432,7 +432,7 @@ def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
 
 class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
     @classmethod
-    def build_from_cfg(cls, cfg):
+    def build_from_cfg(cls, cfg, from_pretrained=False):
 
         vit_type = cfg.get("vit_type", "base")
         image_size = cfg.get("image_size", 384)
@@ -453,6 +453,14 @@ class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
                 ckpt_layer=ckpt_layer,
                 drop_path_rate=0 or drop_path_rate,
             )
+
+            if from_pretrained:
+                checkpoint = torch.hub.load_state_dict_from_url(
+                    url="https://dl.fbaipublicfiles.com/deit/deit_base_patch16_224-b5f2ef4d.pth",
+                    map_location="cpu", check_hash=True)
+                state_dict = checkpoint["model"]     
+                msg = visual_encoder.load_state_dict(state_dict, strict=False)
+
         elif vit_type == "large":
             vision_width = 1024
             visual_encoder = cls(
@@ -465,6 +473,10 @@ class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
                 ckpt_layer=ckpt_layer,
                 drop_path_rate=0.1 or drop_path_rate,
             )
+            if from_pretrained:
+                from timm.models.helpers import load_custom_pretrained
+                from timm.models.vision_transformer import default_cfgs
+                load_custom_pretrained(visual_encoder,default_cfgs['vit_large_patch16_224_in21k'])        
 
         visual_encoder.vision_width = vision_width
         return visual_encoder

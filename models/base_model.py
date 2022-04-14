@@ -9,7 +9,7 @@ class BaseModel(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def extract_features(self, *args, **kwargs):
+    def forward_features(self, *args, **kwargs):
         """Similar to *forward* but only return features."""
         raise NotImplementedError
 
