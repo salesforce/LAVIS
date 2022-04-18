@@ -8,11 +8,11 @@ datasets:
   conceptual_captions: # name of the dataset builder
     vis_processor: 
         train: 
-          name: "blip_coco_vis_train"
+          name: "blip_image_train"
           image_size: 224
     text_processor:
         train: 
-          name: "blip_coco_text"
+          name: "blip_caption"
           prompt: "a picture of "
 
 run:

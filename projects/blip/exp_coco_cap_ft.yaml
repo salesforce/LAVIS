@@ -9,15 +9,15 @@ datasets:
   coco_caption: # name of the dataset builder
     vis_processor: 
         train: 
-          name: "blip_coco_vis_train"
+          name: "blip_image_train"
         eval:
-          name: "blip_coco_vis_eval"
+          name: "blip_image_eval"
     text_processor:
         train: 
-          name: "blip_coco_text"
+          name: "blip_caption"
           prompt: "a picture of "
         eval: 
-          name: "blip_coco_text"
+          name: "blip_caption"
 
 run:
   # task: retrieval

@@ -1,5 +1,10 @@
 from .base_processor import BaseProcessor
-from .blip_processors import BlipCOCOImageTrain, BlipCOCOImageEval, BlipCOCOText
+from .blip_processors import BlipImageTrainProcessor, BlipImageEvalProcessor, BlipCaptionProcessor
 
 
-__all__ = ["BaseProcessor", "BlipCOCOImageTrain", "BlipCOCOImageEval", "BlipCOCOText"]
+__all__ = [
+    "BaseProcessor",
+    "BlipImageTrainProcessor",
+    "BlipImageEvalProcessor",
+    "BlipCaptionProcessor"
+]
