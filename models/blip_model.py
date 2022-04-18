@@ -12,7 +12,7 @@ from common.registry import registry
 from omegaconf import OmegaConf
 from timm.models.hub import download_cached_file
 
-from models.base_model import BaseModel, EncoderDecoderModel, EncoderEncoderModel
+from models.base_model import BaseModel, EncoderDecoderModel, MultimodalEncoderModel
 from models.blip import init_tokenizer
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder, interpolate_pos_embed
@@ -33,47 +33,28 @@ def is_url(url_or_filename):
     return parsed.scheme in ("http", "https")
 
 
-class BlipMultimodalEncoder(EncoderEncoderModel):
+class BlipMultimodalEncoder(MultimodalEncoderModel):
     def __init__(self, image_encoder, text_encoder, require_tokenizer=True):
         super().__init__(image_encoder, text_encoder)
 
         if require_tokenizer:
             self.tokenizer = init_tokenizer()
 
-    def forward_encoder_pre(self, samples):
-        image_encoder = self.encoder_pre
+    def forward_visual_encoder(self, samples):
+        image_encoder = self.visual_encoder
         image_embeds = image_encoder(samples['image'])
         
         return image_embeds
     
-    def forward_encoder_pst(self, samples, image_enc_out):
-        image_embeds = image_enc_out
+    def forward_text_encoder(self, samples, image_embeds):
 
-        multimodal_encoder = self.encoder_pst
-        multimodal_embeds = multimodal_encoder(
+        multimodal_embeds = self.text_encoder(
             tokenized_text=samples['tokenized_text'],
             visual_embeds=image_embeds
         )
 
         return image_embeds, multimodal_embeds
     
-    def forward_image_features(self, samples):
-        return self.forward_encoder_pre(samples)
-    
-    def forward_text_features(self, samples):
-        text_encoder = self.encoder_pst
-        text_embeds = text_encoder.forward_features(
-            samples['tokenized_text']
-        ).last_hidden_state[:, 0, :]
-
-        return text_embeds
-
-    def forward_unimodal_features(self, samples):
-        image_embeds = self.forward_image_features(samples)
-        text_embeds = self.forward_text_features(samples)
-
-        return image_embeds, text_embeds
-
     @classmethod
     def build_from_cfg(cls, cfg):
         # vision encoder
@@ -535,7 +516,7 @@ class BlipVQA(EncoderDecoderModel):
         state_dict = checkpoint['model']
 
         if "visual_encoder.pos_embed" in state_dict.keys():
-            state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.encoder_pre)
+            state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.visual_encoder)
         elif "encoder.pos_embed" in state_dict.keys():
             state_dict['encoder.pos_embed'] = interpolate_pos_embed(state_dict['encoder.pos_embed'], model.encoder)
 
@@ -547,9 +528,9 @@ class BlipVQA(EncoderDecoderModel):
             elif "_m" in key:
                 continue
             elif "visual_encoder" in key:
-                new_key = key.replace("visual_encoder", "encoder.encoder_pre")
+                new_key = key.replace("visual_encoder", "encoder.visual_encoder")
             elif "text_encoder" in key:
-                new_key = key.replace("text_encoder", "encoder.encoder_pst")
+                new_key = key.replace("text_encoder", "encoder.text_encoder")
             elif "text_decoder" in key:
                 new_key = key.replace("text_decoder", "decoder")
             else:

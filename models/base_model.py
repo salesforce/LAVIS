@@ -102,26 +102,26 @@ class EncoderDecoderModel(BaseModel):
         raise NotImplementedError
 
 
-class EncoderEncoderModel(BaseEncoder):
-    def __init__(self, encoder_pre, encoder_pst):
+class MultimodalEncoderModel(BaseEncoder):
+    def __init__(self, visual_encoder, text_encoder):
         super().__init__()
 
-        self.encoder_pre = encoder_pre
-        self.encoder_pst = encoder_pst
+        self.visual_encoder = visual_encoder
+        self.text_encoder = text_encoder
 
-        assert isinstance(self.encoder_pre, BaseEncoder)
-        assert isinstance(self.encoder_pst, BaseEncoder)
+        assert isinstance(self.visual_encoder, BaseEncoder)
+        assert isinstance(self.text_encoder, BaseEncoder)
 
     @abstractmethod
-    def forward_encoder_pre(samples, **kwargs):
+    def forward_visual_encoder(samples, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
-    def forward_decoder_pst(samples, encoder_pre_out, **kwargs):
+    def forward_text_encoder(samples, visual_encoder_out, **kwargs):
         raise NotImplementedError
 
     def forward(self, samples, **kwargs):
-        encoder_pre_out = self.forward_encoder_pre(samples, **kwargs)
-        encoder_pst_out = self.forward_encoder_pst(samples, encoder_pre_out, **kwargs)
+        visual_encoder_out = self.forward_visual_encoder(samples, **kwargs)
+        multimodal_encoder_out = self.forward_text_encoder(samples, visual_encoder_out, **kwargs)
 
-        return encoder_pst_out
+        return multimodal_encoder_out
