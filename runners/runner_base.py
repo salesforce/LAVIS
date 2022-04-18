@@ -249,6 +249,11 @@ class Runner:
         logging.info("Training time {}".format(total_time_str))
 
     def train_epoch(self, epoch):
+        def add_vars_to_samples():
+            samples["epoch"] = epoch
+            samples["num_iters_per_epoch"] = len(self.train_loader)
+            samples["iters"] = i
+
         # train
         self.model.train()
 
@@ -267,6 +272,7 @@ class Runner:
         ):
             samples = self._prepare_sample(samples)
 
+            add_vars_to_samples()
             loss = self.task.train_step(model=self.model, samples=samples)
 
             # after_train_step()

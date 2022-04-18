@@ -578,24 +578,29 @@ class BlipPretrain(BaseModel):
         text_encoder,
         text_decoder,
         queue_size,
+        alpha=0.4,
         embed_dim=256,
-        momentum=0.995
+        momentum=0.995,
+        tie_enc_dec_weights=True
     ):
         """
         """
+        super().__init__()
+
         self.tokenizer = init_tokenizer()
 
         text_encoder.resize_token_embeddings(len(self.tokenizer))
         text_decoder.resize_token_embeddings(len(self.tokenizer))
 
-        tie_encoder_decoder_weights(
-            encoder=text_encoder, 
-            decoder=text_decoder.bert,
-            base_model_prefix='',
-            skip_key="/attention"
-        )
+        if tie_enc_dec_weights:
+            tie_encoder_decoder_weights(
+                encoder=text_encoder, 
+                decoder=text_decoder.bert,
+                base_model_prefix='',
+                skip_key="/attention"
+            )
 
-        self.image_encoder = image_encoder
+        self.visual_encoder = image_encoder
 
         self.text_encoder = text_encoder
         self.text_decoder = text_decoder
@@ -610,14 +615,14 @@ class BlipPretrain(BaseModel):
         self.itm_head = nn.Linear(text_width, 2) 
 
         # create the momentum encoder
-        self.image_encoder_m = deepcopy(self.image_encoder)
+        self.visual_encoder_m = deepcopy(self.visual_encoder)
         self.text_encoder_m = deepcopy(self.text_encoder)
 
         self.vision_proj_m = deepcopy(self.vision_proj)
         self.text_proj_m = deepcopy(self.text_proj)
 
         self.model_pairs = [
-            [self.image_encoder, self.image_encoder_m],
+            [self.visual_encoder, self.visual_encoder_m],
             [self.text_encoder, self.text_encoder_m],
             [self.vision_proj, self.vision_proj_m],
             [self.text_proj, self.text_proj_m],
@@ -636,34 +641,38 @@ class BlipPretrain(BaseModel):
         self.momentum = momentum
         self.temp = nn.Parameter(0.07 * torch.ones([]))   
 
+        self.alpha = alpha
 
-        # def forward(self, image, caption, alpha):
+    def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
+        return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
+
     def forward(self, samples):
+        image = samples['image']
+        caption = samples['text_input']
+
+        alpha = self.alpha * self._rampup_factor(
+            epoch=samples['epoch'],
+            iters=samples['iters'],
+            num_iters_per_epoch=samples['num_iters_per_epoch']
+        )
+
         with torch.no_grad():
             self.temp.clamp_(0.001,0.5)
-        
-        samples['tokenized_text'] = self.tokenizer(
-            samples['text_input'], 
-            padding='max_length', 
-            truncation=True, 
-            max_length=30, 
-            return_tensors="pt"
-        ).to(self.device) 
 
-        image_embeds, text_embeds = self.encoder.forward_unimodal_features(samples)
-        import pdb; pdb.set_trace()
-
-
-        import pdb; pdb.set_trace()
         image_embeds = self.visual_encoder(image) 
         image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(image.device)        
         image_feat = F.normalize(self.vision_proj(image_embeds[:,0,:]),dim=-1)          
         
-        text = self.tokenizer(caption, padding='max_length', truncation=True, max_length=30, 
-                            return_tensors="pt").to(image.device)  
-        text_output = self.text_encoder(text.input_ids, attention_mask = text.attention_mask,                      
-                                        return_dict = True, mode = 'text')            
-        text_feat = F.normalize(self.text_proj(text_output.last_hidden_state[:,0,:]),dim=-1)                 
+        text = self.tokenizer(
+            caption, 
+            padding='max_length',
+            truncation=True,
+            max_length=30, 
+            return_tensors="pt"
+        ).to(image.device)  
+
+        text_output = self.text_encoder.forward_text_embeds(text)
+        text_feat = F.normalize(self.text_proj(text_output.last_hidden_state[:,0,:]), dim=-1)
             
         # get momentum features
         with torch.no_grad():
@@ -672,8 +681,7 @@ class BlipPretrain(BaseModel):
             image_feat_m = F.normalize(self.vision_proj_m(image_embeds_m[:,0,:]),dim=-1)  
             image_feat_all = torch.cat([image_feat_m.t(),self.image_queue.clone().detach()],dim=1)                   
             
-            text_output_m = self.text_encoder_m(text.input_ids, attention_mask = text.attention_mask,                      
-                                                return_dict = True, mode = 'text')    
+            text_output_m = self.text_encoder_m.forward_text_embeds(text)
             text_feat_m = F.normalize(self.text_proj_m(text_output_m.last_hidden_state[:,0,:]),dim=-1) 
             text_feat_all = torch.cat([text_feat_m.t(),self.text_queue.clone().detach()],dim=1)
 
@@ -702,12 +710,11 @@ class BlipPretrain(BaseModel):
         
         # forward the positve image-text pair
         bs = image.size(0)
-        output_pos = self.text_encoder(encoder_input_ids,
-                                    attention_mask = text.attention_mask,
-                                    encoder_hidden_states = image_embeds,
-                                    encoder_attention_mask = image_atts,      
-                                    return_dict = True,
-                                    )            
+        output_pos = self.text_encoder.forward(
+            tokenized_text=text,
+            visual_embeds=image_embeds
+        )
+
         with torch.no_grad():       
             weights_t2i = F.softmax(sim_t2i[:,:bs],dim=1)+1e-4 
             weights_t2i.fill_diagonal_(0)            
@@ -738,12 +745,13 @@ class BlipPretrain(BaseModel):
         image_embeds_all = torch.cat([image_embeds_neg,image_embeds],dim=0)
         image_atts_all = torch.cat([image_atts,image_atts],dim=0)
 
-        output_neg = self.text_encoder(text_ids_all,
-                                    attention_mask = text_atts_all,
-                                    encoder_hidden_states = image_embeds_all,
-                                    encoder_attention_mask = image_atts_all,      
-                                    return_dict = True,
-                                    )                            
+        output_neg = self.text_encoder.forward_bert(
+            text_ids_all,
+            attention_mask = text_atts_all,
+            encoder_hidden_states = image_embeds_all,
+            encoder_attention_mask = image_atts_all,      
+            return_dict=True,
+        )                            
 
         vl_embeddings = torch.cat([output_pos.last_hidden_state[:,0,:], output_neg.last_hidden_state[:,0,:]],dim=0)
         vl_output = self.itm_head(vl_embeddings)            
@@ -757,16 +765,18 @@ class BlipPretrain(BaseModel):
         decoder_input_ids[:,0] = self.tokenizer.bos_token_id
         decoder_targets = decoder_input_ids.masked_fill(decoder_input_ids == self.tokenizer.pad_token_id, -100) 
 
-        decoder_output = self.text_decoder(decoder_input_ids, 
-                                        attention_mask = text.attention_mask, 
-                                        encoder_hidden_states = image_embeds,
-                                        encoder_attention_mask = image_atts,                  
-                                        labels = decoder_targets,
-                                        return_dict = True,   
-                                        )   
+        loss_lm, decoder_output = self.text_decoder.forward_loss(
+            text_tokenized=text,
+            visual_embeds=image_embeds,
+            decoder_targets=decoder_targets
+        )   
         
-        loss_lm = decoder_output.loss                
-        return loss_ita, loss_itm, loss_lm
+        return {
+            "loss": loss_ita + loss_itm + loss_lm,
+            "loss_ita": loss_ita,
+            "loss_itm": loss_itm,
+            "loss_lm": loss_lm
+        }
  
 
     @classmethod
@@ -834,6 +844,7 @@ class BlipPretrain(BaseModel):
 
         embed_dim = cfg.get("embed_dim", 256)
         momentum = cfg.get("momentum", 0.995)
+        alpha = cfg.get("alpha", 0.4)
         queue_size = cfg.get("queue_size", None)
 
         assert queue_size, "queue_size must be specified."
@@ -844,7 +855,9 @@ class BlipPretrain(BaseModel):
             text_decoder=text_decoder,
             embed_dim=embed_dim,
             queue_size=queue_size,
-            momentum=momentum
+            momentum=momentum,
+            alpha=alpha,
+            tie_enc_dec_weights=True
         )
 
         return model

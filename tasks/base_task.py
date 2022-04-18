@@ -3,6 +3,7 @@ import torch
 from common.registry import registry
 from utils.data_utils import concat_datasets
 
+
 class BaseTask:
     def __init__(self, **kwargs):
         super().__init__()
@@ -10,7 +11,7 @@ class BaseTask:
     @classmethod
     def setup_task(cls, cfg, **kwargs):
         return cls(cfg, **kwargs)
-    
+
     def build_model(self, cfg):
         model_config = cfg.model_cfg
 
@@ -30,7 +31,7 @@ class BaseTask:
 
         Returns:
             multi_datasets (List): _description_
-        """        
+        """
 
         multi_datasets = dict()
 
@@ -45,7 +46,7 @@ class BaseTask:
             datasets = builder.build_datasets()
 
             multi_datasets[name] = datasets
-        
+
         return concat_datasets(multi_datasets)
 
     def train_step(self, model, samples):
@@ -63,7 +64,7 @@ class BaseTask:
                 - the sample size, which is used as the denominator for the
                   gradient
                 - logging outputs to display while training
-        """ 
+        """
         loss = model(samples)["loss"]
         return loss
 
@@ -73,12 +74,12 @@ class BaseTask:
         #     loss, sample_size, logging_output = criterion(model, sample)
         # return loss, sample_size, logging_output
         raise NotImplementedError
-    
+
     def after_validation(self, **kwargs):
         pass
-    
+
     def inference_step(self):
         raise NotImplementedError
 
     def optimizer_step(self, optimizer, model, update_num):
-        optimizer.step() 
+        optimizer.step()

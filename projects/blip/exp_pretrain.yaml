@@ -1,6 +1,8 @@
 model:
   arch: blip_pretrain
-  queue_size: 65536
+  queue_size: 57600
+
+  alpha: 0.4
 
 datasets:
   conceptual_captions: # name of the dataset builder
@@ -26,9 +28,6 @@ run:
   batch_size_train: 75
   num_workers: 4
   warmup_steps: 3000
-
-  queue_size: 65536
-  alpha: 0.4
 
   seed: 42 
   output_dir: "output/Pretrain"
