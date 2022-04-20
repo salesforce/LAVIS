@@ -1,9 +1,9 @@
 import logging
 import json
-import warnings
 
 from omegaconf import OmegaConf
 from common.registry import registry
+from utils.blip_utils import is_main_process
 
 logger = logging.getLogger(__name__)
 

@@ -566,3 +566,28 @@ def tie_encoder_decoder_weights(encoder: nn.Module, decoder: nn.Module, base_mod
 
     # tie weights recursively
     tie_encoder_to_decoder_recursively(decoder, encoder, base_model_prefix, uninitialized_encoder_weights, skip_key)  
+
+
+import functools
+
+def get_dist_info():
+    if torch.__version__ < '1.0':
+        initialized = dist._initialized
+    else:
+        initialized = dist.is_initialized()
+    if initialized:
+        rank = dist.get_rank()
+        world_size = dist.get_world_size()
+    else:  # non-distributed training
+        rank = 0
+        world_size = 1 
+    return rank, world_size
+
+def main_process(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        rank, _ = get_dist_info()
+        if rank == 0:
+            return func(*args, **kwargs)
+
+    return wrapper

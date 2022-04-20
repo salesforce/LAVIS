@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-import utils.blip_utils as utils
+from utils.blip_utils import main_process, save_result
 from common.registry import registry
 
 from tasks.base_task import BaseTask
@@ -48,7 +48,7 @@ class MultimodalClassificationTask(BaseTask):
         return results
 
     def after_validation(self, val_result, split_name, epoch, **kwargs):
-        eval_result_file = utils.save_result(
+        eval_result_file = save_result(
             result=val_result, 
             result_dir=registry.get_path("result_dir"),
             filename='{}_epoch{}'.format(split_name, epoch), 
@@ -62,20 +62,19 @@ class MultimodalClassificationTask(BaseTask):
 
         return metrics
 
+    @main_process
     def _report_metrics(self, eval_result_file, split_name):
+        results = json.load(open(eval_result_file))
 
-        if utils.is_main_process():
-            results = json.load(open(eval_result_file))
+        predictions = np.array([res['prediction'] for res in results])
+        targets = np.array([res['target'] for res in results])
 
-            predictions = np.array([res['prediction'] for res in results])
-            targets = np.array([res['target'] for res in results])
+        accuracy = (targets == predictions).sum() / targets.shape[0]
+        metrics = {"agg_metrics": accuracy, "acc": accuracy}
 
-            accuracy = (targets == predictions).sum() / targets.shape[0]
-            metrics = {"agg_metrics": accuracy, "acc": accuracy}
+        log_stats = {split_name: {k: v for k, v in metrics.items()}}
 
-            log_stats = {split_name: {k: v for k, v in metrics.items()}}
-
-            with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
-                f.write(json.dumps(log_stats) + "\n")
-            
-            return metrics
+        with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
+            f.write(json.dumps(log_stats) + "\n")
+        
+        return metrics

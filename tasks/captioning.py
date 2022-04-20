@@ -72,25 +72,24 @@ class CaptionTask(BaseTask):
 
         return metrics
 
-
+    @utils.main_process
     def _report_metrics(self, eval_result_file, split_name):
 
         # TODO better way to define this
         coco_gt_root = "annotation/coco_gt"
 
-        if utils.is_main_process():
-            # coco_val = utils.coco_caption_eval(self.config['coco_gt_root'], val_result_file, 'val')
-            coco_val = utils.coco_caption_eval(coco_gt_root, eval_result_file, split_name)
+        # coco_val = utils.coco_caption_eval(self.config['coco_gt_root'], val_result_file, 'val')
+        coco_val = utils.coco_caption_eval(coco_gt_root, eval_result_file, split_name)
 
-            agg_metrics = coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4']
-            log_stats = {split_name: {k: v for k, v in coco_val.eval.items()}}
+        agg_metrics = coco_val.eval['CIDEr'] + coco_val.eval['Bleu_4']
+        log_stats = {split_name: {k: v for k, v in coco_val.eval.items()}}
 
-            with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
-                f.write(json.dumps(log_stats) + "\n")
-            
+        with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
+            f.write(json.dumps(log_stats) + "\n")
+        
 
-            coco_res = {k: v for k, v in coco_val.eval.items()}
-            coco_res["agg_metrics"] = agg_metrics
+        coco_res = {k: v for k, v in coco_val.eval.items()}
+        coco_res["agg_metrics"] = agg_metrics
 
-            return coco_res
+        return coco_res
 
