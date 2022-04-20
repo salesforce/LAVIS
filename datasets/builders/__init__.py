@@ -4,6 +4,7 @@ from .coco_cap_builder import COCOCapBuilder
 from .coco_vqa_builder import COCOVQABuilder
 from .vg_vqa_builder import VGVQABuilder
 from .conceptual_captions_builder import ConceptualCaptionsBuilder
+from .snli_ve_builder import SNLIVisualEntailmentBuilder
 
 
 __all__ = [
@@ -12,5 +13,6 @@ __all__ = [
     "COCOCapBuilder",
     "COCOVQABuilder",
     "VGVQABuilder",
-    "ConceptualCaptionsBuilder"
+    "ConceptualCaptionsBuilder",
+    "SNLIVisualEntailmentBuilder"
 ]

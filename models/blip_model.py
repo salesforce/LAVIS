@@ -12,18 +12,22 @@ from common.registry import registry
 from omegaconf import OmegaConf
 from timm.models.hub import download_cached_file
 
-from models.base_model import BaseModel, EncoderDecoderModel, MultimodalEncoderModel
+from models.base_model import BaseEncoder, BaseModel, EncoderDecoderModel, MultimodalEncoderModel
 from models.blip import init_tokenizer
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder, interpolate_pos_embed
 
 from utils.blip_utils import tie_encoder_decoder_weights
 
-pretrain_specific_keys = set([
-    "temp", "image_queue", "text_queue", "queue_ptr",
-    "vision_proj.weight", "vision_proj.bias",
-    "text_proj.weight", "text_proj.bias",
-    "itm_head.weight", "itm_head.bias"]
+pretrain_specific_keys = set(
+    [
+        "temp", "image_queue", "text_queue", "queue_ptr",
+        "vision_proj.weight", "vision_proj.bias",
+        "text_proj.weight", "text_proj.bias",
+        "itm_head.weight", "itm_head.bias",
+        "vision_proj_m.weight", "vision_proj_m.bias",
+        "text_proj_m.weight", "text_proj_m.bias"
+    ]
 )
 
 
@@ -54,6 +58,12 @@ class BlipMultimodalEncoder(MultimodalEncoderModel):
         )
 
         return image_embeds, multimodal_embeds
+
+    def forward(self, samples, **kwargs):
+        image_embeds = self.forward_visual_encoder(samples, **kwargs)
+        multimodal_encoder_out = self.forward_text_encoder(samples, image_embeds, **kwargs)
+
+        return multimodal_encoder_out
     
     @classmethod
     def build_from_cfg(cls, cfg):
@@ -212,11 +222,7 @@ class BlipCaption(EncoderDecoderModel):
             raise RuntimeError('checkpoint url or path is invalid')
 
         state_dict = checkpoint['model']
-
-        if "visual_encoder.pos_embed" in state_dict.keys():
-            state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder)
-        elif "encoder.pos_embed" in state_dict.keys():
-            state_dict['encoder.pos_embed'] = interpolate_pos_embed(state_dict['encoder.pos_embed'], model.encoder)
+        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder)
 
         # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
         new_state_dict = dict()
@@ -296,7 +302,7 @@ class BlipVQA(EncoderDecoderModel):
         question_states = []
         question_atts = []
 
-        question = samples["tokenized_questions"]
+        question = samples["tokenized_text"]
         question_output = encoder_out
 
         for b, n in enumerate(samples["n_answers"]):
@@ -514,11 +520,7 @@ class BlipVQA(EncoderDecoderModel):
             raise RuntimeError('checkpoint url or path is invalid')
 
         state_dict = checkpoint['model']
-
-        if "visual_encoder.pos_embed" in state_dict.keys():
-            state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.visual_encoder)
-        elif "encoder.pos_embed" in state_dict.keys():
-            state_dict['encoder.pos_embed'] = interpolate_pos_embed(state_dict['encoder.pos_embed'], model.encoder)
+        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.visual_encoder)
 
         # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
         new_state_dict = dict()
@@ -548,6 +550,210 @@ class BlipVQA(EncoderDecoderModel):
 
         msg = model.load_state_dict(state_dict,strict=True)
         print('load checkpoint from %s'%url_or_filename)
+        return model, msg
+
+
+@registry.register_model("blip_classification")
+class BlipClassification(BaseModel):
+    def __init__(
+        self, 
+        image_encoder,
+        text_encoder,
+        num_classes,
+        momentum=0.995,
+        alpha=0.4,
+        use_distill=True
+    ):
+        super().__init__()
+
+        self.tokenizer = init_tokenizer()
+
+        self.use_distill = use_distill
+
+        self.encoder = BlipMultimodalEncoder(
+            image_encoder=image_encoder,
+            text_encoder=text_encoder,
+            require_tokenizer=False
+        )
+
+        hidden_size = text_encoder.config.hidden_size
+        self.cls_head = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, num_classes)
+        )
+
+        if self.use_distill:
+            self.encoder_m = deepcopy(self.encoder)
+            self.cls_head_m = deepcopy(self.cls_head)
+
+            self.momentum = momentum
+            self.alpha = alpha
+
+            self.model_pairs = [
+                [self.encoder, self.encoder_m],
+                [self.cls_head, self.cls_head_m],
+            ]
+
+            self.copy_params()
+
+    @classmethod
+    def default_config_path(cls, model_type="base"):
+        paths = {
+            "base": "configs/models/blip_ve_base.yaml",
+            # "large": "configs/models/blip_pretrain_large.yaml"
+        }
+
+        assert model_type in paths, "Unknown model type {}".format(model_type)
+        return paths[model_type]
+
+    @classmethod
+    def build(cls, cfg=None, model_type="base"):
+        if not cfg:
+            # useful when building model without provided configuration file
+            from utils.config import Config
+            default_config = OmegaConf.load(cls.default_config_path(model_type))
+            cfg = Config.build_model_config(default_config).model
+
+        return cls._build_from_cfg(cfg)
+
+    def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
+        return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
+
+    def forward(self, samples, is_train=True):
+        sentences = samples['text_input']
+        sentences = self.tokenizer(
+            sentences, 
+            padding="longest",
+            return_tensors="pt"
+        ).to(self.device)
+        samples.update({'tokenized_text': sentences})
+
+        targets = samples['label']
+
+        image_embeds, multimodal_embeds = self.encoder(samples)
+        prediction = self.cls_head(
+            multimodal_embeds.last_hidden_state[:,0,:]
+        )
+
+        if is_train:
+            if self.use_distill:
+                with torch.no_grad():
+                    self._momentum_update()
+                    image_embeds_m, multimodal_embeds_m = self.encoder_m(samples)
+                    prediction_m = self.cls_head_m(
+                        multimodal_embeds_m.last_hidden_state[:,0,:]
+                    )
+
+                alpha = self.alpha * self._rampup_factor(
+                    epoch=samples['epoch'],
+                    iters=samples['iters'],
+                    num_iters_per_epoch=samples['num_iters_per_epoch']
+                )
+
+                loss = (1 - alpha) * F.cross_entropy(prediction, targets) - alpha * torch.sum(
+                    F.log_softmax(prediction, dim=1) * F.softmax(prediction_m, dim=1),dim=1).mean()
+            else:
+                loss = F.cross_entropy(prediction, targets)
+
+            return {"loss": loss}
+        else:
+            return {
+                "predictions": prediction,
+                "targets": targets
+            }
+
+    def predict(self, samples):
+        output = self.forward(samples, is_train=False)
+
+        return output
+
+
+    # TODO do we need a MixInClass for momentum models?
+    @torch.no_grad()    
+    def copy_params(self):
+        for model_pair in self.model_pairs:           
+            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
+                param_m.data.copy_(param.data)  # initialize
+                param_m.requires_grad = False  # not update by gradient    
+
+
+    @torch.no_grad()        
+    def _momentum_update(self):
+        for model_pair in self.model_pairs:           
+            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
+                param_m.data = param_m.data * self.momentum + param.data * (1. - self.momentum)
+
+
+    @classmethod
+    def _build_from_cfg(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+
+        # text encoder + multimodal encoder
+        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        use_distill = cfg.get("use_distill", True)
+        momentum = cfg.get("momentum", 0.995)
+        num_classes = cfg.get("num_classes", -1)
+        alpha = cfg.get("alpha", 0.4)
+
+        assert num_classes > 1, "Invalid number of classes provided, found {}".format(num_classes)
+
+        model = cls(
+            image_encoder=image_encoder,
+            text_encoder=text_encoder,
+            use_distill=use_distill,
+            alpha=alpha,
+            num_classes=num_classes,
+            momentum=momentum
+        )
+
+        # load pre-trained weights
+        pretrain_path = cfg.get("pretrained", None)
+        if pretrain_path is not None:
+            model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
+
+        return model
+
+    @staticmethod
+    def load_from_pretrained(model, url_or_filename):
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
+            checkpoint = torch.load(cached_file, map_location='cpu')
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location='cpu')
+        else:
+            raise RuntimeError('checkpoint url or path is invalid')
+
+        state_dict = checkpoint['model']
+        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.visual_encoder)
+        state_dict['visual_encoder_m.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder_m.pos_embed'], model.encoder_m.visual_encoder)
+
+        # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
+        new_state_dict = dict()
+        for key in state_dict.keys():
+            if key in pretrain_specific_keys:
+                continue
+            elif "text_decoder" in key:
+                continue
+            elif "visual_encoder" in key:
+                if "_m" in key:
+                    new_key = key.replace("visual_encoder_m", "encoder_m.visual_encoder")
+                else:
+                    new_key = key.replace("visual_encoder", "encoder.visual_encoder")
+            elif "text_encoder" in key:
+                if "_m" in key:
+                    new_key = key.replace("text_encoder_m", "encoder_m.text_encoder")
+                else:
+                    new_key = key.replace("text_encoder", "encoder.text_encoder")
+            else:
+                new_key = key
+            new_state_dict[new_key] = state_dict[key]
+
+        # update old state_dict
+        state_dict = new_state_dict
+
+        msg = model.load_state_dict(state_dict, strict=False)
+        print('load checkpoint from %s' % url_or_filename)
         return model, msg
 
 

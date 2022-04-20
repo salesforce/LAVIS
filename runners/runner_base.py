@@ -145,6 +145,9 @@ class Runner:
     def valid_splits(self):
         valid_splits = self.config.get("valid_splits", [])
 
+        if len(valid_splits) == 0:
+            logging.warning("No validation splits found.")
+
         return valid_splits
 
     @property
@@ -212,12 +215,11 @@ class Runner:
 
             if len(self.valid_splits) > 0:
                 for split_name in self.valid_splits:
-                    # if isinstance(self.task, RetrievalTask):
-                    #     val_result = self.validate_retrieval(split_name=split_name)
-                    # else:
                     val_result = self.validate(split_name=split_name)
                     val_log = self.task.after_validation(
-                        val_result=val_result, split_name=split_name, epoch=cur_epoch
+                        val_result=val_result,
+                        split_name=split_name,
+                        epoch=cur_epoch
                     )
 
                     if utils.is_main_process():

@@ -119,9 +119,3 @@ class MultimodalEncoderModel(BaseEncoder):
     @abstractmethod
     def forward_text_encoder(samples, visual_encoder_out, **kwargs):
         raise NotImplementedError
-
-    def forward(self, samples, **kwargs):
-        visual_encoder_out = self.forward_visual_encoder(samples, **kwargs)
-        multimodal_encoder_out = self.forward_text_encoder(samples, visual_encoder_out, **kwargs)
-
-        return multimodal_encoder_out

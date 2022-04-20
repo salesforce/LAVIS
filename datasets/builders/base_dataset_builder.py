@@ -115,17 +115,17 @@ class BaseDatasetBuilder:
                 if not os.path.isabs(storage_path):
                     storage_path = os.path.join(cache_root, storage_path)
 
+                dirname = os.path.dirname(storage_path)
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+
                 if os.path.isfile(url_or_filename):
                     src, dst = url_or_filename, storage_path
                     if not os.path.exists(dst):
                         shutil.copyfile(src=src, dst=dst)
                     else:
-                        logging.info("Using existing file {}.".format(url_or_filename))
+                        logging.info("Using existing file {}.".format(dst))
                 else:
-                    dirname = os.path.dirname(storage_path)
-                    if not os.path.exists(dirname):
-                        os.makedirs(dirname)
-
                     if os.path.isdir(storage_path):
                         # if only dirname is provided, suffix with basename of URL.
                         raise ValueError(
