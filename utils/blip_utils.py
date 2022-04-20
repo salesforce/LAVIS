@@ -25,6 +25,9 @@ def step_lr_schedule(optimizer, epoch, init_lr, min_lr, decay_rate):
     for param_group in optimizer.param_groups:
         param_group["lr"] = lr
 
+def now():
+    from datetime import datetime
+    return datetime.now().strftime('%Y%m%d%H%M%S"')
 
 import numpy as np
 import io
