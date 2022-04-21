@@ -1,7 +1,8 @@
 import json
 from typing import Iterable
 
-from torch.utils.data import Dataset, ConcatDataset, default_collate
+from torch.utils.data import Dataset, ConcatDataset
+from torch.utils.data.dataloader import default_collate
 
 
 class BaseDataset(Dataset):
