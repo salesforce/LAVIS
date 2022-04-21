@@ -1,5 +1,4 @@
 import os
-from urllib.parse import urlparse
 
 import numpy as np
 import torch
@@ -9,11 +8,10 @@ from copy import deepcopy
 
 from torch import nn
 from common.registry import registry
-from omegaconf import OmegaConf
 from timm.models.hub import download_cached_file
 
-from models.base_model import BaseEncoder, BaseModel, EncoderDecoderModel, MultimodalEncoderModel
-from models.blip import init_tokenizer
+from models.base_model import BaseModel, EncoderDecoderModel, MultimodalEncoderModel
+from models.blip import init_tokenizer, is_url
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder, interpolate_pos_embed
 
@@ -31,18 +29,27 @@ pretrain_specific_keys = set(
 )
 
 
-# [TODO] move to utils for reuse
-def is_url(url_or_filename):
-    parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https")
+class MomentumDistilationMixin:
+    @torch.no_grad()    
+    def copy_params(self):
+        for model_pair in self.model_pairs:           
+            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
+                param_m.data.copy_(param.data)  # initialize
+                param_m.requires_grad = False  # not update by gradient    
+
+
+    @torch.no_grad()        
+    def _momentum_update(self):
+        for model_pair in self.model_pairs:           
+            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
+                param_m.data = param_m.data * self.momentum + param.data * (1. - self.momentum)
 
 
 class BlipMultimodalEncoder(MultimodalEncoderModel):
     def __init__(self, image_encoder, text_encoder, require_tokenizer=True):
         super().__init__(image_encoder, text_encoder)
 
-        if require_tokenizer:
-            self.tokenizer = init_tokenizer()
+        self.tokenizer = init_tokenizer if require_tokenizer else None
 
     def forward_visual_encoder(self, samples):
         image_encoder = self.visual_encoder
@@ -50,7 +57,15 @@ class BlipMultimodalEncoder(MultimodalEncoderModel):
         
         return image_embeds
     
-    def forward_text_encoder(self, samples, image_embeds):
+    def forward_text_encoder(self, samples):
+
+        text_embeds = self.text_encoder.forward_text_embeds(
+            tokenized_text=samples['tokenized_text']
+        )
+
+        return text_embeds 
+
+    def forward_multimodal_encoder(self, samples, image_embeds):
 
         multimodal_embeds = self.text_encoder(
             tokenized_text=samples['tokenized_text'],
@@ -61,24 +76,34 @@ class BlipMultimodalEncoder(MultimodalEncoderModel):
 
     def forward(self, samples, **kwargs):
         image_embeds = self.forward_visual_encoder(samples, **kwargs)
-        multimodal_encoder_out = self.forward_text_encoder(samples, image_embeds, **kwargs)
+        image_embeds, multimodal_embeds = self.forward_multimodal_encoder(samples, image_embeds, **kwargs)
 
-        return multimodal_encoder_out
+        return image_embeds, multimodal_embeds
     
-    @classmethod
-    def build_from_cfg(cls, cfg):
-        # vision encoder
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
-        vision_width = image_encoder.vision_width
-        if "vision_width" not in cfg:
-            cfg.vision_width = vision_width
+    def extract_features(self, samples, mode):
+        tokenizer = self.tokenizer if self.tokenizer else init_tokenizer()
 
-        # text encoder + multimodal encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
-        model = cls(image_encoder, text_encoder)
+        if mode == "text":
+            raw_text = samples["text_input"]
+            tokenized_text = tokenizer(
+                raw_text,
+                padding='longest',
+                truncation=True,
+                max_length=40,
+                return_tensors="pt"
+            ).to(self.device)
+            samples.update({'tokenized_text': tokenized_text})
 
-        return model
-
+            return self.forward_text_encoder(samples).last_hidden_state
+        
+        elif mode == "visual":
+            return self.forward_visual_encoder(samples)
+        
+        elif mode == "multimodal":
+            return self.forward(samples)[1].last_hidden_state
+        else:
+            raise ValueError("Found invalid mode {}".format(mode))
+    
 
 @registry.register_model("blip_caption")
 class BlipCaption(EncoderDecoderModel):
@@ -177,21 +202,6 @@ class BlipCaption(EncoderDecoderModel):
         return captions
 
     @classmethod
-    def build_default_model(cls, model_type="base"):
-        return cls.build(cfg=None, model_type=model_type)
-
-    @classmethod
-    def build(cls, cfg=None, model_type="base"):
-        if not cfg:
-            # useful when building model without provided configuration file
-            from utils.config import Config
-            default_config = OmegaConf.load(
-                cls.default_config_path(model_type))
-            cfg = Config.build_model_config(default_config).model
-
-        return cls._build_from_cfg(cfg)
-
-    @classmethod
     def _build_from_cfg(cls, cfg):
         # vision encoder
         image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
@@ -280,6 +290,7 @@ class BlipVQA(EncoderDecoderModel):
         return paths[model_type]
 
     def forward_encoder(self, samples):
+        # TODO rename to 'text_input'?
         questions = samples['question']
         questions = self.tokenizer(
             questions,
@@ -468,23 +479,6 @@ class BlipVQA(EncoderDecoderModel):
 
         return answers
 
-
-    @classmethod
-    def build_default_model(cls, model_type="base"):
-        return cls.build(cfg=None, model_type=model_type)
-
-
-    @classmethod
-    def build(cls, cfg=None, model_type="base"):
-        if not cfg:
-            # useful when building model without provided configuration file
-            from utils.config import Config
-            default_config = OmegaConf.load(cls.default_config_path(model_type))
-            cfg = Config.build_model_config(default_config).model
-
-        return cls._build_from_cfg(cfg)
-
-
     @classmethod
     def _build_from_cfg(cls, cfg=None):
         image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
@@ -554,7 +548,7 @@ class BlipVQA(EncoderDecoderModel):
 
 
 @registry.register_model("blip_classification")
-class BlipClassification(BaseModel):
+class BlipClassification(BaseModel, MomentumDistilationMixin):
     def __init__(
         self, 
         image_encoder,
@@ -607,16 +601,6 @@ class BlipClassification(BaseModel):
         assert model_type in paths, "Unknown model type {}".format(model_type)
         return paths[model_type]
 
-    @classmethod
-    def build(cls, cfg=None, model_type="base"):
-        if not cfg:
-            # useful when building model without provided configuration file
-            from utils.config import Config
-            default_config = OmegaConf.load(cls.default_config_path(model_type))
-            cfg = Config.build_model_config(default_config).model
-
-        return cls._build_from_cfg(cfg)
-
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
 
@@ -667,23 +651,6 @@ class BlipClassification(BaseModel):
         output = self.forward(samples, is_train=False)
 
         return output
-
-
-    # TODO do we need a MixInClass for momentum models?
-    @torch.no_grad()    
-    def copy_params(self):
-        for model_pair in self.model_pairs:           
-            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
-                param_m.data.copy_(param.data)  # initialize
-                param_m.requires_grad = False  # not update by gradient    
-
-
-    @torch.no_grad()        
-    def _momentum_update(self):
-        for model_pair in self.model_pairs:           
-            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
-                param_m.data = param_m.data * self.momentum + param.data * (1. - self.momentum)
-
 
     @classmethod
     def _build_from_cfg(cls, cfg=None):
@@ -758,7 +725,7 @@ class BlipClassification(BaseModel):
 
 
 @registry.register_model('blip_pretrain')
-class BlipPretrain(BaseModel):
+class BlipPretrain(BaseModel, MomentumDistilationMixin):
     def __init__(
         self, 
         image_encoder,
@@ -829,6 +796,17 @@ class BlipPretrain(BaseModel):
         self.temp = nn.Parameter(0.07 * torch.ones([]))   
 
         self.alpha = alpha
+
+
+    @classmethod
+    def default_config_path(cls, model_type="base"):
+        paths = {
+            "base": "configs/models/blip_pretrain_base.yaml",
+            "large": "configs/models/blip_pretrain_large.yaml"
+        }
+
+        assert model_type in paths, "Unknown model type {}".format(model_type)
+        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
@@ -964,33 +942,6 @@ class BlipPretrain(BaseModel):
             "loss_itm": loss_itm,
             "loss_lm": loss_lm
         }
- 
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "configs/models/blip_pretrain_base.yaml",
-            "large": "configs/models/blip_pretrain_large.yaml"
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
-
-
-    @torch.no_grad()    
-    def copy_params(self):
-        for model_pair in self.model_pairs:           
-            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
-                param_m.data.copy_(param.data)  # initialize
-                param_m.requires_grad = False  # not update by gradient    
-
-
-    @torch.no_grad()        
-    def _momentum_update(self):
-        for model_pair in self.model_pairs:           
-            for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
-                param_m.data = param_m.data * self.momentum + param.data * (1. - self.momentum)
-
 
     @torch.no_grad()
     def _dequeue_and_enqueue(self, image_feat, text_feat):
@@ -1009,17 +960,6 @@ class BlipPretrain(BaseModel):
         ptr = (ptr + batch_size) % self.queue_size  # move pointer
 
         self.queue_ptr[0] = ptr 
-
-
-    @classmethod
-    def build(cls, cfg=None, model_type="base"):
-        if not cfg:
-            # useful when building model without provided configuration file
-            from utils.config import Config
-            default_config = OmegaConf.load(cls.default_config_path(model_type))
-            cfg = Config.build_model_config(default_config).model
-
-        return cls._build_from_cfg(cfg)
 
 
     @classmethod

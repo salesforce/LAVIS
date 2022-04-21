@@ -1,6 +1,9 @@
 from abc import abstractmethod
+from omegaconf import OmegaConf
 
 import torch.nn as nn
+
+from common.registry import registry
 
 
 class BaseModel(nn.Module):
@@ -15,6 +18,20 @@ class BaseModel(nn.Module):
 
     def load_from_pretrained(self, url_or_filename):
         raise NotImplementedError
+
+    @classmethod
+    def build(cls, cfg=None, model_type="base"):
+        if not cfg:
+            # useful when building model without provided configuration file
+            from utils.config import Config
+            default_config = OmegaConf.load(cls.default_config_path(model_type))
+            cfg = Config.build_model_config(default_config).model
+
+        return cls._build_from_cfg(cfg)
+
+    @classmethod
+    def build_default_model(cls, model_type="base"):
+        return cls.build(cfg=None, model_type=model_type)
 
     @classmethod
     def build_from_cfg(cls, cfg):
@@ -39,7 +56,7 @@ class BaseEncoder(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, samples, **kwargs):
+    def extract_features(self, samples, **kwargs):
         raise NotImplementedError
 
     @property
@@ -117,5 +134,9 @@ class MultimodalEncoderModel(BaseEncoder):
         raise NotImplementedError
 
     @abstractmethod
-    def forward_text_encoder(samples, visual_encoder_out, **kwargs):
+    def forward_text_encoder(samples, **kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
+    def forward_multimodal_encoder(samples, visual_encoder_out, **kwargs):
         raise NotImplementedError

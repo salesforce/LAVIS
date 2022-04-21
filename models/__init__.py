@@ -1,12 +1,12 @@
-# from .base_encoder import BaseEncoder
-# from .base_decoder import BaseDecoder
+from common.registry import registry
+
 from .base_model import (
     BaseModel,
     # BaseEncoderModel,
     # BaseEncoderDecoderModel
 )
 
-from .blip_model import BlipCaption, BlipVQA, BlipClassification
+from .blip_model import BlipCaption, BlipVQA, BlipClassification, BlipMultimodalEncoder
 
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
@@ -18,8 +18,9 @@ __all__ = [
     "BlipCaption",
     "BlipVQA",
     "BlipClassification",
+    "BlipMultimodalEncoder",
     "XBertLMHeadDecoder",
-    "VisionTransformerEncoder"
+    "VisionTransformerEncoder",
     # "BaseEncoderModel",
     # "BaseEncoderDecoderModel",
 ]

@@ -14,7 +14,7 @@ from tasks.base_task import BaseTask
 class MultimodalClassificationTask(BaseTask):
     ID_KEY = "image_id"
 
-    def __init__(self, cfg):
+    def __init__(self):
         super().__init__()
 
     def build_datasets(self, cfg):

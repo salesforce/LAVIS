@@ -1,5 +1,3 @@
-import torch
-
 from common.registry import registry
 from utils.data_utils import concat_datasets
 
@@ -9,17 +7,14 @@ class BaseTask:
         super().__init__()
 
     @classmethod
-    def setup_task(cls, cfg, **kwargs):
-        return cls(cfg, **kwargs)
+    def setup_task(cls, **kwargs):
+        return cls()
 
     def build_model(self, cfg):
         model_config = cfg.model_cfg
 
         model_cls = registry.get_model_class(model_config.arch)
         return model_cls.build(model_config)
-
-    # def build_criterion(self, cfg):
-    #     raise NotImplementedError
 
     def build_datasets(self, cfg):
         """
@@ -69,10 +64,6 @@ class BaseTask:
         return loss
 
     def valid_step(self, model, samples):
-        # model.eval()
-        # with torch.no_grad():
-        #     loss, sample_size, logging_output = criterion(model, sample)
-        # return loss, sample_size, logging_output
         raise NotImplementedError
 
     def after_validation(self, **kwargs):

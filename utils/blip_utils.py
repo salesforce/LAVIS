@@ -1,6 +1,7 @@
 import logging
 import math
 import re
+from urllib.parse import urlparse
 
 
 def cosine_lr_schedule(optimizer, epoch, max_epoch, init_lr, min_lr):
@@ -28,6 +29,12 @@ def step_lr_schedule(optimizer, epoch, init_lr, min_lr, decay_rate):
 def now():
     from datetime import datetime
     return datetime.now().strftime('%Y%m%d%H%M%S')
+
+
+def is_url(url_or_filename):
+    parsed = urlparse(url_or_filename)
+    return parsed.scheme in ("http", "https")
+
 
 import numpy as np
 import io
