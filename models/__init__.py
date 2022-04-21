@@ -6,7 +6,7 @@ from .base_model import (
     # BaseEncoderDecoderModel
 )
 
-from .blip_model import BlipCaption, BlipVQA, BlipClassification, BlipMultimodalEncoder
+from .blip_model import BlipCaption, BlipVQA, BlipClassification
 
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
@@ -18,7 +18,6 @@ __all__ = [
     "BlipCaption",
     "BlipVQA",
     "BlipClassification",
-    "BlipMultimodalEncoder",
     "XBertLMHeadDecoder",
     "VisionTransformerEncoder",
     # "BaseEncoderModel",

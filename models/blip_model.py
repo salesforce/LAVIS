@@ -10,7 +10,7 @@ from torch import nn
 from common.registry import registry
 from timm.models.hub import download_cached_file
 
-from models.base_model import BaseModel, EncoderDecoderModel, MultimodalEncoderModel
+from models.base_model import BaseModel
 from models.blip import init_tokenizer, is_url
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder, interpolate_pos_embed
@@ -44,66 +44,6 @@ class MomentumDistilationMixin:
             for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
                 param_m.data = param_m.data * self.momentum + param.data * (1. - self.momentum)
 
-
-class BlipMultimodalEncoder(MultimodalEncoderModel):
-    def __init__(self, image_encoder, text_encoder, require_tokenizer=True):
-        super().__init__(image_encoder, text_encoder)
-
-        self.tokenizer = init_tokenizer if require_tokenizer else None
-
-    def forward_visual_encoder(self, samples):
-        image_encoder = self.visual_encoder
-        image_embeds = image_encoder(samples['image'])
-        
-        return image_embeds
-    
-    def forward_text_encoder(self, samples):
-
-        text_embeds = self.text_encoder.forward_text_embeds(
-            tokenized_text=samples['tokenized_text']
-        )
-
-        return text_embeds 
-
-    def forward_multimodal_encoder(self, samples, image_embeds):
-
-        multimodal_embeds = self.text_encoder(
-            tokenized_text=samples['tokenized_text'],
-            visual_embeds=image_embeds
-        )
-
-        return image_embeds, multimodal_embeds
-
-    def forward(self, samples, **kwargs):
-        image_embeds = self.forward_visual_encoder(samples, **kwargs)
-        image_embeds, multimodal_embeds = self.forward_multimodal_encoder(samples, image_embeds, **kwargs)
-
-        return image_embeds, multimodal_embeds
-    
-    def extract_features(self, samples, mode):
-        tokenizer = self.tokenizer if self.tokenizer else init_tokenizer()
-
-        if mode == "text":
-            raw_text = samples["text_input"]
-            tokenized_text = tokenizer(
-                raw_text,
-                padding='longest',
-                truncation=True,
-                max_length=40,
-                return_tensors="pt"
-            ).to(self.device)
-            samples.update({'tokenized_text': tokenized_text})
-
-            return self.forward_text_encoder(samples).last_hidden_state
-        
-        elif mode == "visual":
-            return self.forward_visual_encoder(samples)
-        
-        elif mode == "multimodal":
-            return self.forward(samples)[1].last_hidden_state
-        else:
-            raise ValueError("Found invalid mode {}".format(mode))
-    
 
 @registry.register_model("blip_caption")
 class BlipCaption(BaseModel):
@@ -211,23 +151,6 @@ class BlipCaption(BaseModel):
             model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
 
         return model
-
-    @staticmethod
-    def load_from_pretrained(model, url_or_filename):
-        if is_url(url_or_filename):
-            cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
-            checkpoint = torch.load(cached_file, map_location='cpu')
-        elif os.path.isfile(url_or_filename):
-            checkpoint = torch.load(url_or_filename, map_location='cpu')
-        else:
-            raise RuntimeError('checkpoint url or path is invalid')
-
-        state_dict = checkpoint['model']
-        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
-
-        msg = model.load_state_dict(state_dict, strict=False)
-        print('load checkpoint from %s' % url_or_filename)
-        return model, msg
 
 
 @registry.register_model("blip_vqa")
@@ -469,26 +392,9 @@ class BlipVQA(BaseModel):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
+            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
 
         return model
-
-    @staticmethod
-    def load_from_pretrained(model, url_or_filename):
-        if is_url(url_or_filename):
-            cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
-            checkpoint = torch.load(cached_file, map_location='cpu')
-        elif os.path.isfile(url_or_filename):
-            checkpoint = torch.load(url_or_filename, map_location='cpu')
-        else:
-            raise RuntimeError('checkpoint url or path is invalid')
-
-        state_dict = checkpoint['model']
-        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
-
-        msg = model.load_state_dict(state_dict,strict=False)
-        print('load checkpoint from %s'%url_or_filename)
-        return model, msg
 
 
 @registry.register_model("blip_classification")
@@ -508,11 +414,8 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
         self.use_distill = use_distill
 
-        self.encoder = BlipMultimodalEncoder(
-            image_encoder=image_encoder,
-            text_encoder=text_encoder,
-            require_tokenizer=False
-        )
+        self.visual_encoder = image_encoder
+        self.text_encoder = text_encoder
 
         hidden_size = text_encoder.config.hidden_size
         self.cls_head = nn.Sequential(
@@ -522,14 +425,16 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         )
 
         if self.use_distill:
-            self.encoder_m = deepcopy(self.encoder)
+            self.visual_encoder_m = deepcopy(self.visual_encoder)
+            self.text_encoder_m = deepcopy(self.text_encoder)
             self.cls_head_m = deepcopy(self.cls_head)
 
             self.momentum = momentum
             self.alpha = alpha
 
             self.model_pairs = [
-                [self.encoder, self.encoder_m],
+                [self.visual_encoder, self.visual_encoder_m],
+                [self.text_encoder, self.text_encoder_m],
                 [self.cls_head, self.cls_head_m],
             ]
 
@@ -559,16 +464,19 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
         targets = samples['label']
 
-        image_embeds, multimodal_embeds = self.encoder(samples)
-        prediction = self.cls_head(
-            multimodal_embeds.last_hidden_state[:,0,:]
-        )
+        image_embeds = self.visual_encoder(samples['image'])
+        multimodal_embeds = self.text_encoder(samples['tokenized_text'], image_embeds)
+
+        prediction = self.cls_head(multimodal_embeds.last_hidden_state[:,0,:])
 
         if is_train:
             if self.use_distill:
                 with torch.no_grad():
                     self._momentum_update()
-                    image_embeds_m, multimodal_embeds_m = self.encoder_m(samples)
+
+                    image_embeds_m = self.visual_encoder_m(samples['image'])
+                    multimodal_embeds_m = self.text_encoder_m(samples['tokenized_text'], image_embeds_m)
+
                     prediction_m = self.cls_head_m(
                         multimodal_embeds_m.last_hidden_state[:,0,:]
                     )
@@ -586,14 +494,10 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
             return {"loss": loss}
         else:
-            return {
-                "predictions": prediction,
-                "targets": targets
-            }
+            return {"predictions": prediction, "targets": targets}
 
     def predict(self, samples):
         output = self.forward(samples, is_train=False)
-
         return output
 
     @classmethod
@@ -624,48 +528,6 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
             model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
 
         return model
-
-    @staticmethod
-    def load_from_pretrained(model, url_or_filename):
-        if is_url(url_or_filename):
-            cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
-            checkpoint = torch.load(cached_file, map_location='cpu')
-        elif os.path.isfile(url_or_filename):
-            checkpoint = torch.load(url_or_filename, map_location='cpu')
-        else:
-            raise RuntimeError('checkpoint url or path is invalid')
-
-        state_dict = checkpoint['model']
-        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.visual_encoder)
-        state_dict['visual_encoder_m.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder_m.pos_embed'], model.encoder_m.visual_encoder)
-
-        # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
-        new_state_dict = dict()
-        for key in state_dict.keys():
-            if key in pretrain_specific_keys:
-                continue
-            elif "text_decoder" in key:
-                continue
-            elif "visual_encoder" in key:
-                if "_m" in key:
-                    new_key = key.replace("visual_encoder_m", "encoder_m.visual_encoder")
-                else:
-                    new_key = key.replace("visual_encoder", "encoder.visual_encoder")
-            elif "text_encoder" in key:
-                if "_m" in key:
-                    new_key = key.replace("text_encoder_m", "encoder_m.text_encoder")
-                else:
-                    new_key = key.replace("text_encoder", "encoder.text_encoder")
-            else:
-                new_key = key
-            new_state_dict[new_key] = state_dict[key]
-
-        # update old state_dict
-        state_dict = new_state_dict
-
-        msg = model.load_state_dict(state_dict, strict=False)
-        print('load checkpoint from %s' % url_or_filename)
-        return model, msg
 
 
 @registry.register_model('blip_pretrain')
@@ -955,6 +817,32 @@ def concat_all_gather(tensor):
 
     output = torch.cat(tensors_gather, dim=0)
     return output     
+
+
+def load_from_pretrained(model, url_or_filename):
+    if is_url(url_or_filename):
+        cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
+        checkpoint = torch.load(cached_file, map_location='cpu')
+    elif os.path.isfile(url_or_filename):
+        checkpoint = torch.load(url_or_filename, map_location='cpu')
+    else:
+        raise RuntimeError('checkpoint url or path is invalid')
+
+    state_dict = checkpoint['model']
+
+    state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
+    if 'visual_encoder_m.pos_embed' in model.state_dict().keys():
+        state_dict['visual_encoder_m.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder_m.pos_embed'], model.visual_encoder_m)
+
+    for key in model.state_dict().keys():
+        if key in state_dict.keys():
+            if state_dict[key].shape!=model.state_dict()[key].shape:
+                del state_dict[key]
+
+    msg = model.load_state_dict(state_dict, strict=False)
+    print('load checkpoint from %s' % url_or_filename)
+    return model, msg
+
 
 # @registry.register_model("blip_retrieval")
 # class BlipRetrieval(BlipEncoderEncoder):
