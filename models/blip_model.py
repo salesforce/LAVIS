@@ -106,11 +106,14 @@ class BlipMultimodalEncoder(MultimodalEncoderModel):
     
 
 @registry.register_model("blip_caption")
-class BlipCaption(EncoderDecoderModel):
+class BlipCaption(BaseModel):
     def __init__(self, image_encoder, text_decoder, prompt=None):
-        super().__init__(image_encoder, text_decoder)
+        super().__init__()
 
         self.tokenizer = init_tokenizer()
+
+        self.visual_encoder = image_encoder
+        self.text_decoder = text_decoder
 
         self.prompt = prompt
         self.prompt_length = len(self.tokenizer(self.prompt).input_ids) - 1
@@ -126,23 +129,10 @@ class BlipCaption(EncoderDecoderModel):
         return paths[model_type]
 
     def forward_encoder(self, samples):
-        """
-        The forward_encoder() and forward_decoder() allows the constituent
-        encoder decoder class to be reuse without coupling to a specific vision-language model.
-
-        If instead call encoder(samples), then the forward() definition of
-        the constituent encoder has to return in a specific form,
-            e.g. {"image_embeds": image_embeds}
-
-        However, in different vision-language models, different return values may be needed.
-        In this case, forward_encoder() which bounds to the specific vision-language model, will
-        handle this variation.
-        """
-        image_embeds = self.encoder(samples['image'])
-
+        image_embeds = self.visual_encoder(samples['image'])
         return image_embeds
 
-    def forward_decoder(self, samples, encoder_out):
+    def forward_decoder(self, samples, image_embeds):
         # prepare inputs for forwarding decoder
         raw_text = samples["text_input"]
         text = self.tokenizer(
@@ -154,21 +144,25 @@ class BlipCaption(EncoderDecoderModel):
         ).to(self.device)
         text.input_ids[:, 0] = self.tokenizer.bos_token_id
 
-        image_embeds = encoder_out
-
         # prepare targets for forwarding decoder
         decoder_targets = text.input_ids.masked_fill(
             text.input_ids == self.tokenizer.pad_token_id, -100
         )
         decoder_targets[:, :self.prompt_length] = -100
 
-        loss, decoder_output = self.decoder.forward_loss(
+        _, decoder_output = self.text_decoder.forward_loss(
             text_tokenized=text,
             visual_embeds=image_embeds,
             decoder_targets=decoder_targets
         )
 
-        return {"loss": loss, "decoder_output": decoder_output}
+        return {k:decoder_output[k] for k in decoder_output}
+    
+    def forward(self, samples):
+        image_embeds = self.forward_encoder(samples)
+        decoder_out = self.forward_decoder(samples, image_embeds)
+
+        return decoder_out
 
     def generate(self, samples, use_nucleus_sampling=False, num_beams=3, max_length=30, min_length=10, top_p=0.9, repetition_penalty=1.0):
         # prepare inputs for decoder generation.
@@ -182,7 +176,7 @@ class BlipCaption(EncoderDecoderModel):
         prompt.input_ids = prompt.input_ids[:, :-1]
 
         # get decoded text
-        decoder_out = self.decoder.generate_from_encoder(
+        decoder_out = self.text_decoder.generate_from_encoder(
             tokenized_prompt=prompt,
             visual_embeds=image_embeds,
             sep_token_id=self.tokenizer.sep_token_id,
@@ -216,9 +210,6 @@ class BlipCaption(EncoderDecoderModel):
         if pretrain_path is not None:
             model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
 
-            assert len(msg.missing_keys) == 0, "Missing keys {}.".format(msg.missing_keys)
-            assert len(msg.unexpected_keys) == 0, "Unexpected keys {}.".format(msg.unexpected_keys)
-
         return model
 
     @staticmethod
@@ -232,33 +223,7 @@ class BlipCaption(EncoderDecoderModel):
             raise RuntimeError('checkpoint url or path is invalid')
 
         state_dict = checkpoint['model']
-        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder)
-
-        # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
-        new_state_dict = dict()
-        for key in state_dict.keys():
-            if key in pretrain_specific_keys:
-                continue
-            elif "text_encoder" in key:
-                continue
-            elif "_m" in key:
-                continue
-            elif "visual_encoder" in key:
-                new_key = key.replace("visual_encoder", "encoder")
-            elif "text_decoder" in key:
-                new_key = key.replace("text_decoder", "decoder")
-            else:
-                new_key = key
-            new_state_dict[new_key] = state_dict[key]
-
-        # update old state_dict
-        state_dict = new_state_dict
-
-        # exclude incompatible keys
-        for key in model.state_dict().keys():
-            if key in state_dict.keys():
-                if state_dict[key].shape != model.state_dict()[key].shape:
-                    del state_dict[key]
+        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
 
         msg = model.load_state_dict(state_dict, strict=False)
         print('load checkpoint from %s' % url_or_filename)
@@ -285,6 +250,12 @@ class BlipVQA(BaseModel):
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
         return paths[model_type]
+
+    def forward(self, samples):
+        multimodal_embeds = self.forward_encoder(samples)
+        decoder_out = self.forward_decoder(samples, encoder_out=multimodal_embeds)
+
+        return decoder_out
 
     def forward_encoder(self, samples):
         # TODO rename to 'text_input'?
@@ -499,9 +470,6 @@ class BlipVQA(BaseModel):
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
             model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
-
-            assert len(msg.missing_keys) == 0, "Missing keys {}.".format(msg.missing_keys)
-            assert len(msg.unexpected_keys) == 0, "Unexpected keys {}.".format(msg.unexpected_keys)
 
         return model
 
