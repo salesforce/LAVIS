@@ -148,7 +148,7 @@ class BlipCaption(BaseModel):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
+            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
 
         return model
 
@@ -525,7 +525,7 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
+            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
 
         return model
 

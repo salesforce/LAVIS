@@ -6,6 +6,7 @@ model:
   vit_type: "base"
   vit_grad_ckpt: False
   vit_ckpt_layer: 0
+  vit_drop_path_rate: 0.1
 
   image_size: 480
 
