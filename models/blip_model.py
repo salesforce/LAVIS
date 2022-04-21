@@ -266,18 +266,15 @@ class BlipCaption(EncoderDecoderModel):
 
 
 @registry.register_model("blip_vqa")
-class BlipVQA(EncoderDecoderModel):
+class BlipVQA(BaseModel):
     def __init__(self, image_encoder, text_encoder, text_decoder):
-        """
-        """
-        multimodal_encoder = BlipMultimodalEncoder(
-            image_encoder=image_encoder,
-            text_encoder=text_encoder,
-            require_tokenizer=False
-        )
-
-        super().__init__(encoder=multimodal_encoder, decoder=text_decoder)
+        super().__init__()
         self.tokenizer = init_tokenizer()
+
+        self.visual_encoder = image_encoder
+
+        self.text_encoder = text_encoder
+        self.text_decoder = text_decoder
 
     @classmethod
     def default_config_path(cls, model_type="base"):
@@ -301,7 +298,12 @@ class BlipVQA(EncoderDecoderModel):
         questions.input_ids[:, 0] = self.tokenizer.enc_token_id
         samples.update({'tokenized_text': questions})
 
-        image_embeds, multimodal_embeds = self.encoder(samples)
+        image_embeds = self.visual_encoder(samples["image"])
+        multimodal_embeds = self.text_encoder(
+            tokenized_text=samples['tokenized_text'],
+            visual_embeds=image_embeds
+        )
+
         return multimodal_embeds
 
 
@@ -323,7 +325,7 @@ class BlipVQA(EncoderDecoderModel):
         question_states = torch.stack(question_states, dim=0)
         question_atts = torch.stack(question_atts, dim=0)
 
-        answer_output = self.decoder(
+        answer_output = self.text_decoder(
             answers.input_ids,
             attention_mask=answers.attention_mask,
             encoder_hidden_states=question_states,
@@ -388,7 +390,7 @@ class BlipVQA(EncoderDecoderModel):
             device=self.device
         )
 
-        outputs = self.decoder.generate(
+        outputs = self.text_decoder.generate(
             input_ids=bos_ids,
             max_length=max_length,
             min_length=min_length,
@@ -429,7 +431,7 @@ class BlipVQA(EncoderDecoderModel):
         num_ques = question_states.size(0)
         start_ids = answer_ids[0, 0].repeat(num_ques,1) # bos token
         
-        start_output = self.decoder(
+        start_output = self.text_decoder(
             start_ids,
             encoder_hidden_states=question_states,
             encoder_attention_mask=question_atts,
@@ -459,7 +461,7 @@ class BlipVQA(EncoderDecoderModel):
         question_states = tile(question_states, 0, num_ans_candidates)
         question_atts = tile(question_atts, 0, num_ans_candidates)
         
-        output = self.decoder(
+        output = self.text_decoder(
             input_ids,
             attention_mask=input_atts,
             encoder_hidden_states=question_states,
@@ -514,35 +516,9 @@ class BlipVQA(EncoderDecoderModel):
             raise RuntimeError('checkpoint url or path is invalid')
 
         state_dict = checkpoint['model']
-        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder.visual_encoder)
+        state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
 
-        # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
-        new_state_dict = dict()
-        for key in state_dict.keys():
-            if key in pretrain_specific_keys:
-                continue
-            elif "_m" in key:
-                continue
-            elif "visual_encoder" in key:
-                new_key = key.replace("visual_encoder", "encoder.visual_encoder")
-            elif "text_encoder" in key:
-                new_key = key.replace("text_encoder", "encoder.text_encoder")
-            elif "text_decoder" in key:
-                new_key = key.replace("text_decoder", "decoder")
-            else:
-                new_key = key
-            new_state_dict[new_key] = state_dict[key]
-
-        # update old state_dict
-        state_dict = new_state_dict
-
-        # exclude incompatible keys
-        for key in model.state_dict().keys():
-            if key in state_dict.keys():
-                if state_dict[key].shape!=model.state_dict()[key].shape:
-                    del state_dict[key]
-
-        msg = model.load_state_dict(state_dict,strict=True)
+        msg = model.load_state_dict(state_dict,strict=False)
         print('load checkpoint from %s'%url_or_filename)
         return model, msg
 
