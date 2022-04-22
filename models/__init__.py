@@ -4,7 +4,7 @@ from .base_model import (
     BaseModel,
 )
 
-from .blip_model import BlipCaption, BlipVQA, BlipClassification
+from .blip import BlipCaption, BlipVQA, BlipClassification
 
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
