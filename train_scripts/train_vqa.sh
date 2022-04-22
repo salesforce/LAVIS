@@ -1,3 +1,5 @@
+cd ..
+
 python -m torch.distributed.run --nproc_per_node=16 train.py --cfg-path projects/blip/exp_vqa_ft.yaml
 
 # python train.py --cfg-run projects/blip/run.yaml \

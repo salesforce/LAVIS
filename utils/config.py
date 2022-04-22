@@ -3,13 +3,10 @@ import json
 
 from omegaconf import OmegaConf
 from common.registry import registry
-from utils.blip_utils import is_main_process
-
-logger = logging.getLogger(__name__)
 
 
 class Config:
-    def __init__(self, args):  # , default_only=False):
+    def __init__(self, args):
         self.config = {}
 
         self.args = args
@@ -119,22 +116,22 @@ class Config:
         return self.config.model
 
     def pretty_print(self):
-        logger.info("\n=====  Running Parameters    =====")
-        logger.info(self._convert_node_to_json(self.config.run))
+        logging.info("\n=====  Running Parameters    =====")
+        logging.info(self._convert_node_to_json(self.config.run))
 
-        logger.info("\n======  Dataset Attributes  ======")
+        logging.info("\n======  Dataset Attributes  ======")
         datasets = self.config.datasets
 
         for dataset in datasets:
             if dataset in self.config.datasets:
-                logger.info(f"\n======== {dataset} =======")
+                logging.info(f"\n======== {dataset} =======")
                 dataset_config = self.config.datasets[dataset]
-                logger.info(self._convert_node_to_json(dataset_config))
+                logging.info(self._convert_node_to_json(dataset_config))
             else:
-                logger.warning(f"No dataset named '{dataset}' in config. Skipping")
+                logging.warning(f"No dataset named '{dataset}' in config. Skipping")
 
-        logger.info(f"\n======  Model Attributes  ======")
-        logger.info(self._convert_node_to_json(self.config.model))
+        logging.info(f"\n======  Model Attributes  ======")
+        logging.info(self._convert_node_to_json(self.config.model))
 
     def _convert_node_to_json(self, node):
         container = OmegaConf.to_container(node, resolve=True)

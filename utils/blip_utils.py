@@ -258,6 +258,14 @@ def setup_for_distributed(is_master):
     __builtin__.print = print
 
 
+def setup_logger():
+    logging.basicConfig(
+        level=logging.INFO if is_main_process() else logging.WARN,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[logging.StreamHandler()],
+    )
+
+
 def is_dist_avail_and_initialized():
     if not dist.is_available():
         return False
