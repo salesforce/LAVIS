@@ -8,6 +8,7 @@
  * https://github.com/rwightman/pytorch-image-models/tree/master/timm
 """
 
+import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -396,6 +397,28 @@ def _load_weights(model: VisionTransformer, checkpoint_path: str, prefix: str = 
             )
         block.norm2.weight.copy_(_n2p(w[f"{block_prefix}LayerNorm_2/scale"]))
         block.norm2.bias.copy_(_n2p(w[f"{block_prefix}LayerNorm_2/bias"]))
+
+
+def resize_pos_embed(posemb, posemb_new, num_tokens=1, gs_new=()):
+    # Rescale the grid of position embeddings when loading from state_dict. Adapted from
+    # https://github.com/google-research/vision_transformer/blob/00883dd691c63a6830751563748663526e811cee/vit_jax/checkpoint.py#L224
+    print('Resized position embedding: %s to %s', posemb.shape, posemb_new.shape)
+    ntok_new = posemb_new.shape[1]
+    if num_tokens:
+        posemb_tok, posemb_grid = posemb[:, :num_tokens], posemb[0, num_tokens:]
+        ntok_new -= num_tokens
+    else:
+        posemb_tok, posemb_grid = posemb[:, :0], posemb[0]
+    gs_old = int(math.sqrt(len(posemb_grid)))
+    if not len(gs_new):  # backwards compatibility
+        gs_new = [int(math.sqrt(ntok_new))] * 2
+    assert len(gs_new) >= 2
+    print('Position embedding grid-size from %s to %s', [gs_old, gs_old], gs_new)
+    posemb_grid = posemb_grid.reshape(1, gs_old, gs_old, -1).permute(0, 3, 1, 2)
+    posemb_grid = F.interpolate(posemb_grid, size=gs_new, mode='bicubic', align_corners=False)
+    posemb_grid = posemb_grid.permute(0, 2, 3, 1).reshape(1, gs_new[0] * gs_new[1], -1)
+    posemb = torch.cat([posemb_tok, posemb_grid], dim=1)
+    return 
 
 
 def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
