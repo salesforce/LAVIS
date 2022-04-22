@@ -17,17 +17,6 @@ from models.vit import VisionTransformerEncoder, interpolate_pos_embed
 
 from utils.blip_utils import tie_encoder_decoder_weights
 
-pretrain_specific_keys = set(
-    [
-        "temp", "image_queue", "text_queue", "queue_ptr",
-        "vision_proj.weight", "vision_proj.bias",
-        "text_proj.weight", "text_proj.bias",
-        "itm_head.weight", "itm_head.bias",
-        "vision_proj_m.weight", "vision_proj_m.bias",
-        "text_proj_m.weight", "text_proj_m.bias"
-    ]
-)
-
 
 class MomentumDistilationMixin:
     @torch.no_grad()    
