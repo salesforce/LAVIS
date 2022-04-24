@@ -6,17 +6,12 @@ from torch.utils.data.dataloader import default_collate
 
 
 class BaseDataset(Dataset):
-    def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         """
         image_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         """
-        # TODO create a merge function to re-structure annotations.
-        assert (
-            len(set(image_roots)) == 1
-        ), "Image roots have to be same for multiple soruce split."
-
-        self.image_root = image_roots[0]
+        self.image_root = image_root
 
         self.annotation = []
         for ann_path in ann_paths:

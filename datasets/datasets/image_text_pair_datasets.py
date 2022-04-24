@@ -7,12 +7,12 @@ from datasets.datasets.base_dataset import BaseDataset
 
 
 class ImageTextPairDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         '''
         image_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         '''        
-        super().__init__(vis_processor, text_processor, image_roots, ann_paths)
+        super().__init__(vis_processor, text_processor, image_root, ann_paths)
         
     def __getitem__(self, index):    
         

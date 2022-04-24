@@ -7,17 +7,12 @@ datasets:
       # Be careful not to append minus sign (-) before split to avoid itemizing
       annotations:
         train: 
-          url: 
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
-              # - /export/share/dongxuli/data/lavis/vg/annotations/vg_qa.json
-          storage:
-              - vg/annotations/vg_qa.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/vg_qa.json
+          storage: vg/annotations/vg_qa.json
       images:
-        train: 
-          url: 
-              - [
-                https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip, 
-                https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip
-                ] 
-          storage: 
-              - vg/images/
+        # url: 
+        #     - [
+        #       https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip, 
+        #       https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip
+        #       ] 
+        storage: vg/images/

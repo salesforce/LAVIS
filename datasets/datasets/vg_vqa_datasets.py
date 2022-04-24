@@ -6,8 +6,8 @@ from datasets.datasets.vqa_datasets import VQADataset
 
 
 class VGVQADataset(VQADataset):
-    def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
-        super().__init__(vis_processor, text_processor, image_roots, ann_paths)
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
+        super().__init__(vis_processor, text_processor, image_root, ann_paths)
 
     def __getitem__(self, index):
         ann = self.annotation[index]

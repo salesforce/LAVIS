@@ -323,6 +323,7 @@ def init_distributed_mode(args):
         init_method=args.dist_url,
         world_size=args.world_size,
         rank=args.rank,
+        timeout=datetime.timedelta(days=365)  # allow auto-downloading and de-compressing
     )
     torch.distributed.barrier()
     setup_for_distributed(args.rank == 0)
@@ -407,7 +408,9 @@ def pre_question(question, max_ques_words=50):
 def save_result(result, result_dir, filename, remove_duplicate=""):
     import json
 
+    logging.warning("rank %d starts dumping." % get_rank())
     result_file = os.path.join(result_dir, "%s_rank%d.json" % (filename, get_rank()))
+    logging.warning("rank %d finish dumping." % get_rank())
     final_result_file = os.path.join(result_dir, "%s.json" % filename)
 
     json.dump(result, open(result_file, "w"))
@@ -415,6 +418,7 @@ def save_result(result, result_dir, filename, remove_duplicate=""):
     dist.barrier()
 
     if is_main_process():
+        logging.warning("rank %d starts merging." % get_rank())
         # combine results from all processes
         result = []
 

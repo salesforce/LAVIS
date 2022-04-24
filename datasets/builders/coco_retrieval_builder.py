@@ -1,11 +1,11 @@
-from datasets.builders.coco_builder import COCOBuilder
+from datasets.builders.base_dataset_builder import BaseDatasetBuilder
 from datasets.datasets.retrieval_datasets import RetrievalDataset, RetrievalEvalDataset
 
 from common.registry import registry
 
 
 @registry.register_builder("coco_retrieval")
-class COCORetrievalBuilder(COCOBuilder):
+class COCORetrievalBuilder(BaseDatasetBuilder):
     train_dataset_cls = RetrievalDataset
     eval_dataset_cls = RetrievalEvalDataset
 

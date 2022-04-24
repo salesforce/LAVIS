@@ -14,3 +14,6 @@ class ConceptualCaptionsBuilder(BaseDatasetBuilder):
     @classmethod
     def default_config_path(cls):
         return "configs/datasets/conceptual_captions/defaults.yaml"
+
+    def _download_vis(self):
+        pass

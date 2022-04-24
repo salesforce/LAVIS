@@ -38,6 +38,8 @@ def parse_args():
 
 
 def main():
+    os.environ['NCCL_BLOCKING_WAIT'] = "1"
+
     root_dir = os.getcwd()
     default_cfg = OmegaConf.load(os.path.join(root_dir, "configs/default.yaml"))
 

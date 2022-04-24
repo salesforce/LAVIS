@@ -7,12 +7,12 @@ from datasets.datasets.base_dataset import BaseDataset
 
 
 class CaptionDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         '''
         image_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         '''        
-        super().__init__(vis_processor, text_processor, image_roots, ann_paths)
+        super().__init__(vis_processor, text_processor, image_root, ann_paths)
 
         self.img_ids = {}  
         n = 0
@@ -37,13 +37,13 @@ class CaptionDataset(BaseDataset):
 
 
 class CaptionEvalDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_roots, ann_paths):
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         '''
         image_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         split (string): val or test
         '''
-        super().__init__(vis_processor, text_processor, image_roots, ann_paths)
+        super().__init__(vis_processor, text_processor, image_root, ann_paths)
 
     def __getitem__(self, index):    
         

@@ -9,6 +9,8 @@ from common.registry import registry
 
 from torchvision.datasets.utils import download_url
 
+from utils.file_utils import extract_archive
+
 
 class BaseDatasetBuilder:
     train_dataset_cls, eval_dataset_cls = None, None
@@ -139,10 +141,50 @@ class BaseDatasetBuilder:
                     # download_url(url=url, root=dirname, filename=filename, md5=info.md5)
                     download_url(url=url_or_filename, root=dirname, filename=filename)
 
-    # We need some downloading utilities to help.
+
     def _download_vis(self):
-        # downloading images/videos can be dataset-specific.
-        pass
+
+        data_type = self.data_type
+        vis_urls = self.vis_urls[data_type]
+
+        cache_root = registry.get_path("cache_root")
+
+        # Create temp directory for caching downloads.
+        dl_cache_dir = os.path.join(cache_root, "temp/coco")
+        os.makedirs(dl_cache_dir, exist_ok=True)
+
+        storage_path = self.config.build_info.get(self.data_type).storage
+
+        new_build = False
+
+        for split in vis_urls.keys():
+            if not os.path.isabs(storage_path):
+                storage_path = os.path.join(cache_root, storage_path)
+
+            if os.path.exists(storage_path) and not new_build:
+                logging.info("Data build path {} exists, skip downloading.".format(storage_path))
+            else: # if path not exist or build for the first time
+                new_build = True
+
+                urls = vis_urls[split]
+
+                if isinstance(urls, str): urls = [urls]
+
+                for url in urls:
+                    # note this skips the downloading if the file already exists
+                    download_url(url=url, root=dl_cache_dir)
+
+                    dirname = os.path.dirname(storage_path)
+                    assert os.path.normpath(dirname) == os.path.normpath(storage_path), \
+                        "Local path to store images has to be a directory, found {}.".format(storage_path)
+
+                    if not os.path.exists(dirname):
+                        os.makedirs(dirname)
+
+                    # extracting
+                    archive_path = os.path.join(dl_cache_dir, os.path.basename(url))
+                    extract_archive(from_path=archive_path, to_path=storage_path, overwrite=False)
+
 
     def build(self):
         """
@@ -190,17 +232,11 @@ class BaseDatasetBuilder:
                 abs_ann_paths.append(ann_path)
             ann_paths = abs_ann_paths
 
-            # visual data paths
-            vis_paths = vis_info.get(split).storage
-            if isinstance(vis_paths, str):
-                vis_paths = [vis_paths]
+            # visual data storage path
+            vis_path = vis_info.storage
 
-            abs_vis_paths = []
-            for vis_path in vis_paths:
-                if not os.path.isabs(vis_path):
-                    vis_path = os.path.join(registry.get_path("cache_root"), vis_path)
-                abs_vis_paths.append(vis_path)
-            vis_paths = abs_vis_paths
+            if not os.path.isabs(vis_path):
+                vis_path = os.path.join(registry.get_path("cache_root"), vis_path)
 
             # create datasets
             dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
@@ -208,7 +244,7 @@ class BaseDatasetBuilder:
                 vis_processor=vis_processor,
                 text_processor=text_processor,
                 ann_paths=ann_paths,
-                image_roots=vis_paths,
+                image_root=vis_path,
             )
 
         return datasets
