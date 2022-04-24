@@ -66,7 +66,7 @@ class BaseTask:
     def valid_step(self, model, samples):
         raise NotImplementedError
 
-    def after_validation(self, **kwargs):
+    def after_evaluation(self, **kwargs):
         pass
 
     def inference_step(self):

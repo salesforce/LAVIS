@@ -215,8 +215,8 @@ class Runner:
 
             if len(self.valid_splits) > 0:
                 for split_name in self.valid_splits:
-                    val_result = self.validate(split_name=split_name)
-                    val_log = self.task.after_validation(
+                    val_result = self.evaluation(split_name=split_name)
+                    val_log = self.task.after_evaluation(
                         val_result=val_result,
                         split_name=split_name,
                         epoch=cur_epoch
@@ -238,8 +238,8 @@ class Runner:
 
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
-                test_result = self.validate(split_name=split_name)
-                test_log = self.task.after_validation(
+                test_result = self.evaluation(split_name=split_name)
+                test_log = self.task.after_evaluation(
                     val_result=test_result,
                     split_name=split_name,
                     epoch=cur_epoch,
@@ -295,7 +295,7 @@ class Runner:
         }
 
     @torch.no_grad()
-    def validate(self, split_name):
+    def evaluation(self, split_name):
         # TODO In validation, you need to compute loss as well as metrics
         model = self.model_without_ddp
         model.eval()

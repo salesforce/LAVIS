@@ -47,7 +47,7 @@ class MultimodalClassificationTask(BaseTask):
 
         return results
 
-    def after_validation(self, val_result, split_name, epoch, **kwargs):
+    def after_evaluation(self, val_result, split_name, epoch, **kwargs):
         eval_result_file = save_result(
             result=val_result, 
             result_dir=registry.get_path("result_dir"),
