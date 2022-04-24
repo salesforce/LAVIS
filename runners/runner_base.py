@@ -319,6 +319,7 @@ class Runner:
             eval_output = self.task.valid_step(model=model, samples=samples)
             results.extend(eval_output)
 
+        dist.barrier()
         return results
 
     @torch.no_grad()
