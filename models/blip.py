@@ -18,12 +18,118 @@ from models.vit import VisionTransformerEncoder, interpolate_pos_embed
 from utils.blip_utils import is_url, tie_encoder_decoder_weights
 
 
+def tile(x, dim, n_tile):
+    init_dim = x.size(dim)
+    repeat_idx = [1] * x.dim()
+    repeat_idx[dim] = n_tile
+    x = x.repeat(*(repeat_idx))
+    order_index = torch.LongTensor(np.concatenate([init_dim * np.arange(n_tile) + i for i in range(init_dim)]))
+    return torch.index_select(x, dim, order_index.to(x.device))
+
+
+class GatherLayer(torch.autograd.Function):
+    """
+    Gather tensors from all workers with support for backward propagation:
+    This implementation does not cut the gradients as torch.distributed.all_gather does.
+    """
+
+    @staticmethod
+    def forward(ctx, x):
+        output = [torch.zeros_like(x) for _ in range(torch.distributed.get_world_size())]
+        torch.distributed.all_gather(output, x)
+        return tuple(output)
+
+    @staticmethod
+    def backward(ctx, *grads):
+        all_gradients = torch.stack(grads)
+        torch.distributed.all_reduce(all_gradients)
+        return all_gradients[torch.distributed.get_rank()]
+
+
+def all_gather_with_grad(tensors):
+    """
+    Performs all_gather operation on the provided tensors.
+    Graph remains connected for backward grad computation.
+    """
+    # Queue the gathered tensors
+    world_size = torch.distributed.get_world_size()
+    # There is no need for reduction in the single-proc case
+    if world_size == 1:
+        return tensors
+
+    tensor_all = GatherLayer.apply(tensors)
+
+    return torch.cat(tensor_all, dim=0)
+
+
+@torch.no_grad()
+def concat_all_gather(tensor):
+    """
+    Performs all_gather operation on the provided tensors.
+    *** Warning ***: torch.distributed.all_gather has no gradient.
+    """
+    tensors_gather = [torch.ones_like(tensor)
+        for _ in range(torch.distributed.get_world_size())]
+    torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
+
+    output = torch.cat(tensors_gather, dim=0)
+    return output     
+
+
 def init_tokenizer():
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     tokenizer.add_special_tokens({'bos_token':'[DEC]'})
     tokenizer.add_special_tokens({'additional_special_tokens':['[ENC]']})       
     tokenizer.enc_token_id = tokenizer.additional_special_tokens_ids[0]  
     return tokenizer
+
+
+def load_from_pretrained(model, url_or_filename):
+    if is_url(url_or_filename):
+        cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
+        checkpoint = torch.load(cached_file, map_location='cpu')
+    elif os.path.isfile(url_or_filename):
+        checkpoint = torch.load(url_or_filename, map_location='cpu')
+    else:
+        raise RuntimeError('checkpoint url or path is invalid')
+
+    state_dict = checkpoint['model']
+
+    state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
+    if 'visual_encoder_m.pos_embed' in model.state_dict().keys():
+        state_dict['visual_encoder_m.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder_m.pos_embed'], model.visual_encoder_m)
+
+    for key in model.state_dict().keys():
+        if key in state_dict.keys():
+            if state_dict[key].shape!=model.state_dict()[key].shape:
+                del state_dict[key]
+
+    msg = model.load_state_dict(state_dict, strict=False)
+    print('load checkpoint from %s' % url_or_filename)
+    return model, msg
+
+
+class SharedQueueMixin:
+    @torch.no_grad()
+    def _dequeue_and_enqueue(self, image_feat, text_feat, idxs=None):
+        # gather keys before updating queue
+        image_feats = concat_all_gather(image_feat)
+        text_feats = concat_all_gather(text_feat)
+
+        batch_size = image_feats.shape[0]
+
+        ptr = int(self.queue_ptr)
+        assert self.queue_size % batch_size == 0  # for simplicity
+
+        # replace the keys at ptr (dequeue and enqueue)
+        self.image_queue[:, ptr:ptr + batch_size] = image_feats.T
+        self.text_queue[:, ptr:ptr + batch_size] = text_feats.T
+
+        if idxs is not None:
+            self.idx_queue[:, ptr:ptr + batch_size] = idxs.T
+
+        ptr = (ptr + batch_size) % self.queue_size  # move pointer
+        self.queue_ptr[0] = ptr 
 
 
 class MomentumDistilationMixin:
@@ -528,7 +634,7 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
 
 @registry.register_model('blip_pretrain')
-class BlipPretrain(BaseModel, MomentumDistilationMixin):
+class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
     def __init__(
         self, 
         image_encoder,
@@ -641,7 +747,7 @@ class BlipPretrain(BaseModel, MomentumDistilationMixin):
 
         text_output = self.text_encoder.forward_text_embeds(text)
         text_feat = F.normalize(self.text_proj(text_output.last_hidden_state[:,0,:]), dim=-1)
-            
+
         # get momentum features
         with torch.no_grad():
             self._momentum_update()
@@ -670,7 +776,7 @@ class BlipPretrain(BaseModel, MomentumDistilationMixin):
 
         loss_ita = (loss_i2t+loss_t2i)/2
 
-        self._dequeue_and_enqueue(image_feat_m, text_feat_m)        
+        self._dequeue_and_enqueue(image_feat_m, text_feat_m)
 
         ###============== Image-text Matching ===================###
         encoder_input_ids = text.input_ids.clone()
@@ -746,25 +852,6 @@ class BlipPretrain(BaseModel, MomentumDistilationMixin):
             "loss_lm": loss_lm
         }
 
-    @torch.no_grad()
-    def _dequeue_and_enqueue(self, image_feat, text_feat):
-        # gather keys before updating queue
-        image_feats = concat_all_gather(image_feat)
-        text_feats = concat_all_gather(text_feat)
-
-        batch_size = image_feats.shape[0]
-
-        ptr = int(self.queue_ptr)
-        assert self.queue_size % batch_size == 0  # for simplicity
-
-        # replace the keys at ptr (dequeue and enqueue)
-        self.image_queue[:, ptr:ptr + batch_size] = image_feats.T
-        self.text_queue[:, ptr:ptr + batch_size] = text_feats.T
-        ptr = (ptr + batch_size) % self.queue_size  # move pointer
-
-        self.queue_ptr[0] = ptr 
-
-
     @classmethod
     def _build_from_cfg(cls, cfg=None):
         # set from_pretrained=True to load weights for 'bert-base-uncased'
@@ -792,182 +879,283 @@ class BlipPretrain(BaseModel, MomentumDistilationMixin):
 
         return model
 
+@registry.register_model("blip_retrieval")
+class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+    def __init__(
+        self, 
+        image_encoder,
+        text_encoder,
+        queue_size,
+        alpha=0.4,
+        embed_dim=256,
+        momentum=0.995,
+        negative_all_rank=False
+    ):
+        """
+        """
+        super().__init__()
 
-def tile(x, dim, n_tile):
-    init_dim = x.size(dim)
-    repeat_idx = [1] * x.dim()
-    repeat_idx[dim] = n_tile
-    x = x.repeat(*(repeat_idx))
-    order_index = torch.LongTensor(np.concatenate([init_dim * np.arange(n_tile) + i for i in range(init_dim)]))
-    return torch.index_select(x, dim, order_index.to(x.device))
+        self.tokenizer = init_tokenizer()
 
+        self.visual_encoder = image_encoder
 
-@torch.no_grad()
-def concat_all_gather(tensor):
-    """
-    Performs all_gather operation on the provided tensors.
-    *** Warning ***: torch.distributed.all_gather has no gradient.
-    """
-    tensors_gather = [torch.ones_like(tensor)
-        for _ in range(torch.distributed.get_world_size())]
-    torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
+        self.text_encoder = text_encoder
 
-    output = torch.cat(tensors_gather, dim=0)
-    return output     
+        # creating projection layers for ITC
+        text_width = text_encoder.config.hidden_size
+        vision_width = image_encoder.vision_width
 
+        self.vision_proj = nn.Linear(vision_width, embed_dim)
+        self.text_proj = nn.Linear(text_width, embed_dim)
 
-def load_from_pretrained(model, url_or_filename):
-    if is_url(url_or_filename):
-        cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
-        checkpoint = torch.load(cached_file, map_location='cpu')
-    elif os.path.isfile(url_or_filename):
-        checkpoint = torch.load(url_or_filename, map_location='cpu')
-    else:
-        raise RuntimeError('checkpoint url or path is invalid')
+        self.itm_head = nn.Linear(text_width, 2) 
 
-    state_dict = checkpoint['model']
+        # create the momentum encoder
+        self.visual_encoder_m = deepcopy(self.visual_encoder)
+        self.text_encoder_m = deepcopy(self.text_encoder)
 
-    state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.visual_encoder)
-    if 'visual_encoder_m.pos_embed' in model.state_dict().keys():
-        state_dict['visual_encoder_m.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder_m.pos_embed'], model.visual_encoder_m)
+        self.vision_proj_m = deepcopy(self.vision_proj)
+        self.text_proj_m = deepcopy(self.text_proj)
 
-    for key in model.state_dict().keys():
-        if key in state_dict.keys():
-            if state_dict[key].shape!=model.state_dict()[key].shape:
-                del state_dict[key]
+        self.model_pairs = [
+            [self.visual_encoder, self.visual_encoder_m],
+            [self.text_encoder, self.text_encoder_m],
+            [self.vision_proj, self.vision_proj_m],
+            [self.text_proj, self.text_proj_m],
+        ]       
+        self.copy_params()
 
-    msg = model.load_state_dict(state_dict, strict=False)
-    print('load checkpoint from %s' % url_or_filename)
-    return model, msg
+        # create the queue
+        self.register_buffer("image_queue", torch.randn(embed_dim, queue_size))
+        self.register_buffer("text_queue", torch.randn(embed_dim, queue_size))
+        self.register_buffer("idx_queue", torch.full((1,queue_size),-100))
+        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))  
 
-
-# @registry.register_model("blip_retrieval")
-# class BlipRetrieval(BlipEncoderEncoder):
-#     def __init__(self, image_encoder, text_encoder, embed_dim):
-#         super().__init__(image_encoder, text_encoder)
-
-#         vision_width = image_encoder.vision_width
-#         self.vision_proj = nn.Linear(vision_width, embed_dim)
-
-#         text_width = text_encoder.config.hidden_size 
-#         self.text_proj = nn.Linear(text_width, embed_dim)
-
-#         self.itm_head = nn.Linear(text_width, 2) 
-
-#     @classmethod
-#     def default_config_path(cls, model_type="base"):
-#         paths = {
-#             "base": "configs/models/blip_enc_enc_base.yaml",
-#             "large": "configs/models/blip_enc_enc_large.yaml"
-#         }
-
-#         assert model_type in paths, "Unknown model type {}".format(model_type)
-#         return paths[model_type]
-
-#     def forward_encoder_pre(self, samples):
-#         """
-#         The forward_encoder() and forward_decoder() allows the constituent
-#         encoder decoder class to be reuse without coupling to a specific vision-language model.
-
-#         If instead call encoder(samples), then the forward() definition of
-#         the constituent encoder has to return in a specific form, 
-#             e.g. {"image_embeds": image_embeds}
-
-#         However, in different vision-language models, different return values may be needed.
-#         In this case, forward_encoder() which bounds to the specific vision-language model, will 
-#         handle this variation.
+        self.image_queue = nn.functional.normalize(self.image_queue, dim=0)
+        self.text_queue = nn.functional.normalize(self.text_queue, dim=0)
         
-#         """
-#         return {'image_embeds': self.encoder_pre(samples['vis_input'])}
-    
-#     def forward_encoder_pst(self, samples, encoder_pre_out, **kwargs):
-#         pass
+        self.queue_size = queue_size
+        self.momentum = momentum
+        self.temp = nn.Parameter(0.07 * torch.ones([]))   
 
-#     @classmethod
-#     def build_from_cfg(cls, cfg=None, model_type="base"):
-#         if not cfg:
-#             # useful when building model without provided configuration file
-#             from utils.config import Config
-#             cfg = Config.build_model_config(config_path=cls.default_config_path(model_type)).model
+        self.alpha = alpha
+
+        self.negative_all_rank = negative_all_rank
+
+    @classmethod
+    def default_config_path(cls, model_type="base"):
+        paths = {
+            "base": "configs/models/blip_retrieval_base.yaml",
+            "large": "configs/models/blip_retrieval_large.yaml"
+        }
+
+        assert model_type in paths, "Unknown model type {}".format(model_type)
+        return paths[model_type]
+
+    def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
+        return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
+
+    def forward(self, samples):
+        image = samples['image']
+        caption = samples['text_input']
+        idx = samples['image_id']
+
+        alpha = self.alpha * self._rampup_factor(
+            epoch=samples['epoch'],
+            iters=samples['iters'],
+            num_iters_per_epoch=samples['num_iters_per_epoch']
+        )
+
+        with torch.no_grad():
+            self.temp.clamp_(0.001,0.5)
         
-#         return cls._build_from_cfg(cfg)
-    
-#     @classmethod
-#     def _build_from_cfg(cls, cfg):
-#         embed_dim = cfg.get("embed_dim", 256)
-
-#         # vision encoder
-#         encoder_vis = VisionTransformerEncoder.build_from_cfg(cfg) 
-#         vision_width = encoder_vis.vision_width
-#         if "vision_width" not in cfg:
-#             cfg.vision_width = vision_width
-
-#         # text encoder + multimodal encoder
-#         encoder_xmodal = XBertEncoder.build_from_cfg(cfg)
-#         model = cls(encoder_vis, encoder_xmodal, embed_dim=embed_dim)
-
-#         # load pre-trained weights
-#         pretrain_path = cfg.get("pretrained", None)
-#         if pretrain_path is not None:
-#             model, msg = cls.load_from_pretrained(model, url_or_filename=pretrain_path)
+        image_embeds = self.visual_encoder(image) 
+        image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(image.device)        
+        image_feat = F.normalize(self.vision_proj(image_embeds[:,0,:]),dim=-1)    
         
-#             assert len(msg.missing_keys) == 0, "Missing keys {}.".format(msg.missing_keys)
-#             assert len(msg.unexpected_keys) == 0, "Unexpected keys {}.".format(msg.unexpected_keys)
-
-#         return model 
-
-#     @staticmethod
-#     def load_from_pretrained(model, url_or_filename):
-#         raise NotImplementedError
-#         # # [TODO] move to utils for reuse
-#         # if is_url(url_or_filename):
-#         #     cached_file = download_cached_file(url_or_filename, check_hash=False, progress=True)
-#         #     checkpoint = torch.load(cached_file, map_location='cpu') 
-#         # elif os.path.isfile(url_or_filename):        
-#         #     checkpoint = torch.load(url_or_filename, map_location='cpu') 
-#         # else:
-#         #     raise RuntimeError('checkpoint url or path is invalid')
-
-#         # state_dict = checkpoint['model']
+        text = self.tokenizer(
+            caption,
+            padding='max_length',
+            truncation=True,
+            max_length=35,
+            return_tensors="pt"
+        ).to(image.device) 
         
-#         # if "visual_encoder.pos_embed" in state_dict.keys():
-#         #     state_dict['visual_encoder.pos_embed'] = interpolate_pos_embed(state_dict['visual_encoder.pos_embed'], model.encoder) 
-#         # elif "encoder.pos_embed" in state_dict.keys():
-#         #     state_dict['encoder.pos_embed'] = interpolate_pos_embed(state_dict['encoder.pos_embed'], model.encoder) 
-
-#         # pretrain_specific_keys = set([
-#         #     "temp", "image_queue", "text_queue", "queue_ptr", 
-#         #     "vision_proj.weight", "vision_proj.bias",
-#         #     "text_proj.weight", "text_proj.bias",
-#         #     "itm_head.weight", "itm_head.bias"]
-#         # )
-#         # # FIXME rename the keys in pre-trained state_dict() to avoid this hotfix.
-#         # new_state_dict = dict()
-#         # for key in state_dict.keys():
-#         #     if key in pretrain_specific_keys:
-#         #         continue
-#         #     elif "text_encoder" in key:
-#         #         continue
-#         #     elif "_m" in key:
-#         #         continue
-#         #     elif "visual_encoder" in key:
-#         #         new_key = key.replace("visual_encoder", "encoder")
-#         #     elif "text_decoder" in key:
-#         #         new_key = key.replace("text_decoder", "decoder")
-#         #     else:
-#         #         new_key = key
-#         #     new_state_dict[new_key] = state_dict[key]
-
-#         # # update old state_dict
-#         # state_dict = new_state_dict
-
-#         # # exclude incompatible keys
-#         # for key in model.state_dict().keys():
-#         #     if key in state_dict.keys():
-#         #         if state_dict[key].shape!=model.state_dict()[key].shape:
-#         #             del state_dict[key]
+        text_output = self.text_encoder.forward_text_embeds(text)
+        text_feat = F.normalize(self.text_proj(text_output.last_hidden_state[:,0,:]),dim=-1)        
         
-#         # msg = model.load_state_dict(state_dict,strict=False)
-#         # print('load checkpoint from %s'%url_or_filename)  
-#         # return model, msg
-    
+        ###============== Image-text Contrastive Learning ===================###
+        idx = idx.view(-1,1)
+        idx_all = torch.cat([idx.t(), self.idx_queue.clone().detach()],dim=1)  
+        pos_idx = torch.eq(idx, idx_all).float()       
+        sim_targets = pos_idx / pos_idx.sum(1,keepdim=True)   
+        
+        # get momentum features
+        with torch.no_grad():
+            self._momentum_update()
+            image_embeds_m = self.visual_encoder_m(image) 
+            image_feat_m = F.normalize(self.vision_proj_m(image_embeds_m[:,0,:]),dim=-1)  
+            image_feat_m_all = torch.cat([image_feat_m.t(),self.image_queue.clone().detach()],dim=1)                   
+            
+            # text_output_m = self.text_encoder_m(text.input_ids, attention_mask = text.attention_mask,                      
+            #                                     return_dict = True, mode = 'text')    
+            text_output_m = self.text_encoder_m.forward_text_embeds(text)
+            text_feat_m = F.normalize(self.text_proj_m(text_output_m.last_hidden_state[:,0,:]),dim=-1) 
+            text_feat_m_all = torch.cat([text_feat_m.t(),self.text_queue.clone().detach()],dim=1)
+
+            sim_i2t_m = image_feat_m @ text_feat_m_all / self.temp  
+            sim_t2i_m = text_feat_m @ image_feat_m_all / self.temp   
+
+            sim_i2t_targets = alpha * F.softmax(sim_i2t_m, dim=1) + (1 - alpha) * sim_targets
+            sim_t2i_targets = alpha * F.softmax(sim_t2i_m, dim=1) + (1 - alpha) * sim_targets        
+
+        sim_i2t = image_feat @ text_feat_m_all / self.temp 
+        sim_t2i = text_feat @ image_feat_m_all / self.temp 
+                             
+        loss_i2t = -torch.sum(F.log_softmax(sim_i2t, dim=1)*sim_i2t_targets,dim=1).mean()
+        loss_t2i = -torch.sum(F.log_softmax(sim_t2i, dim=1)*sim_t2i_targets,dim=1).mean() 
+
+        loss_ita = (loss_i2t+loss_t2i)/2
+        
+        idxs = concat_all_gather(idx)
+        self._dequeue_and_enqueue(image_feat_m, text_feat_m, idxs)        
+
+        ###============== Image-text Matching ===================###
+        encoder_input_ids = text.input_ids.clone()
+        encoder_input_ids[:,0] = self.tokenizer.enc_token_id
+
+        # forward the positve image-text pair
+        bs = image.size(0)
+        output_pos = self.text_encoder.forward(
+            tokenized_text=text,
+            visual_embeds=image_embeds
+        )
+        
+        if self.negative_all_rank:    
+            # compute sample similarity
+            with torch.no_grad():                
+                mask = torch.eq(idx, idxs.t())
+
+                image_feat_world = concat_all_gather(image_feat)
+                text_feat_world = concat_all_gather(text_feat)
+
+                sim_i2t = image_feat @ text_feat_world.t() / self.temp 
+                sim_t2i = text_feat @ image_feat_world.t() / self.temp 
+
+                weights_i2t = F.softmax(sim_i2t,dim=1)
+                weights_i2t.masked_fill_(mask, 0)            
+
+                weights_t2i = F.softmax(sim_t2i,dim=1)
+                weights_t2i.masked_fill_(mask, 0)     
+
+            image_embeds_world = all_gather_with_grad(image_embeds) 
+
+            # select a negative image (from all ranks) for each text
+            image_embeds_neg = []    
+            for b in range(bs):
+                neg_idx = torch.multinomial(weights_t2i[b], 1).item()
+                image_embeds_neg.append(image_embeds_world[neg_idx])
+            image_embeds_neg = torch.stack(image_embeds_neg,dim=0)   
+
+            # select a negative text (from all ranks) for each image
+            input_ids_world = concat_all_gather(encoder_input_ids)
+            att_mask_world = concat_all_gather(text.attention_mask)        
+
+            text_ids_neg = []
+            text_atts_neg = []
+            for b in range(bs):
+                neg_idx = torch.multinomial(weights_i2t[b], 1).item()
+                text_ids_neg.append(input_ids_world[neg_idx])
+                text_atts_neg.append(att_mask_world[neg_idx])
+                
+        else:
+            with torch.no_grad():                
+                mask = torch.eq(idx, idx.t())
+                
+                sim_i2t = image_feat @ text_feat.t() / self.temp 
+                sim_t2i = text_feat @ image_feat.t() / self.temp 
+
+                weights_i2t = F.softmax(sim_i2t,dim=1)
+                weights_i2t.masked_fill_(mask, 0)            
+
+                weights_t2i = F.softmax(sim_t2i,dim=1)
+                weights_t2i.masked_fill_(mask, 0)     
+
+            # select a negative image (from same rank) for each text
+            image_embeds_neg = []    
+            for b in range(bs):
+                neg_idx = torch.multinomial(weights_t2i[b], 1).item()
+                image_embeds_neg.append(image_embeds[neg_idx])
+            image_embeds_neg = torch.stack(image_embeds_neg,dim=0)   
+
+            # select a negative text (from same rank) for each image    
+            text_ids_neg = []
+            text_atts_neg = []
+            for b in range(bs):
+                neg_idx = torch.multinomial(weights_i2t[b], 1).item()
+                text_ids_neg.append(encoder_input_ids[neg_idx])
+                text_atts_neg.append(text.attention_mask[neg_idx])            
+            
+        text_ids_neg = torch.stack(text_ids_neg,dim=0)   
+        text_atts_neg = torch.stack(text_atts_neg,dim=0)      
+
+        text_ids_all = torch.cat([encoder_input_ids, text_ids_neg],dim=0)     
+        text_atts_all = torch.cat([text.attention_mask, text_atts_neg],dim=0)     
+
+        image_embeds_all = torch.cat([image_embeds_neg,image_embeds],dim=0)
+        image_atts_all = torch.cat([image_atts,image_atts],dim=0)
+
+        output_neg = self.text_encoder.forward_bert(
+            text_ids_all,
+            attention_mask=text_atts_all,
+            encoder_hidden_states=image_embeds_all,
+            encoder_attention_mask=image_atts_all,
+            return_dict=True
+        )
+
+        vl_embeddings = torch.cat([output_pos.last_hidden_state[:,0,:], output_neg.last_hidden_state[:,0,:]],dim=0)
+        vl_output = self.itm_head(vl_embeddings)            
+
+        itm_labels = torch.cat([torch.ones(bs,dtype=torch.long),torch.zeros(2*bs,dtype=torch.long)],
+                               dim=0).to(image.device)
+        loss_itm = F.cross_entropy(vl_output, itm_labels)
+
+        loss = loss_ita + loss_itm
+
+        return {
+            "loss": loss,
+            "loss_ita": loss_ita,
+            "loss_itm": loss_itm
+        }
+
+    @classmethod
+    def _build_from_cfg(cls, cfg=None):
+        # set from_pretrained=True to load weights for 'bert-base-uncased'
+        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.build_from_cfg(cfg)
+
+        embed_dim = cfg.get("embed_dim", 256)
+        momentum = cfg.get("momentum", 0.995)
+        alpha = cfg.get("alpha", 0.4)
+        negative_all_rank = cfg.get("negative_all_rank", False)
+
+        queue_size = cfg.get("queue_size", None)
+
+        assert queue_size, "queue_size must be specified."
+
+        model = cls(
+            image_encoder=image_encoder,
+            text_encoder=text_encoder,
+            queue_size=queue_size,
+            alpha=alpha,
+            embed_dim=embed_dim,
+            momentum=momentum,
+            negative_all_rank=negative_all_rank
+        )
+
+        # load pre-trained weights
+        pretrain_path = cfg.get("pretrained", None)
+        if pretrain_path is not None:
+            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+
+        return model
