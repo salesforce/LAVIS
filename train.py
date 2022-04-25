@@ -38,7 +38,11 @@ def parse_args():
 
 
 def main():
+    # allow auto-dl completes on main process without timeout when using NCCL backend.
     os.environ['NCCL_BLOCKING_WAIT'] = "1"
+
+    # set before init_distributed_mode() to ensure the same job_id shared across all ranks.
+    job_id = utils.now()
 
     root_dir = os.getcwd()
     default_cfg = OmegaConf.load(os.path.join(root_dir, "configs/default.yaml"))
@@ -49,6 +53,7 @@ def main():
     cfg = Config(parse_args())
 
     utils.init_distributed_mode(cfg.run_cfg)
+    # set after init_distributed_mode() to only log on master.
     utils.setup_logger()
 
     cfg.pretty_print()
@@ -57,7 +62,13 @@ def main():
     datasets = task.build_datasets(cfg)
     model = task.build_model(cfg)
 
-    runner = Runner(cfg=cfg, task=task, model=model, datasets=datasets)
+    runner = Runner(
+        cfg=cfg,
+        job_id=job_id,
+        task=task,
+        model=model,
+        datasets=datasets
+    )
     runner.train()
 
 

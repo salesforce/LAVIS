@@ -17,8 +17,9 @@ from torch.utils.data import DataLoader
 
 
 class Runner:
-    def __init__(self, cfg, task, model, datasets):
+    def __init__(self, cfg, task, model, datasets, job_id):
         self.config = cfg
+        self.job_id = job_id
 
         self.task = task
         self.datasets = datasets
@@ -181,7 +182,7 @@ class Runner:
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
 
-        output_dir = lib_root / self.config.run_cfg.output_dir / utils.now()
+        output_dir = lib_root / self.config.run_cfg.output_dir / self.job_id 
         result_dir = output_dir / "result"
 
         output_dir.mkdir(parents=True, exist_ok=True)
