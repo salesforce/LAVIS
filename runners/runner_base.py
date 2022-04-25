@@ -11,7 +11,6 @@ import torch
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 
-from tasks.retrieval import RetrievalTask
 import utils.blip_utils as utils
 from common.registry import registry
 from torch.utils.data import DataLoader
@@ -35,7 +34,7 @@ class Runner:
         self.setup_output_dir()
 
     def setup_seeds(self):
-        seed = self.config.seed + utils.get_rank()
+        seed = self.config.run_cfg.seed + utils.get_rank()
         torch.manual_seed(seed)
         np.random.seed(seed)
         random.seed(seed)
@@ -44,13 +43,13 @@ class Runner:
     @property
     def device(self):
         if self._device is None:
-            self._device = torch.device(self.config.device)
+            self._device = torch.device(self.config.run_cfg.device)
 
         return self._device
 
     @property
     def use_distributed(self):
-        return self.config.distributed
+        return self.config.run_cfg.distributed
 
     @property
     def model(self):
@@ -60,7 +59,7 @@ class Runner:
             if self.use_distributed:
                 if self._wrapped_model is None:
                     self._wrapped_model = torch.nn.parallel.DistributedDataParallel(
-                        self._model, device_ids=[self.config.gpu]
+                        self._model, device_ids=[self.config.run_cfg.gpu]
                     )
             else:
                 self._wrapped_model = self._model
@@ -80,8 +79,8 @@ class Runner:
         if self._optimizer is None:
             self._optimizer = torch.optim.AdamW(
                 params=self.model.parameters(),
-                lr=float(self.config.init_lr),
-                weight_decay=float(self.config.weight_decay),
+                lr=float(self.config.run_cfg.init_lr),
+                weight_decay=float(self.config.run_cfg.weight_decay),
             )
 
         return self._optimizer
@@ -109,12 +108,12 @@ class Runner:
                 datasets=datasets,
                 samplers=samplers,
                 batch_size=[
-                    self.config.batch_size_train
+                    self.config.run_cfg.batch_size_train
                     if split == "train"
-                    else self.config.batch_size_eval
+                    else self.config.run_cfg.batch_size_eval
                     for split in split_names
                 ],
-                num_workers=[self.config.num_workers] * len(datasets),
+                num_workers=[self.config.run_cfg.num_workers] * len(datasets),
                 is_trains=is_train,
                 collate_fns=[
                     getattr(dataset, "collater", None) for dataset in datasets
@@ -131,19 +130,24 @@ class Runner:
 
     @property
     def max_epoch(self):
-        return int(self.config.max_epoch)
+        return int(self.config.run_cfg.max_epoch)
+
+    @property
+    def log_freq(self):
+        log_freq = self.config.run_cfg.get("log_freq", 50)
+        return int(log_freq)
 
     @property
     def init_lr(self):
-        return float(self.config.init_lr)
+        return float(self.config.run_cfg.init_lr)
 
     @property
     def min_lr(self):
-        return float(self.config.min_lr)
+        return float(self.config.run_cfg.min_lr)
 
     @property
     def valid_splits(self):
-        valid_splits = self.config.get("valid_splits", [])
+        valid_splits = self.config.run_cfg.get("valid_splits", [])
 
         if len(valid_splits) == 0:
             logging.warning("No validation splits found.")
@@ -152,20 +156,20 @@ class Runner:
 
     @property
     def test_splits(self):
-        test_splits = self.config.get("test_splits", [])
+        test_splits = self.config.run_cfg.get("test_splits", [])
 
         return test_splits
 
     @property
     def train_splits(self):
-        train_splits = self.config.get("train_splits", [])
+        train_splits = self.config.run_cfg.get("train_splits", [])
 
         assert len(train_splits) > 0, "Empty train splits."
         return train_splits
 
     @property
     def evaluate_only(self):
-        return self.config.evaluate
+        return self.config.run_cfg.evaluate
 
     @property
     def train_loader(self):
@@ -177,7 +181,7 @@ class Runner:
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
 
-        output_dir = lib_root / self.config.output_dir / utils.now()
+        output_dir = lib_root / self.config.run_cfg.output_dir / utils.now()
         result_dir = output_dir / "result"
 
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -191,9 +195,11 @@ class Runner:
 
     def train(self):
         start_time = time.time()
-        best_agg_metric = 0
-        for cur_epoch in range(0, self.max_epoch):
+        best_agg_metric = 0 
+        best_epoch = 0 
 
+        for cur_epoch in range(0, self.max_epoch):
+            # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
                 if self.use_distributed:
@@ -213,8 +219,11 @@ class Runner:
                 if utils.is_main_process():
                     self.log_stats(split_name="train", stats=train_stats)
 
+            # evaluation phase
             if len(self.valid_splits) > 0:
                 for split_name in self.valid_splits:
+                    logging.info("Evaluating on {}.".format(split_name))
+
                     val_result = self.evaluation(split_name=split_name)
                     val_log = self.task.after_evaluation(
                         val_result=val_result,
@@ -223,12 +232,20 @@ class Runner:
                     )
 
                     if utils.is_main_process():
+                        assert "agg_metrics" in val_log, "agg_metrics must be present in evaluation log if validation set is used."
+
                         agg_metrics = val_log["agg_metrics"]
                         if agg_metrics > best_agg_metric and split_name == "val":
-                            # best_epoch = cur_epoch
+                            best_epoch = cur_epoch
+                            best_agg_metric = agg_metrics
+
                             self.save_checkpoint(cur_epoch, is_best=True)
-                            self.log_stats(val_log, split_name)
+
+                        val_log.update({"best_epoch": best_epoch})
+                        self.log_stats(val_log, split_name)
+
             else:
+                # no validation split is provided.
                 if not self.evaluate_only:
                     self.save_checkpoint(cur_epoch, is_best=False)
 
@@ -236,6 +253,7 @@ class Runner:
                 break
             dist.barrier()
 
+        # testing phase
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
                 test_result = self.evaluation(split_name=split_name)
@@ -251,48 +269,17 @@ class Runner:
         logging.info("Training time {}".format(total_time_str))
 
     def train_epoch(self, epoch):
-        def add_vars_to_samples():
-            samples["epoch"] = epoch
-            samples["num_iters_per_epoch"] = len(self.train_loader)
-            samples["iters"] = i
-
         # train
         self.model.train()
 
-        metric_logger = utils.MetricLogger(delimiter="  ")
-        metric_logger.add_meter(
-            "lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}")
+        return self.task.train_epoch(
+            epoch=epoch,
+            model=self.model,
+            data_loader=self.train_loader,
+            optimizer=self.optimizer,
+            cuda_enabled=self.cuda_enabled,
+            log_freq=self.log_freq
         )
-        metric_logger.add_meter(
-            "loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
-        )
-        header = "Train Epoch: [{}]".format(epoch)
-        print_freq = 50
-
-        for i, samples in enumerate(
-            metric_logger.log_every(self.train_loader, print_freq, header)
-        ):
-            samples = self._prepare_sample(samples)
-
-            add_vars_to_samples()
-            loss = self.task.train_step(model=self.model, samples=samples)
-
-            # after_train_step()
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-
-            metric_logger.update(loss=loss.item())
-            metric_logger.update(lr=self.optimizer.param_groups[0]["lr"])
-
-        # after train_epoch()
-        # gather the stats from all processes
-        metric_logger.synchronize_between_processes()
-        logging.info("Averaged stats: " + str(metric_logger.global_avg()))
-        return {
-            k: "{:.3f}".format(meter.global_avg)
-            for k, meter in metric_logger.meters.items()
-        }
 
     @torch.no_grad()
     def evaluation(self, split_name):
@@ -301,49 +288,17 @@ class Runner:
         model.eval()
 
         data_loader = self.dataloaders.get(split_name, None)
-
         assert data_loader, "data_loader for split {} is None.".format(split_name)
 
-        # TODO doesn't look like a good place to define logger
-        # Possibly called multiple times on different splits.
-        metric_logger = utils.MetricLogger(delimiter="  ")
-        header = "Validation"
-        # TODO make it configurable
-        print_freq = 10
+        results = self.task.evaluation(model, data_loader)
 
-        results = []
-
-        for samples in metric_logger.log_every(data_loader, print_freq, header):
-            samples = self._prepare_sample(samples)
-
-            eval_output = self.task.valid_step(model=model, samples=samples)
-            results.extend(eval_output)
-
-        dist.barrier()
         return results
-
-    @torch.no_grad()
-    def validate_retrieval(self, split_name):
-        model = self.model_without_ddp
-        model.eval()
-
-        data_loader = self.dataloaders.get(split_name, None)
-
-        assert data_loader, "data_loader for split {} is None.".format(split_name)
-
-    def _prepare_sample(self, samples):
-        if self.cuda_enabled:
-            samples = utils.move_to_cuda(samples)
-
-        # TODO fp16 support
-
-        return samples
 
     def save_checkpoint(self, cur_epoch, is_best=False):
         save_obj = {
             "model": self.model_without_ddp.state_dict(),
             "optimizer": self.optimizer.state_dict(),
-            # 'config': self.config,
+            'config': self.config,
             "epoch": cur_epoch,
         }
         torch.save(

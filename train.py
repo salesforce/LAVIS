@@ -57,7 +57,7 @@ def main():
     datasets = task.build_datasets(cfg)
     model = task.build_model(cfg)
 
-    runner = Runner(cfg=cfg.run_cfg, task=task, model=model, datasets=datasets)
+    runner = Runner(cfg=cfg, task=task, model=model, datasets=datasets)
     runner.train()
 
 
