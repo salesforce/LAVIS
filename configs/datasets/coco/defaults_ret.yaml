@@ -19,17 +19,18 @@ datasets:
           md5: 3ff34b0ef2db02d01c37399f6a2a6cd1
           storage: coco/annotations/coco_karpathy_test.json
       images:
-        train: 
-          url: http://images.cocodataset.org/zips/train2014.zip
+          storage: coco/images/
+        # train: 
+          # url: http://images.cocodataset.org/zips/train2014.zip
           # relative path with basename
           # can't be directory name
-          storage: coco/images/
+          # storage: coco/images/
           # md5: 0da8c0bd3d6becc4dcb32757491aca88
-        val: 
-          url: http://images.cocodataset.org/zips/val2014.zip
-          storage: coco/images/
+        # val: 
+          # url: http://images.cocodataset.org/zips/val2014.zip
+          # storage: coco/images/
           # md5: a3d79f5ed8d289b7a7554ce06a5782b3 
-        test: 
-          url: http://images.cocodataset.org/zips/test2014.zip
-          storage: coco/images/
+        # test: 
+          # url: http://images.cocodataset.org/zips/test2014.zip
+          # storage: coco/images/
           # md5: 04127eef689ceac55e3a572c2c92f264 

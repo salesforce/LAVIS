@@ -12,6 +12,4 @@ datasets:
           storage:
               - conceptual_captions/annotations/cc3m_train.json
       images:
-        train: 
-          storage: 
-              - /export/share/datasets/vision_language/cc3m_resize 
+          storage: /export/share/datasets/vision_language/cc3m_resize 

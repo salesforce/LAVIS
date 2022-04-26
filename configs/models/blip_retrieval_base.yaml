@@ -1,0 +1,19 @@
+model:
+  arch: blip_retrieval
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: True
+  vit_ckpt_layer: 4
+
+  image_size: 384
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"
+
+  embed_dim: 256
+
+  # generation configs
+  prompt: "a picture of "
+
+  # size of vit model; base or large

@@ -102,6 +102,13 @@ class Runner:
                     num_tasks=utils.get_world_size(),
                     global_rank=utils.get_rank(),
                 )
+                if not self.use_dist_eval_sampler:
+                    # e.g. retrieval evaluation
+                    dist_samplers = [
+                        sampler if flag else None 
+                        for sampler, flag in zip(samplers, is_train)
+                    ]
+                    samplers = dist_samplers
             else:
                 samplers = [None] * len(self.datasets)
 
@@ -171,6 +178,10 @@ class Runner:
     @property
     def evaluate_only(self):
         return self.config.run_cfg.evaluate
+    
+    @property
+    def use_dist_eval_sampler(self):
+        return self.config.run_cfg.get("use_dist_eval_sampler", True)
 
     @property
     def train_loader(self):

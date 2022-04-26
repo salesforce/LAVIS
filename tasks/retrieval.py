@@ -1,5 +1,9 @@
+import logging
+from os import stat
 import time
 import datetime
+
+import numpy as np
 
 import torch
 import torch.nn.functional as F
@@ -25,12 +29,31 @@ class RetrievalTask(BaseTask):
         return cls(cfg=run_cfg)
     
     def evaluation(self, model, data_loader, **kwargs):
-        config = self.config
+        score_i2t, score_t2i = self.compute_sim_matrix(model, data_loader)
+
+        if utils.is_main_process():
+            eval_result = self.itm_eval(
+                score_i2t,
+                score_t2i,
+                data_loader.dataset.txt2img,
+                data_loader.dataset.img2txt
+            )
+            logging.info(eval_result)
+        else:
+            eval_result = None
+        
+        return eval_result
+    
+    def after_evaluation(self, val_result, **kwargs):
+        return val_result
+
+    def compute_sim_matrix(self, model, data_loader):
+        config = self.cfg
 
         metric_logger = utils.MetricLogger(delimiter="  ")
         header = 'Evaluation:'    
         
-        print('Computing features for evaluation...')
+        logging.info('Computing features for evaluation...')
         start_time = time.time()  
 
         texts = data_loader.dataset.text   
@@ -42,7 +65,8 @@ class RetrievalTask(BaseTask):
         for i in range(0, num_text, text_bs):
             text = texts[i: min(num_text, i+text_bs)]
             text_input = model.tokenizer(text, padding='max_length', truncation=True, max_length=35, return_tensors="pt").to(model.device) 
-            text_output = model.text_encoder(text_input.input_ids, attention_mask = text_input.attention_mask, mode='text')  
+            # text_output = model.text_encoder.forward_text_embeds(text_input.input_ids, attention_mask = text_input.attention_mask, mode='text')  
+            text_output = model.text_encoder.forward_text_embeds(text_input)
             text_embed = F.normalize(model.text_proj(text_output.last_hidden_state[:,0,:]))
             text_embeds.append(text_embed)   
             text_ids.append(text_input.input_ids)
@@ -55,7 +79,9 @@ class RetrievalTask(BaseTask):
         
         image_feats = []
         image_embeds = []
-        for image, img_id in data_loader: 
+        for samples in data_loader: 
+            image = samples["image"]
+
             image = image.to(model.device) 
             image_feat = model.visual_encoder(image)   
             image_embed = model.vision_proj(image_feat[:,0,:])            
@@ -68,7 +94,7 @@ class RetrievalTask(BaseTask):
         image_embeds = torch.cat(image_embeds,dim=0)
         
         sims_matrix = image_embeds @ text_embeds.t()
-        score_matrix_i2t = torch.full((len(data_loader.dataset.image),len(texts)),-100.0).to(device)
+        score_matrix_i2t = torch.full((len(data_loader.dataset.image),len(texts)),-100.0).to(model.device)
         
         num_tasks = utils.get_world_size()
         rank = utils.get_rank() 
@@ -81,18 +107,19 @@ class RetrievalTask(BaseTask):
 
             encoder_output = image_feats[start+i].repeat(config['k_test'],1,1).to(model.device)
             encoder_att = torch.ones(encoder_output.size()[:-1],dtype=torch.long).to(model.device)
-            output = model.text_encoder(text_ids[topk_idx], 
-                                        attention_mask = text_atts[topk_idx],
-                                        encoder_hidden_states = encoder_output,
-                                        encoder_attention_mask = encoder_att,                             
-                                        return_dict = True,
-                                    )
+            output = model.text_encoder.forward_bert(
+                text_ids[topk_idx], 
+                attention_mask = text_atts[topk_idx],
+                encoder_hidden_states = encoder_output,
+                encoder_attention_mask = encoder_att,                             
+                return_dict = True,
+            )
             score = model.itm_head(output.last_hidden_state[:,0,:])[:,1]
             score_matrix_i2t[start+i,topk_idx] = score + topk_sim
             
         sims_matrix = sims_matrix.t()
-        score_matrix_t2i = torch.full((len(texts),len(data_loader.dataset.image)),-100.0).to(device)
-        
+        score_matrix_t2i = torch.full((len(texts),len(data_loader.dataset.image)),-100.0).to(model.device)
+
         step = sims_matrix.size(0)//num_tasks + 1
         start = rank*step
         end = min(sims_matrix.size(0),start+step)    
@@ -102,22 +129,74 @@ class RetrievalTask(BaseTask):
             topk_sim, topk_idx = sims.topk(k=config['k_test'], dim=0)
             encoder_output = image_feats[topk_idx].to(model.device)
             encoder_att = torch.ones(encoder_output.size()[:-1],dtype=torch.long).to(model.device)
-            output = model.text_encoder(text_ids[start+i].repeat(config['k_test'],1), 
-                                        attention_mask = text_atts[start+i].repeat(config['k_test'],1),
-                                        encoder_hidden_states = encoder_output,
-                                        encoder_attention_mask = encoder_att,                             
-                                        return_dict = True,
-                                    )
+            output = model.text_encoder.forward_bert(
+                text_ids[start+i].repeat(config['k_test'],1), 
+                attention_mask = text_atts[start+i].repeat(config['k_test'],1),
+                encoder_hidden_states = encoder_output,
+                encoder_attention_mask = encoder_att,                             
+                return_dict = True,
+            )
             score = model.itm_head(output.last_hidden_state[:,0,:])[:,1]
             score_matrix_t2i[start+i,topk_idx] = score + topk_sim
 
         if utils.is_dist_avail_and_initialized():
-            dist.barrier()   
+            dist.barrier()
             torch.distributed.all_reduce(score_matrix_i2t, op=torch.distributed.ReduceOp.SUM) 
             torch.distributed.all_reduce(score_matrix_t2i, op=torch.distributed.ReduceOp.SUM)        
-            
+
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        print('Evaluation time {}'.format(total_time_str)) 
+        logging.info('Evaluation time {}'.format(total_time_str)) 
 
         return score_matrix_i2t.cpu().numpy(), score_matrix_t2i.cpu().numpy()
+
+    @staticmethod
+    @torch.no_grad()
+    def itm_eval(scores_i2t, scores_t2i, txt2img, img2txt):
+        
+        #Images->Text 
+        ranks = np.zeros(scores_i2t.shape[0])
+        for index,score in enumerate(scores_i2t):
+            inds = np.argsort(score)[::-1]
+            # Score
+            rank = 1e20
+            for i in img2txt[index]:
+                tmp = np.where(inds == i)[0][0]
+                if tmp < rank:
+                    rank = tmp
+            ranks[index] = rank
+
+        # Compute metrics
+        tr1 = 100.0 * len(np.where(ranks < 1)[0]) / len(ranks)
+        tr5 = 100.0 * len(np.where(ranks < 5)[0]) / len(ranks)
+        tr10 = 100.0 * len(np.where(ranks < 10)[0]) / len(ranks)
+    
+        #Text->Images 
+        ranks = np.zeros(scores_t2i.shape[0])
+        
+        for index,score in enumerate(scores_t2i):
+            inds = np.argsort(score)[::-1]
+            ranks[index] = np.where(inds == txt2img[index])[0][0]
+
+        # Compute metrics
+        ir1 = 100.0 * len(np.where(ranks < 1)[0]) / len(ranks)
+        ir5 = 100.0 * len(np.where(ranks < 5)[0]) / len(ranks)
+        ir10 = 100.0 * len(np.where(ranks < 10)[0]) / len(ranks)        
+
+        tr_mean = (tr1 + tr5 + tr10) / 3
+        ir_mean = (ir1 + ir5 + ir10) / 3
+        r_mean = (tr_mean + ir_mean) / 2
+
+        agg_metrics = (tr1 + tr5 + tr10) / 3
+
+        eval_result =  {'txt_r1': tr1,
+                        'txt_r5': tr5,
+                        'txt_r10': tr10,
+                        'txt_r_mean': tr_mean,
+                        'img_r1': ir1,
+                        'img_r5': ir5,
+                        'img_r10': ir10,
+                        'img_r_mean': ir_mean,
+                        'r_mean': r_mean,
+                        'agg_metrics': agg_metrics}
+        return eval_result

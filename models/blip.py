@@ -1,3 +1,4 @@
+import logging
 import os
 
 import numpy as np
@@ -105,7 +106,8 @@ def load_from_pretrained(model, url_or_filename):
                 del state_dict[key]
 
     msg = model.load_state_dict(state_dict, strict=False)
-    print('load checkpoint from %s' % url_or_filename)
+    logging.info("Missing keys {}".format(msg.missing_keys))
+    logging.info('load checkpoint from %s' % url_or_filename)
     return model, msg
 
 
@@ -1026,9 +1028,12 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         # forward the positve image-text pair
         bs = image.size(0)
-        output_pos = self.text_encoder.forward(
-            tokenized_text=text,
-            visual_embeds=image_embeds
+        output_pos = self.text_encoder.forward_bert(
+            encoder_input_ids,
+            attention_mask=text.attention_mask,
+            encoder_hidden_states=image_embeds,
+            encoder_attention_mask=image_atts,      
+            return_dict=True,
         )
         
         if self.negative_all_rank:    

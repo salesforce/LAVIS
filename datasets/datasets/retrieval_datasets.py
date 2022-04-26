@@ -6,12 +6,12 @@ from datasets.datasets.base_dataset import BaseDataset
 
 
 class RetrievalDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_root, ann_path):
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         '''
         image_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         '''        
-        super().__init__(vis_processor, text_processor, image_root, ann_path)
+        super().__init__(vis_processor, text_processor, image_root, ann_paths)
 
         self.img_ids = {}  
         n = 0
@@ -31,18 +31,22 @@ class RetrievalDataset(BaseDataset):
         image = self.vis_processor(image)
         caption = self.text_processor(ann['caption'])
         
-        return image, caption, self.img_ids[ann['image_id']] 
-
+        # return image, caption, self.img_ids[ann['image_id']] 
+        return {
+            "image": image,
+            "text_input": caption,
+            "image_id": self.img_ids[ann['image_id']]
+        }
 
 class RetrievalEvalDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_root, ann_path):
+    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         '''
         image_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         split (string): val or test
         '''
         
-        super().__init__(vis_processor, text_processor, image_root, ann_path)
+        super().__init__(vis_processor, text_processor, image_root, ann_paths)
         
         self.text = []
         self.image = []
@@ -66,5 +70,4 @@ class RetrievalEvalDataset(BaseDataset):
 
         image = self.vis_processor(image)  
 
-        return image, index
-    
+        return {"image": image, "index": index}

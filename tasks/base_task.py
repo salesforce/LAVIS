@@ -1,6 +1,6 @@
 import logging
 import torch.distributed as dist
-from datasets.datasets.data_utils import prepare_sample
+from datasets.data_utils import prepare_sample
 import utils.blip_utils as utils
 
 from common.registry import registry
