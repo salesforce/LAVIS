@@ -5,7 +5,43 @@ model:
   alpha: 0.4
 
 datasets:
-  conceptual_captions: # name of the dataset builder
+  coco_caption:
+    vis_processor: 
+        train: 
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train: 
+          name: "blip_caption"
+          prompt: "a picture of "
+  conceptual_caption_3m: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train: 
+          name: "blip_caption"
+          prompt: "a picture of "
+  conceptual_caption_12m: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train: 
+          name: "blip_caption"
+          prompt: "a picture of "
+  vg_caption: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train: 
+          name: "blip_caption"
+          prompt: "a picture of "
+  sbu_caption: # name of the dataset builder
     vis_processor: 
         train: 
           name: "blip_image_train"
@@ -26,6 +62,7 @@ run:
   weight_decay: 0.05
   max_epoch: 20
   batch_size_train: 75
+  batch_size_eval: 75
   num_workers: 4
   warmup_steps: 3000
 

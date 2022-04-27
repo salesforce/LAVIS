@@ -4,8 +4,8 @@ from datasets.builders.base_dataset_builder import BaseDatasetBuilder
 from datasets.datasets.image_text_pair_datasets import ImageTextPairDataset
 
 
-@registry.register_builder("conceptual_captions")
-class ConceptualCaptionsBuilder(BaseDatasetBuilder):
+@registry.register_builder("sbu_caption")
+class SBUCaptionBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
     def __init__(self, cfg):
@@ -13,7 +13,7 @@ class ConceptualCaptionsBuilder(BaseDatasetBuilder):
 
     @classmethod
     def default_config_path(cls):
-        return "configs/datasets/conceptual_captions/defaults.yaml"
+        return "configs/datasets/sbu_caption/defaults.yaml"
 
     def _download_vis(self):
         pass

@@ -237,6 +237,9 @@ class Runner:
                     logging.info("Evaluating on {}.".format(split_name))
 
                     val_result = self.evaluation(split_name=split_name)
+                    if val_result is None:
+                        continue
+
                     val_log = self.task.after_evaluation(
                         val_result=val_result,
                         split_name=split_name,
@@ -313,13 +316,12 @@ class Runner:
             'config': self.config,
             "epoch": cur_epoch,
         }
-        torch.save(
-            save_obj,
-            os.path.join(
-                self.output_dir,
-                "checkpoint_{}.pth".format("best" if is_best else cur_epoch),
-            ),
+        save_to = os.path.join(
+            self.output_dir,
+            "checkpoint_{}.pth".format("best" if is_best else cur_epoch)
         )
+        logging.info("Saving checkpoint at epoch {} to {}.".format(cur_epoch, save_to))
+        torch.save(save_obj, save_to)
 
     def log_stats(self, stats, split_name):
         if isinstance(stats, dict):

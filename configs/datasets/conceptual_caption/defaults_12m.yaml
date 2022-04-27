@@ -1,5 +1,5 @@
 datasets:
-  conceptual_captions:
+  conceptual_caption_12m:
     # data_dir: ${env.data_dir}/datasets
     data_type: images # [images|videos|features]
     
@@ -8,8 +8,8 @@ datasets:
       annotations:
         train: 
           url: 
-              - /export/share/junnan-li/VL_pretrain/cc3m_train.json
+              - /export/share/junnan-li/VL_pretrain/annotation/cc12m.json
           storage:
-              - conceptual_captions/annotations/cc3m_train.json
+              - conceptual_caption/annotations/cc12m.json
       images:
-          storage: /export/share/datasets/vision_language/cc3m_resize 
+          storage: /export/share/datasets/vision_language/cc12m_resize 

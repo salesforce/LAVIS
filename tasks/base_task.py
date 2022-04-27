@@ -47,7 +47,11 @@ class BaseTask:
 
             multi_datasets[name] = datasets
 
-        return concat_datasets(multi_datasets)
+        datasets = concat_datasets(multi_datasets)
+        for split_name in datasets:
+            if hasattr(datasets[split_name], "__len__"):
+                logging.info("Loaded {} records for {} split.".format(len(datasets[split_name]), split_name))
+        return datasets
 
     def train_step(self, model, samples):
         loss = model(samples)["loss"]

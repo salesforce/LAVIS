@@ -33,4 +33,17 @@ class ConcatDataset(ConcatDataset):
 
     def collater(self, samples):
         # TODO For now only supports datasets with same underlying collater implementations
-        return self.datasets[0].collater(samples)
+        all_keys = set()
+        for s in samples:
+            all_keys.update(s)
+        
+        shared_keys = all_keys 
+        for s in samples:
+            shared_keys = shared_keys & set(s.keys())
+
+        samples_shared_keys = []
+        for s in samples:
+            samples_shared_keys.append({k:s[k] for k in s.keys() if k in shared_keys})
+
+        # return self.datasets[0].collater(samples)
+        return self.datasets[0].collater(samples_shared_keys)
