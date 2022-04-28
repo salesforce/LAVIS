@@ -786,9 +786,12 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         
         # forward the positve image-text pair
         bs = image.size(0)
-        output_pos = self.text_encoder.forward(
-            tokenized_text=text,
-            visual_embeds=image_embeds
+        output_pos = self.text_encoder.forward_bert(
+            encoder_input_ids,
+            attention_mask = text.attention_mask,
+            encoder_hidden_states = image_embeds,
+            encoder_attention_mask = image_atts,      
+            return_dict = True,
         )
 
         with torch.no_grad():       
@@ -841,12 +844,16 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         decoder_input_ids[:,0] = self.tokenizer.bos_token_id
         decoder_targets = decoder_input_ids.masked_fill(decoder_input_ids == self.tokenizer.pad_token_id, -100) 
 
-        loss_lm, decoder_output = self.text_decoder.forward_loss(
-            text_tokenized=text,
-            visual_embeds=image_embeds,
-            decoder_targets=decoder_targets
+        decoder_output = self.text_decoder(
+            decoder_input_ids, 
+            attention_mask=text.attention_mask, 
+            encoder_hidden_states=image_embeds,
+            encoder_attention_mask=image_atts,                  
+            labels=decoder_targets,
+            return_dict=True,   
         )   
-        
+          
+        loss_lm = decoder_output.loss                 
         return {
             "loss": loss_ita + loss_itm + loss_lm,
             "loss_ita": loss_ita,

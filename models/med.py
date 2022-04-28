@@ -1129,6 +1129,26 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
 
         return loss_lm, decoder_output
 
+    def forward_bert(
+        self,
+        text_input_ids,
+        attention_mask,
+        encoder_hidden_states,
+        encoder_attention_mask,
+        labels,
+        return_dict
+    ):
+        decoder_output = super().forward(
+            text_input_ids,
+            attention_mask=attention_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            encoder_attention_mask=encoder_attention_mask,
+            labels=labels,
+            return_dict=return_dict
+        )
+
+        return decoder_output
+
     def generate_from_encoder(
         self,
         tokenized_prompt,
