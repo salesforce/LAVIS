@@ -844,7 +844,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         decoder_input_ids[:,0] = self.tokenizer.bos_token_id
         decoder_targets = decoder_input_ids.masked_fill(decoder_input_ids == self.tokenizer.pad_token_id, -100) 
 
-        decoder_output = self.text_decoder(
+        decoder_output = self.text_decoder.forward_bert(
             decoder_input_ids, 
             attention_mask=text.attention_mask, 
             encoder_hidden_states=image_embeds,

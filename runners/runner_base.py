@@ -31,15 +31,8 @@ class Runner:
         self._optimizer = None
         self._dataloaders = None
 
-        self.setup_seeds()
+        # self.setup_seeds()
         self.setup_output_dir()
-
-    def setup_seeds(self):
-        seed = self.config.run_cfg.seed + utils.get_rank()
-        torch.manual_seed(seed)
-        np.random.seed(seed)
-        random.seed(seed)
-        cudnn.benchmark = True
 
     @property
     def device(self):
@@ -261,7 +254,7 @@ class Runner:
 
             else:
                 # no validation split is provided.
-                if not self.evaluate_only:
+                if not self.evaluate_only and utils.is_main_process():
                     self.save_checkpoint(cur_epoch, is_best=False)
 
             if self.evaluate_only:
@@ -313,7 +306,7 @@ class Runner:
         save_obj = {
             "model": self.model_without_ddp.state_dict(),
             "optimizer": self.optimizer.state_dict(),
-            'config': self.config,
+            'config': self.config.to_dict(),
             "epoch": cur_epoch,
         }
         save_to = os.path.join(

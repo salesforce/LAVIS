@@ -1,21 +1,22 @@
 import argparse
 import os
+import random
 
+import numpy as np
+import torch
+import torch.backends.cudnn as cudnn
 from omegaconf import OmegaConf
-from runners.runner_base import Runner
 
 import tasks
-
+import utils.blip_utils as utils
 from common.registry import registry
-from utils.config import Config
-
 # imports modules for registration
 from datasets.builders import *
-from tasks import *
-from processors import *
 from models import *
-
-import utils.blip_utils as utils
+from processors import *
+from runners.runner_base import Runner
+from tasks import *
+from utils.config import Config
 
 
 def parse_args():
@@ -36,6 +37,12 @@ def parse_args():
 
     return args
 
+def setup_seeds(config):
+    seed = config.run_cfg.seed + utils.get_rank()
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    cudnn.benchmark = True
 
 def main():
     # allow auto-dl completes on main process without timeout when using NCCL backend.
@@ -53,6 +60,9 @@ def main():
     cfg = Config(parse_args())
 
     utils.init_distributed_mode(cfg.run_cfg)
+
+    setup_seeds(cfg)
+
     # set after init_distributed_mode() to only log on master.
     utils.setup_logger()
 
