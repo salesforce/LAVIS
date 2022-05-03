@@ -1183,7 +1183,7 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
                 input_ids=tokenized_prompt.input_ids,
                 max_length=max_length,
                 min_length=min_length,
-                use_nucleus_sampling=True,
+                do_sample=True,
                 top_p=top_p,
                 num_return_sequences=1,
                 eos_token_id=sep_token_id,
