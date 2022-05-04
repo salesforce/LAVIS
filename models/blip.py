@@ -8,13 +8,13 @@ import torch.nn.functional as F
 from copy import deepcopy
 
 from torch import nn
-from transformers import BertTokenizer
+from transformers import BertConfig, BertTokenizer
 from common.registry import registry
 from timm.models.hub import download_cached_file
 
 from models.base_model import BaseModel
-from models.med import XBertEncoder, XBertLMHeadDecoder
-from models.vit import VisionTransformerEncoder, interpolate_pos_embed
+from models.med import BertModel, XBertEncoder, XBertLMHeadDecoder
+from models.vit import VisionTransformer, VisionTransformerEncoder, interpolate_pos_embed
 
 from utils.blip_utils import is_url, tie_encoder_decoder_weights
 
@@ -148,6 +148,90 @@ class MomentumDistilationMixin:
         for model_pair in self.model_pairs:           
             for param, param_m in zip(model_pair[0].parameters(), model_pair[1].parameters()):
                 param_m.data = param_m.data * self.momentum + param.data * (1. - self.momentum)
+
+
+class BlipBase(BaseModel):
+    def __init__(self,                 
+                 med_config = 'configs/models/med_config.json',  
+                 image_size = 224,
+                 vit = 'base',
+                 vit_grad_ckpt = False,
+                 vit_ckpt_layer = 0,
+                 pretrained=""
+                 ):
+        """
+        Args:
+            med_config (str): path for the mixture of encoder-decoder model's configuration file
+            image_size (int): input image size
+            vit (str): model size of vision transformer
+        """               
+        super().__init__()
+        
+        if vit == "base":
+            vision_width = 768
+            self.visual_encoder = VisionTransformer(
+                img_size=image_size,
+                patch_size=16,
+                embed_dim=vision_width,
+                depth=12,
+                num_heads=12,
+                use_grad_checkpointing=vit_grad_ckpt,
+                ckpt_layer=vit_ckpt_layer,
+                drop_path_rate=0
+            )
+        else:
+            raise NotImplementedError("")
+
+        self.tokenizer = init_tokenizer()   
+        med_config = BertConfig.from_json_file(med_config)
+        med_config.encoder_width = vision_width
+        self.text_encoder = BertModel(config=med_config, add_pooling_layer=False)  
+
+        embed_dim = 256
+        text_width = vision_width
+
+        self.vision_proj = nn.Linear(vision_width, embed_dim)
+        self.text_proj = nn.Linear(text_width, embed_dim)
+
+        if pretrained:
+            self, msg = load_from_pretrained(self, pretrained)
+            assert len(msg.missing_keys) == 0
+        
+    def forward(self, image, caption, mode, normalized=False):
+        
+        assert mode in ['image', 'text', 'multimodal'], "mode parameter must be image, text, or multimodal"
+        text = self.tokenizer(caption, return_tensors="pt").to(self.device) 
+        
+        if mode=='image':    
+            # return image features
+            image_embeds = self.visual_encoder(image)             
+            if normalized:
+                image_embeds = self.vision_proj(image_embeds)
+            return image_embeds
+        
+        elif mode=='text':
+            # return text features
+            text_output = self.text_encoder(text.input_ids, attention_mask = text.attention_mask,                      
+                                            return_dict = True, mode = 'text')  
+            text_embeds = text_output.last_hidden_state
+            if normalized:
+                text_embeds = self.text_proj(text_embeds)
+            # return text_output.last_hidden_state
+            return text_embeds
+        
+        elif mode=='multimodal':
+            # return multimodel features
+            image_embeds = self.visual_encoder(image)    
+            image_atts = torch.ones(image_embeds.size()[:-1],dtype=torch.long).to(self.device)      
+            
+            text.input_ids[:,0] = self.tokenizer.enc_token_id
+            output = self.text_encoder(text.input_ids,
+                                       attention_mask = text.attention_mask,
+                                       encoder_hidden_states = image_embeds,
+                                       encoder_attention_mask = image_atts,      
+                                       return_dict = True,
+                                      )              
+            return output.last_hidden_state
 
 
 @registry.register_model("blip_caption")
