@@ -52,5 +52,5 @@ class CaptionEvalDataset(BaseDataset):
 
         image = self.vis_processor(image)  
 
-        return {"image": image, "image_id": self.annotations[index]["image_id"]}
+        return {"image": image, "image_id": self.annotation[index]["image_id"]}
     
