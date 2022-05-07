@@ -97,6 +97,7 @@ def load_from_pretrained(model, url_or_filename):
     for key in model.state_dict().keys():
         if key in state_dict.keys():
             if state_dict[key].shape!=model.state_dict()[key].shape:
+                print(k)
                 del state_dict[key]
 
     msg = model.load_state_dict(state_dict, strict=False)
