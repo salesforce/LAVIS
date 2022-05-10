@@ -264,6 +264,9 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             "loss_itm": loss_itm
         }
 
+    def reset_queue_ptr(self):
+        self.queue_ptr = torch.zeros(1, dtype=torch.long)
+
     @classmethod
     def _build_from_cfg(cls, cfg=None):
         # set from_pretrained=True to load weights for 'bert-base-uncased'
@@ -293,5 +296,8 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
             model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+            # [IMPORTANT] to reset queue pointer to 0. 
+            # Otherwise when updating last batch in the queue, the batch size and remaining queue length may be un-equal.
+            model.reset_queue_ptr()
 
         return model
