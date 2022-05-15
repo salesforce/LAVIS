@@ -53,4 +53,4 @@ run:
   seed: 42 
   output_dir: "output/Retrieval_COCO"
 
-  evaluate: True
+  evaluate: False

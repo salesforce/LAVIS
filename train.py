@@ -39,9 +39,11 @@ def parse_args():
 
 def setup_seeds(config):
     seed = config.run_cfg.seed + utils.get_rank()
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+
     random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
     cudnn.benchmark = True
 
 def main():

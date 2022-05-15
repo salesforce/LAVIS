@@ -19,7 +19,7 @@ datasets:
           md5: 3ff34b0ef2db02d01c37399f6a2a6cd1
           storage: coco/annotations/coco_karpathy_test.json
       images:
-        storage: coco_debug/images/
+        storage: coco/images/
         # storage: 
         # train: 
         #   # url: http://images.cocodataset.org/zips/train2014.zip

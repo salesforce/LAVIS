@@ -13,7 +13,6 @@ datasets:
     text_processor:
         train: 
           name: "blip_caption"
-          prompt: "a picture of "
   conceptual_caption_3m: # name of the dataset builder
     vis_processor: 
         train: 
@@ -22,7 +21,6 @@ datasets:
     text_processor:
         train: 
           name: "blip_caption"
-          prompt: "a picture of "
   conceptual_caption_12m: # name of the dataset builder
     vis_processor: 
         train: 
@@ -31,7 +29,6 @@ datasets:
     text_processor:
         train: 
           name: "blip_caption"
-          prompt: "a picture of "
   vg_caption: # name of the dataset builder
     vis_processor: 
         train: 
@@ -40,7 +37,6 @@ datasets:
     text_processor:
         train: 
           name: "blip_caption"
-          prompt: "a picture of "
   sbu_caption: # name of the dataset builder
     vis_processor: 
         train: 
@@ -49,7 +45,6 @@ datasets:
     text_processor:
         train: 
           name: "blip_caption"
-          prompt: "a picture of "
 
 run:
   task: image_text_pretrain
