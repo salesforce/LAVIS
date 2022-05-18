@@ -6,9 +6,7 @@ import random
 import time
 from pathlib import Path
 
-import numpy as np
 import torch
-import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 
 import utils.blip_utils as utils
@@ -30,6 +28,7 @@ class Runner:
         self._device = None
         self._optimizer = None
         self._dataloaders = None
+        self._lr_sched = None
 
         # self.setup_seeds()
         self.setup_output_dir()
@@ -78,6 +77,32 @@ class Runner:
             )
 
         return self._optimizer
+
+    @property
+    def lr_scheduler(self):
+        if self._lr_sched is None:
+            lr_sched_cls = registry.get_lr_scheduler_class(self.config.run_cfg.lr_sched)
+
+            max_epoch = self.config.run_cfg.max_epoch
+            min_lr = self.config.run_cfg.min_lr
+            init_lr = self.config.run_cfg.init_lr
+
+            # optional parameters
+            decay_rate = self.config.run_cfg.get("lr_decay_rate", None)
+            warmup_start_lr = self.config.run_cfg.get("warmup_lr", 0)
+            warmup_steps = self.config.run_cfg.get("warmup_steps", 1)
+
+            self._lr_sched = lr_sched_cls(
+                optimizer=self.optimizer,
+                max_epoch=max_epoch,
+                min_lr=min_lr,
+                init_lr=init_lr,
+                decay_rate=decay_rate,
+                warmup_start_lr=warmup_start_lr,
+                warmup_steps=warmup_steps
+            )
+
+        return self._lr_sched
 
     @property
     def dataloaders(self):
@@ -210,15 +235,6 @@ class Runner:
                 if self.use_distributed:
                     self.train_loader.sampler.set_epoch(cur_epoch)
 
-                # lr_scheduler.before_epoch()
-                utils.cosine_lr_schedule(
-                    optimizer=self.optimizer,
-                    epoch=cur_epoch,
-                    max_epoch=self.max_epoch,
-                    init_lr=self.init_lr,
-                    min_lr=self.min_lr,
-                )
-
                 train_stats = self.train_epoch(cur_epoch)
 
                 if utils.is_main_process():
@@ -285,6 +301,7 @@ class Runner:
             model=self.model,
             data_loader=self.train_loader,
             optimizer=self.optimizer,
+            lr_scheduler=self.lr_scheduler,
             cuda_enabled=self.cuda_enabled,
             log_freq=self.log_freq
         )

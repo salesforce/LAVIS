@@ -88,7 +88,7 @@ class BaseTask:
 
         return results
     
-    def train_epoch(self, epoch, model, data_loader, optimizer, cuda_enabled=True, log_freq=50):
+    def train_epoch(self, epoch, model, data_loader, optimizer, lr_scheduler, cuda_enabled=True, log_freq=50):
         metric_logger = utils.MetricLogger(delimiter="  ")
         metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
         metric_logger.add_meter("loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
@@ -105,10 +105,12 @@ class BaseTask:
                 }
             )
 
+            lr_scheduler.step(cur_epoch=epoch, cur_step=i)
+            optimizer.zero_grad()
+
             loss = self.train_step(model=model, samples=samples)
 
             # after_train_step()
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
