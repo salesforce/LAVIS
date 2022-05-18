@@ -144,7 +144,7 @@ class Registry:
             if name in cls.mapping["lr_scheduler_name_mapping"]:
                 raise KeyError(
                     "Name '{}' already registered for {}.".format(
-                        name, cls.mapping["lr_sched_name_mapping"][name]
+                        name, cls.mapping["lr_scheduler_name_mapping"][name]
                     )
                 )
             cls.mapping["lr_scheduler_name_mapping"][name] = lr_sched_cls
