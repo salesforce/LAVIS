@@ -146,3 +146,4 @@ cython_debug/
 
 # project-specific
 output/
+debug*/

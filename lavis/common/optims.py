@@ -12,8 +12,8 @@ class LinearWarmupStepLRScheduler:
         min_lr,
         init_lr,
         decay_rate=1,
-        warmup_start_lr=0,
-        warmup_steps=1,
+        warmup_start_lr=-1,
+        warmup_steps=0,
         **kwargs
     ):
         self.optimizer = optimizer
@@ -23,9 +23,9 @@ class LinearWarmupStepLRScheduler:
 
         self.decay_rate = decay_rate
 
-        self.warmup_steps = warmup_steps
-        self.warmup_start_lr = warmup_start_lr
         self.init_lr = init_lr
+        self.warmup_steps = warmup_steps
+        self.warmup_start_lr = warmup_start_lr if warmup_start_lr >= 0 else init_lr
 
     def step(self, cur_epoch, cur_step):
         if cur_epoch == 0:
@@ -54,8 +54,8 @@ class LinearWarmupCosineLRScheduler:
         max_epoch,
         min_lr,
         init_lr,
-        warmup_steps=1,
-        warmup_start_lr=0,
+        warmup_steps=0,
+        warmup_start_lr=-1,
         **kwargs
     ):
         self.optimizer = optimizer
@@ -63,9 +63,9 @@ class LinearWarmupCosineLRScheduler:
         self.max_epoch = max_epoch
         self.min_lr = min_lr
 
-        self.warmup_steps = warmup_steps
-        self.warmup_start_lr = warmup_start_lr
         self.init_lr = init_lr
+        self.warmup_steps = warmup_steps
+        self.warmup_start_lr = warmup_start_lr if warmup_start_lr >= 0 else init_lr
 
     def step(self, cur_epoch, cur_step):
         # assuming the warmup iters less than one epoch
@@ -98,7 +98,7 @@ def cosine_lr_schedule(optimizer, epoch, max_epoch, init_lr, min_lr):
 
 def warmup_lr_schedule(optimizer, step, max_step, init_lr, max_lr):
     """Warmup the learning rate"""
-    lr = min(max_lr, init_lr + (max_lr - init_lr) * step / max_step)
+    lr = min(max_lr, init_lr + (max_lr - init_lr) * step / max(max_step, 1))
     for param_group in optimizer.param_groups:
         param_group["lr"] = lr
 

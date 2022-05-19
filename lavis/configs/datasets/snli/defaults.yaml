@@ -15,12 +15,5 @@ datasets:
         test: 
           url: /export/share/junnan-li/ALBEF/data/ve_test.json
           storage: snli/annotations/ve_test.json
-      class_list:
-        storage: 
       images:
-        train: 
-          storage: /export/share/datasets/vision/flickr30k/flickr30k-images
-        val: 
-          storage: /export/share/datasets/vision/flickr30k/flickr30k-images
-        test: 
           storage: /export/share/datasets/vision/flickr30k/flickr30k-images

@@ -8,11 +8,14 @@ class SNLIVisualEntialmentDataset(MultimodalClassificationDataset):
     def __init__(self, vis_processor, text_processor, image_root, ann_paths):
         super().__init__(vis_processor, text_processor, image_root, ann_paths)
 
-        self.class_labels = {
+        self.class_labels = self._build_class_labels()
+        
+    def _build_class_labels(self):
+        return {
             'contradiction':0,
             'neutral':1,
             'entailment':2
-        }
+        } 
 
     def __getitem__(self, index):
         ann = self.annotation[index]
