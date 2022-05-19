@@ -5,7 +5,7 @@ from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
 from common.registry import registry
-from utils.randaugment import RandomAugment
+from datasets.randaugment import RandomAugment
 
 from processors.base_processor import BaseProcessor
 

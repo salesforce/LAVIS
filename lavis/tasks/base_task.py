@@ -1,10 +1,10 @@
 import logging
 import torch.distributed as dist
 from datasets.data_utils import prepare_sample
-import utils.blip_utils as utils
+import common.utils as utils
 
 from common.registry import registry
-from utils.data_utils import concat_datasets
+from datasets.data_utils import concat_datasets
 
 
 class BaseTask:
@@ -27,7 +27,7 @@ class BaseTask:
         Download dataset and annotations automatically if not exist.
 
         Args:
-            cfg (utils.config.Config): _description_
+            cfg (common.config.Config): _description_
 
         Returns:
             multi_datasets (List): _description_
@@ -65,10 +65,6 @@ class BaseTask:
 
     def inference_step(self):
         raise NotImplementedError
-
-    # def optimizer_step(self, optimizer, model, update_num):
-    # # this could be useful for accumulating gradients
-    #     optimizer.step()
 
     def evaluation(self, model, data_loader, cuda_enabled=True):
         metric_logger = utils.MetricLogger(delimiter="  ")

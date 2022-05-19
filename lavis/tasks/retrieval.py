@@ -1,19 +1,16 @@
-import logging
-from os import stat
-import time
 import datetime
+import logging
+import time
 
+import common.utils as utils
 import numpy as np
-
 import torch
-import torch.nn.functional as F
 import torch.distributed as dist
+import torch.nn.functional as F
+from common.registry import registry
 
 from tasks.base_task import BaseTask
 
-from common.registry import registry
-
-import utils.blip_utils as utils
 
 @registry.register_task('retrieval')
 class RetrievalTask(BaseTask):

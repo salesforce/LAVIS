@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 import torch.distributed as dist
 
-import utils.blip_utils as utils
+import common.utils as utils
 from common.registry import registry
 from torch.utils.data import DataLoader
 
@@ -114,7 +114,7 @@ class Runner:
             is_train = [split in self.train_splits for split in split_names]
 
             if self.use_distributed:
-                samplers = utils.create_sampler(
+                samplers = create_sampler(
                     datasets=datasets,
                     shuffles=is_train,
                     num_tasks=utils.get_world_size(),
@@ -130,7 +130,7 @@ class Runner:
             else:
                 samplers = [None] * len(self.datasets)
 
-            dataloaders = utils.create_loader(
+            dataloaders = create_loader(
                 datasets=datasets,
                 samplers=samplers,
                 batch_size=[
@@ -340,3 +340,38 @@ class Runner:
                 f.write(json.dumps(log_stats) + "\n")
         elif isinstance(stats, list):
             pass
+
+
+def create_loader(datasets, samplers, batch_size, num_workers, is_trains, collate_fns):
+    loaders = []
+    for dataset, sampler, bs, n_worker, is_train, collate_fn in zip(
+        datasets, samplers, batch_size, num_workers, is_trains, collate_fns
+    ):
+        if is_train:
+            shuffle = sampler is None
+            drop_last = True
+        else:
+            shuffle = False
+            drop_last = False
+        loader = DataLoader(
+            dataset,
+            batch_size=bs,
+            num_workers=n_worker,
+            pin_memory=True,
+            sampler=sampler,
+            shuffle=shuffle,
+            collate_fn=collate_fn,
+            drop_last=drop_last,
+        )
+        loaders.append(loader)
+    return loaders
+
+
+def create_sampler(datasets, shuffles, num_tasks, global_rank):
+    samplers = []
+    for dataset, shuffle in zip(datasets, shuffles):
+        sampler = torch.utils.data.DistributedSampler(
+            dataset, num_replicas=num_tasks, rank=global_rank, shuffle=shuffle
+        )
+        samplers.append(sampler)
+    return samplers

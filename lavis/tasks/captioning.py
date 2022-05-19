@@ -6,7 +6,7 @@ import torch
 from tasks.base_task import BaseTask
 from common.registry import registry
 
-import utils.blip_utils as utils
+import common.utils as utils
 
 
 @registry.register_task('captioning')

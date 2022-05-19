@@ -8,7 +8,7 @@ import torch.backends.cudnn as cudnn
 from omegaconf import OmegaConf
 
 import tasks
-import utils.blip_utils as utils
+import common.utils as utils
 from common.registry import registry
 # imports modules for registration
 from datasets.builders import *
@@ -17,7 +17,7 @@ from models import *
 from processors import *
 from runners.runner_base import Runner
 from tasks import *
-from utils.config import Config
+from common.config import Config
 
 
 def parse_args():

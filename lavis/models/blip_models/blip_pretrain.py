@@ -4,12 +4,11 @@ import torch
 import torch.nn.functional as F
 from common.registry import registry
 from models.base_model import BaseModel
-from models.blip_models import MomentumDistilationMixin, SharedQueueMixin, init_tokenizer
+from models.blip_models import (MomentumDistilationMixin, SharedQueueMixin,
+                                init_tokenizer, tie_encoder_decoder_weights)
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder
 from torch import nn
-
-from utils.blip_utils import tie_encoder_decoder_weights
 
 
 @registry.register_model('blip_pretrain')

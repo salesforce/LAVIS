@@ -3,13 +3,13 @@ import os
 import shutil
 
 import torch.distributed as dist
-import utils.blip_utils as utils
+import common.utils as utils
 
 from common.registry import registry
 
 from torchvision.datasets.utils import download_url
 
-from utils.file_utils import extract_archive
+from datasets.data_utils import extract_archive
 
 
 class BaseDatasetBuilder:

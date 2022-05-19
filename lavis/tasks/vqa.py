@@ -2,10 +2,10 @@ import json
 import logging
 import os
 
+import common.utils as utils
 import torch.distributed as dist
-import utils.blip_utils as utils
-from common.registry import registry
 
+from common.registry import registry
 from tasks.base_task import BaseTask
 
 

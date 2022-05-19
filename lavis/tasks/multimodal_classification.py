@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from utils.blip_utils import main_process, save_result
+from common.utils import main_process, save_result
 from common.registry import registry
 
 from tasks.base_task import BaseTask
