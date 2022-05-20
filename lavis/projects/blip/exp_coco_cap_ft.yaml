@@ -1,10 +1,8 @@
 model:
   arch: blip_caption
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
-  # pretrained: "/export/home/workspace/LAVIS/output/Caption_coco/checkpoint_best.pth"
-  pretrained: "/export/home/workspace/LAVIS/output/Pretrain/20220515131445/checkpoint_19.pth"
 
 datasets:
   coco_caption: # name of the dataset builder

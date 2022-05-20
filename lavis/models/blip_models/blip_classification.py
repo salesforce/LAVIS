@@ -5,7 +5,11 @@ import torch.nn.functional as F
 
 from torch import nn
 
-from models.blip_models import load_from_pretrained, init_tokenizer, MomentumDistilationMixin
+from models.blip_models import (
+    load_from_pretrained,
+    init_tokenizer,
+    MomentumDistilationMixin,
+)
 
 from models.base_model import BaseModel
 from models.med import XBertEncoder
@@ -17,13 +21,14 @@ from common.registry import registry
 @registry.register_model("blip_classification")
 class BlipClassification(BaseModel, MomentumDistilationMixin):
     def __init__(
-        self, 
+        self,
         image_encoder,
         text_encoder,
         num_classes,
         momentum=0.995,
         alpha=0.4,
-        use_distill=True
+        max_txt_len=40,
+        use_distill=True,
     ):
         super().__init__()
 
@@ -38,7 +43,7 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         self.cls_head = nn.Sequential(
             nn.Linear(hidden_size, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, num_classes)
+            nn.Linear(hidden_size, num_classes),
         )
 
         if self.use_distill:
@@ -57,6 +62,8 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
             self.copy_params()
 
+        self.max_txt_len = max_txt_len
+
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
@@ -71,41 +78,49 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
 
     def forward(self, samples, is_train=True):
-        sentences = samples['text_input']
+        sentences = samples["text_input"]
         sentences = self.tokenizer(
-            sentences, 
+            sentences,
             padding="longest",
-            return_tensors="pt"
+            truncation=True,
+            max_length=self.max_txt_len,
+            return_tensors="pt",
         ).to(self.device)
-        samples.update({'tokenized_text': sentences})
+        samples.update({"tokenized_text": sentences})
 
-        targets = samples['label']
+        targets = samples["label"]
 
-        image_embeds = self.visual_encoder(samples['image'])
-        multimodal_embeds = self.text_encoder(samples['tokenized_text'], image_embeds)
+        image_embeds = self.visual_encoder(samples["image"])
+        multimodal_embeds = self.text_encoder(samples["tokenized_text"], image_embeds)
 
-        prediction = self.cls_head(multimodal_embeds.last_hidden_state[:,0,:])
+        prediction = self.cls_head(multimodal_embeds.last_hidden_state[:, 0, :])
 
         if is_train:
             if self.use_distill:
                 with torch.no_grad():
                     self._momentum_update()
 
-                    image_embeds_m = self.visual_encoder_m(samples['image'])
-                    multimodal_embeds_m = self.text_encoder_m(samples['tokenized_text'], image_embeds_m)
+                    image_embeds_m = self.visual_encoder_m(samples["image"])
+                    multimodal_embeds_m = self.text_encoder_m(
+                        samples["tokenized_text"], image_embeds_m
+                    )
 
                     prediction_m = self.cls_head_m(
-                        multimodal_embeds_m.last_hidden_state[:,0,:]
+                        multimodal_embeds_m.last_hidden_state[:, 0, :]
                     )
 
                 alpha = self.alpha * self._rampup_factor(
-                    epoch=samples['epoch'],
-                    iters=samples['iters'],
-                    num_iters_per_epoch=samples['num_iters_per_epoch']
+                    epoch=samples["epoch"],
+                    iters=samples["iters"],
+                    num_iters_per_epoch=samples["num_iters_per_epoch"],
                 )
 
-                loss = (1 - alpha) * F.cross_entropy(prediction, targets) - alpha * torch.sum(
-                    F.log_softmax(prediction, dim=1) * F.softmax(prediction_m, dim=1),dim=1).mean()
+                loss = (1 - alpha) * F.cross_entropy(
+                    prediction, targets
+                ) - alpha * torch.sum(
+                    F.log_softmax(prediction, dim=1) * F.softmax(prediction_m, dim=1),
+                    dim=1,
+                ).mean()
             else:
                 loss = F.cross_entropy(prediction, targets)
 
@@ -127,8 +142,11 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         momentum = cfg.get("momentum", 0.995)
         num_classes = cfg.get("num_classes", -1)
         alpha = cfg.get("alpha", 0.4)
+        max_txt_len = cfg.get("max_txt_len", 40)
 
-        assert num_classes > 1, "Invalid number of classes provided, found {}".format(num_classes)
+        assert num_classes > 1, "Invalid number of classes provided, found {}".format(
+            num_classes
+        )
 
         model = cls(
             image_encoder=image_encoder,
@@ -136,7 +154,8 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
             use_distill=use_distill,
             alpha=alpha,
             num_classes=num_classes,
-            momentum=momentum
+            momentum=momentum,
+            max_txt_len=max_txt_len,
         )
 
         # load pre-trained weights
@@ -145,4 +164,3 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
             model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
 
         return model
-
