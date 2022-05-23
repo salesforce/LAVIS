@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import torch
-from torch import Tensor, device, dtype, nn
+from torch import Tensor, device
 import torch.utils.checkpoint
 from torch import nn
 from torch.nn import CrossEntropyLoss
@@ -384,7 +384,16 @@ class BertLayer(nn.Module):
         self.seq_len_dim = 1
         self.attention = BertAttention(config)
         self.layer_num = layer_num
-        if self.config.add_cross_attention:
+
+        # compatibility for ALBEF and BLIP
+        try:
+            fusion_layer = config.fusion_layer
+            add_cross_attention = fusion_layer <= layer_num
+        except AttributeError:
+            add_cross_attention = self.config.add_cross_attention
+
+        # if self.config.add_cross_attention:
+        if add_cross_attention:
             self.crossattention = BertAttention(
                 config, is_cross_attention=self.config.add_cross_attention
             )
@@ -418,7 +427,9 @@ class BertLayer(nn.Module):
         outputs = self_attention_outputs[1:-1]
         present_key_value = self_attention_outputs[-1]
 
-        if mode == "multimodal":
+        # TODO line 482 in albef/models/xbert.py
+        # compatibility for ALBEF and BLIP
+        if mode == "multimodal" and hasattr(self, "crossattention"):
             assert (
                 encoder_hidden_states is not None
             ), "encoder_hidden_states must be given for cross-attention layers"
@@ -484,7 +495,21 @@ class BertEncoder(nn.Module):
 
         next_decoder_cache = () if use_cache else None
 
-        for i in range(self.config.num_hidden_layers):
+        if mode == "text":
+            start_layer = 0
+            output_layer = self.config.fusion_layer
+
+        elif mode == "fusion":
+            start_layer = self.config.fusion_layer
+            output_layer = self.config.num_hidden_layers
+
+        elif mode == "multimodal":
+            start_layer = 0
+            output_layer = self.config.num_hidden_layers
+
+        # compatibility for ALBEF and BLIP
+        # for i in range(self.config.num_hidden_layers):
+        for i in range(start_layer, output_layer):
             layer_module = self.layer[i]
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
@@ -492,6 +517,7 @@ class BertEncoder(nn.Module):
             layer_head_mask = head_mask[i] if head_mask is not None else None
             past_key_value = past_key_values[i] if past_key_values is not None else None
 
+            # TODO pay attention to this.
             if self.gradient_checkpointing and self.training:
 
                 if use_cache:
@@ -1136,7 +1162,7 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
         encoder_hidden_states,
         encoder_attention_mask,
         labels,
-        return_dict
+        return_dict,
     ):
         decoder_output = super().forward(
             text_input_ids,
@@ -1144,7 +1170,7 @@ class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_attention_mask,
             labels=labels,
-            return_dict=return_dict
+            return_dict=return_dict,
         )
 
         return decoder_output
@@ -1232,7 +1258,7 @@ class XBertEncoder(BertModel, BaseEncoder):
             attention_mask=text.attention_mask,
             encoder_hidden_states=visual_embeds,
             encoder_attention_mask=image_atts,
-            return_dict=True
+            return_dict=True,
         )
 
         return text_output
@@ -1243,7 +1269,7 @@ class XBertEncoder(BertModel, BaseEncoder):
         attention_mask,
         encoder_hidden_states,
         encoder_attention_mask,
-        return_dict=True
+        return_dict=True,
     ):
 
         text_output = super().forward(
@@ -1251,11 +1277,10 @@ class XBertEncoder(BertModel, BaseEncoder):
             attention_mask=attention_mask,
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_attention_mask,
-            return_dict=return_dict
+            return_dict=return_dict,
         )
 
         return text_output
-
 
     def forward_text_embeds(self, tokenized_text, **kwargs):
         text = tokenized_text
