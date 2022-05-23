@@ -34,15 +34,15 @@ class LinearWarmupStepLRScheduler:
                 optimizer=self.optimizer,
                 max_step=self.warmup_steps,
                 init_lr=self.warmup_start_lr,
-                max_lr=self.init_lr
-            ) 
+                max_lr=self.init_lr,
+            )
         else:
             step_lr_schedule(
                 epoch=cur_epoch,
                 optimizer=self.optimizer,
                 init_lr=self.init_lr,
                 min_lr=self.min_lr,
-                decay_rate=self.decay_rate
+                decay_rate=self.decay_rate,
             )
 
 
@@ -75,17 +75,17 @@ class LinearWarmupCosineLRScheduler:
                 optimizer=self.optimizer,
                 max_step=self.warmup_steps,
                 init_lr=self.warmup_start_lr,
-                max_lr=self.init_lr
-            ) 
+                max_lr=self.init_lr,
+            )
         else:
             cosine_lr_schedule(
                 epoch=cur_epoch,
                 optimizer=self.optimizer,
                 max_epoch=self.max_epoch,
                 init_lr=self.init_lr,
-                min_lr=self.min_lr
+                min_lr=self.min_lr,
             )
-        
+
 
 def cosine_lr_schedule(optimizer, epoch, max_epoch, init_lr, min_lr):
     """Decay the learning rate"""

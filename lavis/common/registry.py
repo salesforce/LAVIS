@@ -152,7 +152,6 @@ class Registry:
 
         return wrap
 
-
     @classmethod
     def register_path(cls, name, path):
         r"""Register a path to registry with key 'name'

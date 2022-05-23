@@ -9,11 +9,10 @@ class VGCaptionBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
     vis_urls = {
-        "images":
-        {
+        "images": {
             "train": [
                 "https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip",
-                "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip"
+                "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip",
             ]
         }
     }

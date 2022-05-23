@@ -10,7 +10,7 @@ from common.registry import registry
 from tasks.base_task import BaseTask
 
 
-@registry.register_task('multimodal_classification')
+@registry.register_task("multimodal_classification")
 class MultimodalClassificationTask(BaseTask):
     ID_KEY = "image_id"
 
@@ -20,7 +20,7 @@ class MultimodalClassificationTask(BaseTask):
     def build_datasets(self, cfg):
         datasets = super().build_datasets(cfg)
 
-        assert 'test' in datasets, "No testing split is present."
+        assert "test" in datasets, "No testing split is present."
         return datasets
 
     def valid_step(self, model, samples):
@@ -38,26 +38,21 @@ class MultimodalClassificationTask(BaseTask):
 
         for pred, tgt, index in zip(predictions, targets, indices):
             results.append(
-                {
-                    self.ID_KEY: index, 
-                    "prediction": pred.item(),
-                    "target": tgt.item()
-                }
+                {self.ID_KEY: index, "prediction": pred.item(), "target": tgt.item()}
             )
 
         return results
 
     def after_evaluation(self, val_result, split_name, epoch, **kwargs):
         eval_result_file = save_result(
-            result=val_result, 
+            result=val_result,
             result_dir=registry.get_path("result_dir"),
-            filename='{}_epoch{}'.format(split_name, epoch), 
-            remove_duplicate=self.ID_KEY
+            filename="{}_epoch{}".format(split_name, epoch),
+            remove_duplicate=self.ID_KEY,
         )
 
         metrics = self._report_metrics(
-            eval_result_file=eval_result_file,
-            split_name=split_name
+            eval_result_file=eval_result_file, split_name=split_name
         )
 
         return metrics
@@ -66,15 +61,17 @@ class MultimodalClassificationTask(BaseTask):
     def _report_metrics(self, eval_result_file, split_name):
         results = json.load(open(eval_result_file))
 
-        predictions = np.array([res['prediction'] for res in results])
-        targets = np.array([res['target'] for res in results])
+        predictions = np.array([res["prediction"] for res in results])
+        targets = np.array([res["target"] for res in results])
 
         accuracy = (targets == predictions).sum() / targets.shape[0]
         metrics = {"agg_metrics": accuracy, "acc": accuracy}
 
         log_stats = {split_name: {k: v for k, v in metrics.items()}}
 
-        with open(os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a") as f:
+        with open(
+            os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a"
+        ) as f:
             f.write(json.dumps(log_stats) + "\n")
-        
+
         return metrics

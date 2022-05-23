@@ -49,7 +49,8 @@ datasets:
 run:
   task: image_text_pretrain
   # optimizer
-  lr_sched: "linear_warmup_step_lr"
+  # lr_sched: "linear_warmup_step_lr"
+  lr_sched: "linear_warmup_cosine_lr"
   init_lr: 3e-4 
   min_lr: 1e-6
   warmup_lr: 1e-6

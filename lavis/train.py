@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 import tasks
 import common.utils as utils
 from common.registry import registry
+
 # imports modules for registration
 from datasets.builders import *
 from common.optims import LinearWarmupCosineLRScheduler, LinearWarmupStepLRScheduler
@@ -38,6 +39,7 @@ def parse_args():
 
     return args
 
+
 def setup_seeds(config):
     seed = config.run_cfg.seed + utils.get_rank()
 
@@ -47,9 +49,10 @@ def setup_seeds(config):
 
     cudnn.benchmark = True
 
+
 def main():
     # allow auto-dl completes on main process without timeout when using NCCL backend.
-    os.environ['NCCL_BLOCKING_WAIT'] = "1"
+    os.environ["NCCL_BLOCKING_WAIT"] = "1"
 
     # set before init_distributed_mode() to ensure the same job_id shared across all ranks.
     job_id = utils.now()
@@ -75,13 +78,7 @@ def main():
     datasets = task.build_datasets(cfg)
     model = task.build_model(cfg)
 
-    runner = Runner(
-        cfg=cfg,
-        job_id=job_id,
-        task=task,
-        model=model,
-        datasets=datasets
-    )
+    runner = Runner(cfg=cfg, job_id=job_id, task=task, model=model, datasets=datasets)
     runner.train()
 
 

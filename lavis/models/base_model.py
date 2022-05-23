@@ -1,9 +1,6 @@
-from abc import abstractmethod
 from omegaconf import OmegaConf
 
 import torch.nn as nn
-
-from common.registry import registry
 
 
 class BaseModel(nn.Module):
@@ -24,6 +21,7 @@ class BaseModel(nn.Module):
         if not cfg:
             # useful when building model without provided configuration file
             from common.config import Config
+
             default_config = OmegaConf.load(cls.default_config_path(model_type))
             cfg = Config.build_model_config(default_config).model
 

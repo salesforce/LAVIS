@@ -50,7 +50,11 @@ class BaseTask:
         datasets = concat_datasets(multi_datasets)
         for split_name in datasets:
             if hasattr(datasets[split_name], "__len__"):
-                logging.info("Loaded {} records for {} split.".format(len(datasets[split_name]), split_name))
+                logging.info(
+                    "Loaded {} records for {} split.".format(
+                        len(datasets[split_name]), split_name
+                    )
+                )
         return datasets
 
     def train_step(self, model, samples):
@@ -83,22 +87,33 @@ class BaseTask:
         dist.barrier()
 
         return results
-    
-    def train_epoch(self, epoch, model, data_loader, optimizer, lr_scheduler, cuda_enabled=True, log_freq=50):
+
+    def train_epoch(
+        self,
+        epoch,
+        model,
+        data_loader,
+        optimizer,
+        lr_scheduler,
+        cuda_enabled=True,
+        log_freq=50,
+    ):
         metric_logger = utils.MetricLogger(delimiter="  ")
-        metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
-        metric_logger.add_meter("loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}"))
+        metric_logger.add_meter(
+            "lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}")
+        )
+        metric_logger.add_meter(
+            "loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
+        )
 
         header = "Train Epoch: [{}]".format(epoch)
 
-        for i, samples in enumerate(metric_logger.log_every(data_loader, log_freq, header)):
+        for i, samples in enumerate(
+            metric_logger.log_every(data_loader, log_freq, header)
+        ):
             samples = prepare_sample(samples, cuda_enabled=cuda_enabled)
             samples.update(
-                {
-                    "epoch": epoch,
-                    "num_iters_per_epoch": len(data_loader),
-                    "iters": i
-                }
+                {"epoch": epoch, "num_iters_per_epoch": len(data_loader), "iters": i}
             )
 
             lr_scheduler.step(cur_epoch=epoch, cur_step=i)

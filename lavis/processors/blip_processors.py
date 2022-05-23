@@ -62,6 +62,7 @@ class BlipCaptionProcessor(BaseProcessor):
 
         return caption
 
+
 @registry.register_processor("blip_question")
 class BlipQuestionProcessor(BaseProcessor):
     def __init__(self, max_words=50):
@@ -82,17 +83,18 @@ class BlipQuestionProcessor(BaseProcessor):
     def pre_question(self, question):
         question = re.sub(
             r"([.!\"()*#:;~])",
-            '',
+            "",
             question.lower(),
-        ) 
-        question = question.rstrip(' ')
-        
-        #truncate question
-        question_words = question.split(' ')
+        )
+        question = question.rstrip(" ")
+
+        # truncate question
+        question_words = question.split(" ")
         if len(question_words) > self.max_words:
-            question = ' '.join(question_words[:self.max_words])
-                
+            question = " ".join(question_words[: self.max_words])
+
         return question
+
 
 @registry.register_processor("blip_image_train")
 class BlipImageTrainProcessor(BlipImageBaseProcessor):

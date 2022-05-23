@@ -1,7 +1,8 @@
 model:
   arch: blip_caption
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  pretrained: /export/home/workspace/LAVIS/lavis/output/Pretrain/20220518103129/checkpoint_19.pth
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
 
 datasets:

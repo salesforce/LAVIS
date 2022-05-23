@@ -141,7 +141,6 @@ class BaseDatasetBuilder:
                     # download_url(url=url, root=dirname, filename=filename, md5=info.md5)
                     download_url(url=url_or_filename, root=dirname, filename=filename)
 
-
     def _download_vis(self):
 
         data_type = self.data_type
@@ -162,29 +161,36 @@ class BaseDatasetBuilder:
                 storage_path = os.path.join(cache_root, storage_path)
 
             if os.path.exists(storage_path) and not new_build:
-                logging.info("Data build path {} exists, skip downloading.".format(storage_path))
-            else: # if path not exist or build for the first time
+                logging.info(
+                    "Data build path {} exists, skip downloading.".format(storage_path)
+                )
+            else:  # if path not exist or build for the first time
                 new_build = True
 
                 urls = vis_urls[split]
 
-                if isinstance(urls, str): urls = [urls]
+                if isinstance(urls, str):
+                    urls = [urls]
 
                 for url in urls:
                     # note this skips the downloading if the file already exists
                     download_url(url=url, root=dl_cache_dir)
 
                     dirname = os.path.dirname(storage_path)
-                    assert os.path.normpath(dirname) == os.path.normpath(storage_path), \
-                        "Local path to store images has to be a directory, found {}.".format(storage_path)
+                    assert os.path.normpath(dirname) == os.path.normpath(
+                        storage_path
+                    ), "Local path to store images has to be a directory, found {}.".format(
+                        storage_path
+                    )
 
                     if not os.path.exists(dirname):
                         os.makedirs(dirname)
 
                     # extracting
                     archive_path = os.path.join(dl_cache_dir, os.path.basename(url))
-                    extract_archive(from_path=archive_path, to_path=storage_path, overwrite=False)
-
+                    extract_archive(
+                        from_path=archive_path, to_path=storage_path, overwrite=False
+                    )
 
     def build(self):
         """

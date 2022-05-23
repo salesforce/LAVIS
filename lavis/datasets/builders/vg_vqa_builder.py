@@ -9,11 +9,10 @@ class VGVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = VGVQADataset
 
     vis_urls = {
-        "images":
-        {
+        "images": {
             "train": [
                 "https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip",
-                "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip"
+                "https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip",
             ]
         }
     }

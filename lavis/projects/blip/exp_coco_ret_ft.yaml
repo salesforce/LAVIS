@@ -1,7 +1,8 @@
 model:
   arch: blip_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
+  pretrained: /export/home/workspace/LAVIS/lavis/output/Pretrain/20220518103129/checkpoint_19.pth
 
   queue_size: 57600
   alpha: 0.4

@@ -99,7 +99,7 @@ class Runner:
                 init_lr=init_lr,
                 decay_rate=decay_rate,
                 warmup_start_lr=warmup_start_lr,
-                warmup_steps=warmup_steps
+                warmup_steps=warmup_steps,
             )
 
         return self._lr_sched
@@ -123,7 +123,7 @@ class Runner:
                 if not self.use_dist_eval_sampler:
                     # e.g. retrieval evaluation
                     dist_samplers = [
-                        sampler if flag else None 
+                        sampler if flag else None
                         for sampler, flag in zip(samplers, is_train)
                     ]
                     samplers = dist_samplers
@@ -196,7 +196,7 @@ class Runner:
     @property
     def evaluate_only(self):
         return self.config.run_cfg.evaluate
-    
+
     @property
     def use_dist_eval_sampler(self):
         return self.config.run_cfg.get("use_dist_eval_sampler", True)
@@ -211,7 +211,7 @@ class Runner:
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
 
-        output_dir = lib_root / self.config.run_cfg.output_dir / self.job_id 
+        output_dir = lib_root / self.config.run_cfg.output_dir / self.job_id
         result_dir = output_dir / "result"
 
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -225,8 +225,8 @@ class Runner:
 
     def train(self):
         start_time = time.time()
-        best_agg_metric = 0 
-        best_epoch = 0 
+        best_agg_metric = 0
+        best_epoch = 0
 
         for cur_epoch in range(0, self.max_epoch):
             # training phase
@@ -250,13 +250,13 @@ class Runner:
                         continue
 
                     val_log = self.task.after_evaluation(
-                        val_result=val_result,
-                        split_name=split_name,
-                        epoch=cur_epoch
+                        val_result=val_result, split_name=split_name, epoch=cur_epoch
                     )
 
                     if utils.is_main_process():
-                        assert "agg_metrics" in val_log, "agg_metrics must be present in evaluation log if validation set is used."
+                        assert (
+                            "agg_metrics" in val_log
+                        ), "agg_metrics must be present in evaluation log if validation set is used."
 
                         agg_metrics = val_log["agg_metrics"]
                         if agg_metrics > best_agg_metric and split_name == "val":
@@ -303,7 +303,7 @@ class Runner:
             optimizer=self.optimizer,
             lr_scheduler=self.lr_scheduler,
             cuda_enabled=self.cuda_enabled,
-            log_freq=self.log_freq
+            log_freq=self.log_freq,
         )
 
     @torch.no_grad()
@@ -323,12 +323,12 @@ class Runner:
         save_obj = {
             "model": self.model_without_ddp.state_dict(),
             "optimizer": self.optimizer.state_dict(),
-            'config': self.config.to_dict(),
+            "config": self.config.to_dict(),
             "epoch": cur_epoch,
         }
         save_to = os.path.join(
             self.output_dir,
-            "checkpoint_{}.pth".format("best" if is_best else cur_epoch)
+            "checkpoint_{}.pth".format("best" if is_best else cur_epoch),
         )
         logging.info("Saving checkpoint at epoch {} to {}.".format(cur_epoch, save_to))
         torch.save(save_obj, save_to)

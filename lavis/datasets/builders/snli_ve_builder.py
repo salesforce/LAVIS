@@ -15,6 +15,6 @@ class SNLIVisualEntailmentBuilder(BaseDatasetBuilder):
     @classmethod
     def default_config_path(cls):
         return "configs/datasets/snli/defaults.yaml"
-    
+
     def _download_vis(self):
         pass
