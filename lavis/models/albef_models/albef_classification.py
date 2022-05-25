@@ -61,7 +61,6 @@ class AlbefClassification(BaseModel, MomentumDistilationMixin):
             ]
 
             self.copy_params()
-            self.momentum = momentum
 
     @classmethod
     def default_config_path(cls, model_type="base"):

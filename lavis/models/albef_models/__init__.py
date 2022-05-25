@@ -1,11 +1,11 @@
-import os
 import logging
+import os
 
 import torch
-
+from common.utils import is_url
+from models.vit import interpolate_pos_embed
+from timm.models.hub import download_cached_file
 from transformers import BertTokenizer
-
-from models.blip_models import is_url, download_cached_file, interpolate_pos_embed
 
 
 def init_tokenizer():
@@ -44,12 +44,18 @@ def load_from_pretrained(model, url_or_filename):
     else:
         raise RuntimeError("checkpoint url or path is invalid")
 
-    state_dict = checkpoint["model"]
+    if "model" in checkpoint:
+        state_dict = checkpoint["model"]
+    else:
+        state_dict = checkpoint
 
     state_dict["visual_encoder.pos_embed"] = interpolate_pos_embed(
         state_dict["visual_encoder.pos_embed"], model.visual_encoder
     )
-    if "visual_encoder_m.pos_embed" in model.state_dict().keys():
+    if (
+        "visual_encoder_m.pos_embed" in model.state_dict().keys()
+        and "visual_encoder_m.pos_embed" in state_dict
+    ):
         state_dict["visual_encoder_m.pos_embed"] = interpolate_pos_embed(
             state_dict["visual_encoder_m.pos_embed"], model.visual_encoder_m
         )
@@ -66,6 +72,11 @@ def load_from_pretrained(model, url_or_filename):
                 del state_dict[key]
 
     msg = model.load_state_dict(state_dict, strict=False)
+
+    import pdb
+
+    pdb.set_trace()
+
     logging.info("Missing keys {}".format(msg.missing_keys))
     logging.info("load checkpoint from %s" % url_or_filename)
     return model, msg

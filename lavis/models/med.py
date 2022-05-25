@@ -46,7 +46,7 @@ from transformers.modeling_utils import (
 from transformers.utils import logging
 from transformers.models.bert.configuration_bert import BertConfig
 
-from models.base_model import BaseDecoder, BaseEncoder
+from models.base_model import BaseEncoder
 
 logging.set_verbosity_error()
 logger = logging.get_logger(__name__)
@@ -1111,7 +1111,7 @@ class BertLMHeadModel(BertPreTrainedModel):
         return reordered_past
 
 
-class XBertLMHeadDecoder(BertLMHeadModel, BaseDecoder):
+class XBertLMHeadDecoder(BertLMHeadModel):
     """
     This class decouples the decoder forward logic from the VL model.
     In this way, different VL models can share this decoder as long as

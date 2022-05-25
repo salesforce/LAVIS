@@ -62,12 +62,12 @@ class BaseEncoder(nn.Module):
         return list(self.parameters())[0].device
 
 
-class BaseDecoder(nn.Module):
-    """Base class for decoders."""
+# class BaseDecoder(nn.Module):
+#     """Base class for decoders."""
 
-    def __init__(self):
-        super().__init__()
+#     def __init__(self):
+#         super().__init__()
 
-    def forward(self, samples, enc_out, **kwargs):
-        """ """
-        raise NotImplementedError
+#     def forward(self, samples, enc_out, **kwargs):
+#         """ """
+#         raise NotImplementedError

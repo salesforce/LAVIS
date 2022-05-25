@@ -10,6 +10,7 @@ from .blip_models.blip_retrieval import BlipRetrieval
 from .blip_models.blip_classification import BlipClassification
 
 from .albef_models.albef_classification import AlbefClassification
+from .albef_models.albef_vqa import AlbefVQA
 
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
@@ -17,6 +18,7 @@ from .vit import VisionTransformerEncoder
 __all__ = [
     "BaseModel",
     "AlbefClassification",
+    "AlbefVQA",
     "BlipCaption",
     "BlipBase",
     "BlipITM",
