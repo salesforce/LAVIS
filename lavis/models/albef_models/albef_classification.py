@@ -122,9 +122,6 @@ class AlbefClassification(BaseModel, MomentumDistilationMixin):
             else:
                 loss = F.cross_entropy(prediction, targets)
 
-            import pdb
-
-            pdb.set_trace()
             return {"loss": loss}
         else:
             return {"predictions": prediction, "targets": targets}
