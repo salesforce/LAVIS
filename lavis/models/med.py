@@ -387,9 +387,12 @@ class BertLayer(nn.Module):
 
         # compatibility for ALBEF and BLIP
         try:
-            fusion_layer = config.fusion_layer
+            # ALBEF
+            fusion_layer = self.config.fusion_layer
             add_cross_attention = fusion_layer <= layer_num
         except AttributeError:
+            # BLIP
+            self.config.fusion_layer = self.config.num_hidden_layers
             add_cross_attention = self.config.add_cross_attention
 
         # if self.config.add_cross_attention:

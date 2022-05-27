@@ -1,17 +1,13 @@
-from copy import deepcopy
 import logging
 import os
+from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
 from common.registry import registry
 from common.utils import is_url
-from models.albef_models import (
-    MomentumDistilationMixin,
-    init_tokenizer,
-)
-from models.base_model import BaseModel
-from models.blip_models import tile
+from models.albef_models import init_tokenizer
+from models.base_model import BaseModel, MomentumDistilationMixin, tile
 from models.med import BertConfig, BertLMHeadModel, XBertEncoder
 from models.vit import VisionTransformerEncoder, interpolate_pos_embed
 from timm.models.hub import download_cached_file

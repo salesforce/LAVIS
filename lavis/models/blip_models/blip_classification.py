@@ -2,20 +2,15 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-
-from torch import nn
-
+from common.registry import registry
+from models.base_model import BaseModel, MomentumDistilationMixin
 from models.blip_models import (
-    load_from_pretrained,
     init_tokenizer,
-    MomentumDistilationMixin,
+    load_from_pretrained,
 )
-
-from models.base_model import BaseModel
 from models.med import XBertEncoder
 from models.vit import VisionTransformerEncoder
-
-from common.registry import registry
+from torch import nn
 
 
 @registry.register_model("blip_classification")

@@ -12,27 +12,6 @@ def init_tokenizer():
     return BertTokenizer.from_pretrained("bert-base-uncased")
 
 
-class MomentumDistilationMixin:
-    @torch.no_grad()
-    def copy_params(self):
-        for model_pair in self.model_pairs:
-            for param, param_m in zip(
-                model_pair[0].parameters(), model_pair[1].parameters()
-            ):
-                param_m.data.copy_(param.data)  # initialize
-                param_m.requires_grad = False  # not update by gradient
-
-    @torch.no_grad()
-    def _momentum_update(self):
-        for model_pair in self.model_pairs:
-            for param, param_m in zip(
-                model_pair[0].parameters(), model_pair[1].parameters()
-            ):
-                param_m.data = param_m.data * self.momentum + param.data * (
-                    1.0 - self.momentum
-                )
-
-
 def load_from_pretrained(model, url_or_filename):
     if is_url(url_or_filename):
         cached_file = download_cached_file(
@@ -72,10 +51,6 @@ def load_from_pretrained(model, url_or_filename):
                 del state_dict[key]
 
     msg = model.load_state_dict(state_dict, strict=False)
-
-    import pdb
-
-    pdb.set_trace()
 
     logging.info("Missing keys {}".format(msg.missing_keys))
     logging.info("load checkpoint from %s" % url_or_filename)

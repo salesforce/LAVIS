@@ -9,12 +9,8 @@ from common.registry import registry
 
 from models.med import XBertEncoder
 from models.vit import VisionTransformerEncoder
-from models.base_model import BaseModel
-from models.albef_models import (
-    init_tokenizer,
-    load_from_pretrained,
-    MomentumDistilationMixin,
-)
+from models.base_model import BaseModel, MomentumDistilationMixin
+from models.albef_models import init_tokenizer, load_from_pretrained
 
 
 @registry.register_model("albef_classification")

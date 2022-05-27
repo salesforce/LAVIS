@@ -3,13 +3,8 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from common.registry import registry
-from models.base_model import BaseModel
-from models.blip_models import (
-    MomentumDistilationMixin,
-    SharedQueueMixin,
-    init_tokenizer,
-    tie_encoder_decoder_weights,
-)
+from models.base_model import BaseModel, MomentumDistilationMixin, SharedQueueMixin
+from models.blip_models import init_tokenizer, tie_encoder_decoder_weights
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder
 from torch import nn
@@ -180,7 +175,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m)
 
-        ###============== Image-text Matching ===================###
+        # Image-text Matching
         encoder_input_ids = text.input_ids.clone()
         encoder_input_ids[:, 0] = self.tokenizer.enc_token_id
 
@@ -247,7 +242,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         ).to(image.device)
         loss_itm = F.cross_entropy(vl_output, itm_labels)
 
-        ##================= LM ========================##
+        # LM
         decoder_input_ids = text.input_ids.clone()
         decoder_input_ids[:, 0] = self.tokenizer.bos_token_id
         decoder_targets = decoder_input_ids.masked_fill(
