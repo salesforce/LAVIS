@@ -991,6 +991,8 @@ class BertLMHeadModel(BertPreTrainedModel):
         is_decoder=True,
         reduction="mean",
         mode="multimodal",
+        soft_labels=None,
+        alpha=0,
     ):
         r"""
         encoder_hidden_states  (:obj:`torch.FloatTensor` of shape :obj:`(batch_size, sequence_length, hidden_size)`, `optional`):
@@ -1065,6 +1067,13 @@ class BertLMHeadModel(BertPreTrainedModel):
             )
             if reduction == "none":
                 lm_loss = lm_loss.view(prediction_scores.size(0), -1).sum(1)
+
+        if soft_labels is not None:
+            loss_distill = -torch.sum(
+                F.log_softmax(shifted_prediction_scores, dim=-1) * soft_labels, dim=-1
+            )
+            loss_distill = (loss_distill * (labels != -100)).sum(1)
+            lm_loss = (1 - alpha) * lm_loss + alpha * loss_distill
 
         if not return_dict:
             output = (prediction_scores,) + outputs[2:]

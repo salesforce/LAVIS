@@ -67,110 +67,133 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         assert model_type in paths, "Unknown model type {}".format(model_type)
         return paths[model_type]
 
-    def forward(
-        self, image, quesiton, answer=None, alpha=0, k=None, weights=None, train=True
-    ):
+    def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
+        return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
 
-        image_embeds = self.visual_encoder(image)
-        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-            image.device
+    def forward(self, samples):
+        multimodal_embeds = self.forward_encoder(samples)
+        decoder_out = self.forward_decoder(samples, encoder_out=multimodal_embeds)
+
+        return decoder_out
+
+    def forward_encoder(self, samples):
+        questions = samples["question"]
+        questions = self.tokenizer(
+            questions,
+            padding="longest",
+            truncation=True,
+            max_length=self.max_txt_len,
+            return_tensors="pt",
+        ).to(self.device)
+        samples.update({"tokenized_text": questions})
+
+        image_embeds = self.visual_encoder(samples["image"])
+        multimodal_embeds = self.text_encoder(
+            tokenized_text=samples["tokenized_text"], visual_embeds=image_embeds
         )
 
-        if train:
-            """
-            k: number of answers for each question
-            weights: weight for each answer
-            """
-            answer_targets = answer.input_ids.masked_fill(
-                answer.input_ids == self.tokenizer.pad_token_id, -100
-            )
-
-            question_output = self.text_encoder(
-                quesiton.input_ids,
-                attention_mask=quesiton.attention_mask,
-                encoder_hidden_states=image_embeds,
-                encoder_attention_mask=image_atts,
-                return_dict=True,
-            )
-
-            question_states = []
-            question_atts = []
-            for b, n in enumerate(k):
-                question_states += [question_output.last_hidden_state[b]] * n
-                question_atts += [quesiton.attention_mask[b]] * n
-            question_states = torch.stack(question_states, 0)
-            question_atts = torch.stack(question_atts, 0)
-
-            if self.distill:
-                with torch.no_grad():
-                    self._momentum_update()
-                    image_embeds_m = self.visual_encoder_m(image)
-                    question_output_m = self.text_encoder_m(
-                        quesiton.input_ids,
-                        attention_mask=quesiton.attention_mask,
-                        encoder_hidden_states=image_embeds_m,
-                        encoder_attention_mask=image_atts,
-                        return_dict=True,
-                    )
-
-                    question_states_m = []
-                    for b, n in enumerate(k):
-                        question_states_m += [
-                            question_output_m.last_hidden_state[b]
-                        ] * n
-                    question_states_m = torch.stack(question_states_m, 0)
-
-                    logits_m = self.text_decoder_m(
-                        answer.input_ids,
-                        attention_mask=answer.attention_mask,
-                        encoder_hidden_states=question_states_m,
-                        encoder_attention_mask=question_atts,
-                        return_logits=True,
-                    )
-
-                answer_output = self.text_decoder(
-                    answer.input_ids,
-                    attention_mask=answer.attention_mask,
-                    encoder_hidden_states=question_states,
-                    encoder_attention_mask=question_atts,
-                    labels=answer_targets,
-                    return_dict=True,
-                    soft_labels=F.softmax(logits_m, dim=-1),
-                    reduction="none",
+        if self.use_distill:
+            self._momentum_update()
+            with torch.no_grad():
+                image_embeds_m = self.visual_encoder_m(samples["image"])
+                multimodal_embeds_m = self.text_encoder_m(
+                    tokenized_text=samples["tokenized_text"],
+                    visual_embeds=image_embeds_m,
                 )
-            else:
-                answer_output = self.text_decoder(
-                    answer.input_ids,
-                    attention_mask=answer.attention_mask,
-                    encoder_hidden_states=question_states,
-                    encoder_attention_mask=question_atts,
-                    labels=answer_targets,
-                    return_dict=True,
-                    reduction="none",
-                )
-            loss = weights * answer_output.loss
-            loss = loss.sum() / image.size(0)
-
-            return loss
-
         else:
-            question_output = self.text_encoder(
-                quesiton.input_ids,
-                attention_mask=quesiton.attention_mask,
-                encoder_hidden_states=image_embeds,
-                encoder_attention_mask=image_atts,
-                return_dict=True,
-            )
-            topk_ids, topk_probs = self.rank_answer(
-                question_output.last_hidden_state,
-                quesiton.attention_mask,
-                answer.input_ids,
-                answer.attention_mask,
-                k,
-            )
-            return topk_ids, topk_probs
+            multimodal_embeds_m = None
 
-    def rank_answer(self, question_states, question_atts, answer_ids, answer_atts, k):
+        return multimodal_embeds, multimodal_embeds_m
+
+    def forward_decoder(self, samples, encoder_out, **kwargs):
+        answers = self.tokenizer(
+            samples["answer"], padding="longest", return_tensors="pt"
+        ).to(self.device)
+        answer_targets = answers.input_ids.masked_fill(
+            answers.input_ids == self.tokenizer.pad_token_id, -100
+        )
+
+        question_states = []
+        question_atts = []
+
+        question = samples["tokenized_text"]
+        question_output, question_output_m = encoder_out
+
+        for b, n in enumerate(samples["n_answers"]):
+            question_states += [question_output.last_hidden_state[b]] * n
+            question_atts += [question.attention_mask[b]] * n
+
+        question_states = torch.stack(question_states, dim=0)
+        question_atts = torch.stack(question_atts, dim=0)
+
+        if self.use_distill:
+            with torch.no_grad():
+                question_states_m = []
+                for b, n in enumerate(samples["n_answers"]):
+                    question_states_m += [question_output_m.last_hidden_state[b]] * n
+                question_states_m = torch.stack(question_states_m, 0)
+
+                logits_m = self.text_decoder_m(
+                    answers.input_ids,
+                    attention_mask=answers.attention_mask,
+                    encoder_hidden_states=question_states_m,
+                    encoder_attention_mask=question_atts,
+                    return_logits=True,
+                )
+
+                alpha = self.alpha * self._rampup_factor(
+                    epoch=samples["epoch"],
+                    iters=samples["iters"],
+                    num_iters_per_epoch=samples["num_iters_per_epoch"],
+                )
+
+        answer_output = self.text_decoder(
+            answers.input_ids,
+            attention_mask=answers.attention_mask,
+            encoder_hidden_states=question_states,
+            encoder_attention_mask=question_atts,
+            labels=answer_targets,
+            soft_labels=F.softmax(logits_m, dim=-1),
+            alpha=alpha,
+            return_dict=True,
+            reduction="none",
+        )
+
+        loss = samples["weight"] * answer_output.loss
+        bsz = samples["image"].size(0)
+
+        loss = loss.sum() / bsz
+
+        return {"loss": loss}
+
+    def predict_answers(
+        self, samples, num_ans_candidates=None, answer_list=None, **kwargs
+    ):
+        return self.rank_answers(
+            samples, answer_list=answer_list, num_ans_candidates=num_ans_candidates
+        )
+
+    def rank_answers(self, samples, answer_list, num_ans_candidates):
+        """
+        Generate the first token of answers using decoder and select ${num_ans_candidates}
+        most probable ones. Then select answers from answer list, which start with the probable tokens.
+        Lastly, use the selected answers as the ground-truth labels for decoding and calculating LM loss.
+        Return the answers that minimize the losses as result.
+
+        """
+        answer_candidates = self.tokenizer(
+            answer_list, padding="longest", return_tensors="pt"
+        ).to(self.device)
+        # answer_candidates.input_ids[:, 0] = self.tokenizer.bos_token_id
+
+        answer_ids = answer_candidates.input_ids
+        answer_atts = answer_candidates.attention_mask
+
+        question_output, _ = self.forward_encoder(samples)
+        question_states = question_output.last_hidden_state
+
+        tokenized_question = samples["tokenized_text"]
+        question_atts = tokenized_question.attention_mask
 
         num_ques = question_states.size(0)
         start_ids = answer_ids[0, 0].repeat(num_ques, 1)  # bos token
@@ -190,7 +213,7 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         prob_first_token = F.softmax(logits, dim=1).index_select(
             dim=1, index=answer_first_token
         )
-        topk_probs, topk_ids = prob_first_token.topk(k, dim=1)
+        topk_probs, topk_ids = prob_first_token.topk(num_ans_candidates, dim=1)
 
         # answer input: [num_question*k, answer_len]
         input_ids = []
@@ -206,8 +229,8 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         )
 
         # repeat encoder's output for top-k answers
-        question_states = tile(question_states, 0, k)
-        question_atts = tile(question_atts, 0, k)
+        question_states = tile(question_states, 0, num_ans_candidates)
+        question_atts = tile(question_atts, 0, num_ans_candidates)
 
         output = self.text_decoder(
             input_ids,
@@ -219,30 +242,21 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
             reduction="none",
         )
 
-        answer_loss = output.loss
-        answer_loss = answer_loss.view(input_ids.size(0), -1)
+        log_probs_sum = -output.loss
+        log_probs_sum = log_probs_sum.view(num_ques, num_ans_candidates)
 
-        # topk_prob: first token probability
-        topk_probs = topk_probs.view(-1, 1)
-        log_probs = torch.cat([topk_probs.log(), -answer_loss], dim=1)
+        max_topk_ids = log_probs_sum.argmax(dim=1)
+        max_ids = topk_ids[max_topk_ids >= 0, max_topk_ids]
 
-        # re-calculate log probabilities for the answer sequences using chain rule
-        log_probs_sum = log_probs.sum(1)
-        log_probs_sum = log_probs_sum.view(num_ques, k)
+        answers = [answer_list[max_id] for max_id in max_ids]
 
-        topk_probs = F.softmax(log_probs_sum, dim=-1)
-        # get top-k after re-ranking
-        topk_probs, rerank_id = topk_probs.topk(k, dim=1)
-        topk_ids = torch.gather(topk_ids, 1, rerank_id)
-
-        return topk_ids, topk_probs
+        return answers
 
     @classmethod
     def _build_from_cfg(cls, cfg=None):
         image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
 
         text_encoder = XBertEncoder.build_from_cfg(cfg)
-        # text_decoder = XBertLMHeadDecoder.build_from_cfg(cfg)
 
         config_decoder = BertConfig.from_json_file(cfg["med_config_path"])
         config_decoder.fusion_layer = 0
@@ -254,9 +268,9 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         alpha = cfg.get("alpha", 0.4)
         momentum = cfg.get("momentum", 0.995)
         use_distill = cfg.get("use_distill", True)
-        max_txt_len = cfg.get("max_txt_len", 40)
+        max_txt_len = cfg.get("max_txt_len", 25)
 
-        init_decoder_as_encoder = cfg.get("init_decoder_as_encoder")
+        init_decoder_as_encoder = cfg["init_decoder_as_encoder"]
 
         model = cls(
             image_encoder=image_encoder,
@@ -274,12 +288,13 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
             model, msg = load_from_pretrained(
                 model,
                 url_or_filename=pretrain_path,
+                init_decoder_as_encoder=init_decoder_as_encoder,
             )
 
         return model
 
 
-def load_from_pretrained(model, url_or_filename):
+def load_from_pretrained(model, url_or_filename, init_decoder_as_encoder):
     if is_url(url_or_filename):
         cached_file = download_cached_file(
             url_or_filename, check_hash=False, progress=True
@@ -312,23 +327,25 @@ def load_from_pretrained(model, url_or_filename):
             state_dict[encoder_key] = state_dict[key]
 
         # intialize text decoder as multimodal encoder (last 6 layers of model.text_encoder)
-        if "text_encoder" in key:
-            if "layer" in key:
-                encoder_keys = key.split(".")
-                layer_num = int(encoder_keys[4])
-                if layer_num < 6:
-                    del state_dict[key]
-                    continue
-                else:
-                    decoder_layer_num = layer_num - 6
-                    encoder_keys[4] = str(decoder_layer_num)
-                    encoder_key = ".".join(encoder_keys)
-            else:
-                encoder_key = key
-            decoder_key = encoder_key.replace("text_encoder", "text_decoder")
-            state_dict[decoder_key] = state_dict[key]
+        if init_decoder_as_encoder:
+            if "text_encoder" in key:
+                if "layer" in key:
+                    encoder_keys = key.split(".")
+                    layer_num = int(encoder_keys[4])
 
-            del state_dict[key]
+                    if layer_num < 6:
+                        del state_dict[key]
+                        continue
+                    else:
+                        decoder_layer_num = layer_num - 6
+                        encoder_keys[4] = str(decoder_layer_num)
+                        encoder_key = ".".join(encoder_keys)
+                else:
+                    encoder_key = key
+                decoder_key = encoder_key.replace("text_encoder", "text_decoder")
+                state_dict[decoder_key] = state_dict[key]
+
+                del state_dict[key]
 
     for key in model.state_dict().keys():
         if key in state_dict.keys():
@@ -337,17 +354,6 @@ def load_from_pretrained(model, url_or_filename):
 
     msg = model.load_state_dict(state_dict, strict=False)
     logging.info("load checkpoint from %s" % url_or_filename)
-    logging.info(msg.missing_keys)
+    logging.info(f"missing keys: {msg.missing_keys}")
 
     return model, msg
-
-
-# def tile(x, dim, n_tile):
-#     init_dim = x.size(dim)
-#     repeat_idx = [1] * x.dim()
-#     repeat_idx[dim] = n_tile
-#     x = x.repeat(*(repeat_idx))
-#     order_index = torch.LongTensor(
-#         np.concatenate([init_dim * np.arange(n_tile) + i for i in range(init_dim)])
-#     )
-#     return torch.index_select(x, dim, order_index.to(x.device))

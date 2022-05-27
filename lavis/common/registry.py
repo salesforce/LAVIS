@@ -83,7 +83,7 @@ class Registry:
         """
 
         def wrap(model_cls):
-            from tasks.base_task import BaseModel
+            from models import BaseModel
 
             assert issubclass(
                 model_cls, BaseModel
