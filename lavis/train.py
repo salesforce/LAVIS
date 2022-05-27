@@ -7,18 +7,18 @@ import torch
 import torch.backends.cudnn as cudnn
 from omegaconf import OmegaConf
 
-import tasks
 import common.utils as utils
+import tasks
+from common.config import Config
+from common.optims import LinearWarmupCosineLRScheduler, LinearWarmupStepLRScheduler
 from common.registry import registry
 
 # imports modules for registration
 from datasets.builders import *
-from common.optims import LinearWarmupCosineLRScheduler, LinearWarmupStepLRScheduler
 from models import *
 from processors import *
 from runners.runner_base import Runner
 from tasks import *
-from common.config import Config
 
 
 def parse_args():
