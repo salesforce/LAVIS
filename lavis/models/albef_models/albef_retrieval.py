@@ -112,12 +112,6 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             return_tensors="pt",
         ).to(self.device)
 
-        # text_output = self.text_encoder(
-        #     text.input_ids,
-        #     attention_mask=text.attention_mask,
-        #     return_dict=True,
-        #     mode="text",
-        # )
         text_output = self.text_encoder.forward_text_embeds(text)
 
         text_embeds = text_output.last_hidden_state
@@ -248,47 +242,6 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             "loss_ita": loss_ita,
             "loss_itm": loss_itm,
         }
-
-    def mask(
-        self,
-        input_ids,
-        vocab_size,
-        device,
-        targets=None,
-        masked_indices=None,
-        probability_matrix=None,
-    ):
-        if masked_indices is None:
-            masked_indices = torch.bernoulli(probability_matrix).bool()
-
-        masked_indices[input_ids == self.tokenizer.pad_token_id] = False
-        masked_indices[input_ids == self.tokenizer.cls_token_id] = False
-
-        if targets is not None:
-            targets[~masked_indices] = -100  # We only compute loss on masked tokens
-
-        # 80% of the time, we replace masked input tokens with tokenizer.mask_token ([MASK])
-        indices_replaced = (
-            torch.bernoulli(torch.full(input_ids.shape, 0.8)).bool() & masked_indices
-        )
-        input_ids[indices_replaced] = self.tokenizer.mask_token_id
-
-        # 10% of the time, we replace masked input tokens with random word
-        indices_random = (
-            torch.bernoulli(torch.full(input_ids.shape, 0.5)).bool()
-            & masked_indices
-            & ~indices_replaced
-        )
-        random_words = torch.randint(vocab_size, input_ids.shape, dtype=torch.long).to(
-            device
-        )
-        input_ids[indices_random] = random_words[indices_random]
-        # The rest of the time (10% of the time) we keep the masked input tokens unchanged
-
-        if targets is not None:
-            return input_ids, targets
-        else:
-            return input_ids
 
     @classmethod
     def _build_from_cfg(cls, cfg=None):
