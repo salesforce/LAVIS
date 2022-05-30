@@ -437,18 +437,37 @@ class BertLayer(nn.Module):
                 encoder_hidden_states is not None
             ), "encoder_hidden_states must be given for cross-attention layers"
 
-            cross_attention_outputs = self.crossattention(
-                attention_output,
-                attention_mask,
-                head_mask,
-                encoder_hidden_states,
-                encoder_attention_mask,
-                output_attentions=output_attentions,
-            )
-            attention_output = cross_attention_outputs[0]
-            outputs = (
-                outputs + cross_attention_outputs[1:-1]
-            )  # add cross attentions if we output attention weights
+            if isinstance(encoder_hidden_states, list):
+                cross_attention_outputs = self.crossattention(
+                    attention_output,
+                    attention_mask,
+                    head_mask,
+                    encoder_hidden_states[
+                        (self.layer_num - self.config.fusion_layer)
+                        % len(encoder_hidden_states)
+                    ],
+                    encoder_attention_mask[
+                        (self.layer_num - self.config.fusion_layer)
+                        % len(encoder_hidden_states)
+                    ],
+                    output_attentions=output_attentions,
+                )
+                attention_output = cross_attention_outputs[0]
+                outputs = outputs + cross_attention_outputs[1:-1]
+
+            else:
+                cross_attention_outputs = self.crossattention(
+                    attention_output,
+                    attention_mask,
+                    head_mask,
+                    encoder_hidden_states,
+                    encoder_attention_mask,
+                    output_attentions=output_attentions,
+                )
+                attention_output = cross_attention_outputs[0]
+                outputs = (
+                    outputs + cross_attention_outputs[1:-1]
+                )  # add cross attentions if we output attention weights
         layer_output = apply_chunking_to_forward(
             self.feed_forward_chunk,
             self.chunk_size_feed_forward,

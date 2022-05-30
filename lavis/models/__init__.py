@@ -11,12 +11,14 @@ from .albef_models.albef_classification import AlbefClassification
 from .albef_models.albef_vqa import AlbefVQA
 from .albef_models.albef_pretrain import AlbefPretrain
 from .albef_models.albef_retrieval import AlbefRetrieval
+from .albef_models.albef_nlvr import AlbefNLVR
 
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
 
 __all__ = [
     "AlbefClassification",
+    "AlbefNLVR",
     "AlbefVQA",
     "AlbefPretrain",
     "AlbefRetrieval",
