@@ -82,6 +82,7 @@ class SharedQueueMixin:
         self.text_queue[:, ptr : ptr + batch_size] = text_feats.T
 
         if idxs is not None:
+            idxs = concat_all_gather(idxs)
             self.idx_queue[:, ptr : ptr + batch_size] = idxs.T
 
         ptr = (ptr + batch_size) % self.queue_size  # move pointer

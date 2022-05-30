@@ -3,7 +3,7 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from common.registry import registry
-from models.albef_models import init_tokenizer
+from models.albef_models import init_tokenizer, load_from_pretrained
 from models.base_model import BaseModel, MomentumDistilationMixin, SharedQueueMixin
 from models.med import BertModel, XBertEncoder
 from models.vit import VisionTransformerEncoder
@@ -260,7 +260,7 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         assert queue_size, "queue_size must be specified."
 
-        return cls(
+        model = cls(
             image_encoder=image_encoder,
             text_encoder=text_encoder,
             queue_size=queue_size,
@@ -271,3 +271,12 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             max_txt_len=max_txt_len,
             use_distill=use_distill,
         )
+
+        pretrain_path = cfg.get("pretrained", None)
+        if pretrain_path is not None:
+            model, msg = load_from_pretrained(
+                model,
+                url_or_filename=pretrain_path,
+            )
+
+        return model

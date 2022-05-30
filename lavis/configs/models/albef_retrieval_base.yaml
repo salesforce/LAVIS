@@ -1,5 +1,6 @@
 model:
   arch: albef_retrieval
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
 
   # vit encoder
   vit_type: "base"

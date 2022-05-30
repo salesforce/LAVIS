@@ -175,8 +175,7 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         loss_ita = (loss_i2t + loss_t2i) / 2
 
-        idxs = concat_all_gather(idx)
-        self._dequeue_and_enqueue(image_feat_m, text_feat_m, idxs)
+        self._dequeue_and_enqueue(image_feat_m, text_feat_m, idx)
 
         # Image-text Matching
         encoder_input_ids = text.input_ids.clone()
@@ -192,6 +191,7 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             return_dict=True,
         )
 
+        idxs = concat_all_gather(idx)
         if self.negative_all_rank:
             # compute sample similarity
             with torch.no_grad():
