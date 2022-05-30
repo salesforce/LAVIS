@@ -50,7 +50,7 @@ run:
   inference_method: "rank" 
 
   seed: 42 
-  output_dir: "output/VQA"
+  output_dir: "output/ALBEF/VQA"
 
   evaluate: True
   train_splits: ["train"]

@@ -1,5 +1,3 @@
-import torch
-
 from .base_model import BaseModel
 
 from .blip_models.blip import BlipBase, BlipITM
@@ -12,6 +10,7 @@ from .blip_models.blip_classification import BlipClassification
 from .albef_models.albef_classification import AlbefClassification
 from .albef_models.albef_vqa import AlbefVQA
 from .albef_models.albef_pretrain import AlbefPretrain
+from .albef_models.albef_retrieval import AlbefRetrieval
 
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
@@ -20,6 +19,7 @@ __all__ = [
     "AlbefClassification",
     "AlbefVQA",
     "AlbefPretrain",
+    "AlbefRetrieval",
     "BaseModel",
     "BlipBase",
     "BlipCaption",

@@ -2,25 +2,24 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from transformers import BertConfig
 from common.registry import registry
 from models.albef_models import init_tokenizer
 from models.base_model import BaseModel, MomentumDistilationMixin, SharedQueueMixin
-from models.med import BertForMaskedLM
+from models.med import BertModel, XBertEncoder
 from models.vit import VisionTransformerEncoder
 from torch import nn
 
 
-@registry.register_model("albef_pretrain")
-class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+@registry.register_model("albef_retrieval")
+class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     def __init__(
         self,
         image_encoder,
         text_encoder,
         queue_size,
         embed_dim=256,
-        mlm_mask_prob=0.15,
         temp=0.07,
+        use_distill=True,
         momentum=0.995,
         alpha=0.4,
         max_txt_len=30,
@@ -58,6 +57,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         # create the queue
         self.register_buffer("image_queue", torch.randn(embed_dim, queue_size))
         self.register_buffer("text_queue", torch.randn(embed_dim, queue_size))
+        self.register_buffer("idx_queue", torch.full((1, queue_size), -100))
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
 
         self.image_queue = nn.functional.normalize(self.image_queue, dim=0)
@@ -69,13 +69,12 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         self.alpha = alpha
         self.max_txt_len = max_txt_len
-
-        self.mlm_probability = mlm_mask_prob
+        self.use_distill = use_distill
 
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/albef_pretrain_base.yaml",
+            "base": "configs/models/albef_retrieval_base.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
@@ -87,6 +86,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     def forward(self, samples):
         image = samples["image"]
         caption = samples["text_input"]
+        idx = samples["image_id"]
 
         alpha = self.alpha * self._rampup_factor(
             epoch=samples["epoch"],
@@ -102,6 +102,8 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             self.device
         )
 
+        image_feat = F.normalize(self.vision_proj(image_embeds[:, 0, :]), dim=-1)
+
         text = self.tokenizer(
             caption,
             padding="max_length",
@@ -110,18 +112,22 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             return_tensors="pt",
         ).to(self.device)
 
-        image_feat = F.normalize(self.vision_proj(image_embeds[:, 0, :]), dim=-1)
+        # text_output = self.text_encoder(
+        #     text.input_ids,
+        #     attention_mask=text.attention_mask,
+        #     return_dict=True,
+        #     mode="text",
+        # )
+        text_output = self.text_encoder.forward_text_embeds(text)
 
-        text_output = self.text_encoder.bert(
-            text.input_ids,
-            attention_mask=text.attention_mask,
-            return_dict=True,
-            mode="text",
-        )
         text_embeds = text_output.last_hidden_state
         text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
 
-        # get momentum features
+        idx = idx.view(-1, 1)
+        idx_all = torch.cat([idx.t(), self.idx_queue.clone().detach()], dim=1)
+        pos_idx = torch.eq(idx, idx_all).float()
+        sim_targets = pos_idx / pos_idx.sum(1, keepdim=True)
+
         with torch.no_grad():
             self._momentum_update()
             image_embeds_m = self.visual_encoder_m(image)
@@ -131,12 +137,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             image_feat_all = torch.cat(
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
-            text_output_m = self.text_encoder_m.bert(
-                text.input_ids,
-                attention_mask=text.attention_mask,
-                return_dict=True,
-                mode="text",
-            )
+            text_output_m = self.text_encoder_m.forward_text_embeds(text)
             text_feat_m = F.normalize(
                 self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
             )
@@ -144,35 +145,40 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
                 [text_feat_m.t(), self.text_queue.clone().detach()], dim=1
             )
 
-            sim_i2t_m = image_feat_m @ text_feat_all / self.temp
-            sim_t2i_m = text_feat_m @ image_feat_all / self.temp
+            if self.use_distill:
+                sim_i2t_m = image_feat_m @ text_feat_all / self.temp
+                sim_t2i_m = text_feat_m @ image_feat_all / self.temp
 
-            sim_targets = torch.zeros(sim_i2t_m.size()).to(image.device)
-            sim_targets.fill_diagonal_(1)
-
-            sim_i2t_targets = (
-                alpha * F.softmax(sim_i2t_m, dim=1) + (1 - alpha) * sim_targets
-            )
-            sim_t2i_targets = (
-                alpha * F.softmax(sim_t2i_m, dim=1) + (1 - alpha) * sim_targets
-            )
+                sim_i2t_targets = (
+                    alpha * F.softmax(sim_i2t_m, dim=1) + (1 - alpha) * sim_targets
+                )
+                sim_t2i_targets = (
+                    alpha * F.softmax(sim_t2i_m, dim=1) + (1 - alpha) * sim_targets
+                )
 
         sim_i2t = image_feat @ text_feat_all / self.temp
         sim_t2i = text_feat @ image_feat_all / self.temp
 
-        loss_i2t = -torch.sum(
-            F.log_softmax(sim_i2t, dim=1) * sim_i2t_targets, dim=1
-        ).mean()
-        loss_t2i = -torch.sum(
-            F.log_softmax(sim_t2i, dim=1) * sim_t2i_targets, dim=1
-        ).mean()
+        if self.use_distill:
+            loss_i2t = -torch.sum(
+                F.log_softmax(sim_i2t, dim=1) * sim_i2t_targets, dim=1
+            ).mean()
+            loss_t2i = -torch.sum(
+                F.log_softmax(sim_t2i, dim=1) * sim_t2i_targets, dim=1
+            ).mean()
+        else:
+            loss_i2t = -torch.sum(
+                F.log_softmax(sim_i2t, dim=1) * sim_targets, dim=1
+            ).mean()
+            loss_t2i = -torch.sum(
+                F.log_softmax(sim_t2i, dim=1) * sim_targets, dim=1
+            ).mean()
 
         loss_ita = (loss_i2t + loss_t2i) / 2
 
-        self._dequeue_and_enqueue(image_feat_m, text_feat_m)
+        self._dequeue_and_enqueue(image_feat_m, text_feat_m, idx)
 
-        # forward the positve image-text pair
-        output_pos = self.text_encoder.bert(
+        output_pos = super(type(self.text_encoder), self.text_encoder).forward(
             encoder_embeds=text_embeds,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
@@ -180,13 +186,15 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             return_dict=True,
             mode="fusion",
         )
+
         with torch.no_grad():
             bs = image.size(0)
-            weights_i2t = F.softmax(sim_i2t[:, :bs], dim=1)
-            weights_t2i = F.softmax(sim_t2i[:, :bs], dim=1)
+            weights_i2t = F.softmax(sim_i2t[:, :bs] + 1e-4, dim=1)
+            weights_t2i = F.softmax(sim_t2i[:, :bs] + 1e-4, dim=1)
 
-            weights_i2t.fill_diagonal_(0)
-            weights_t2i.fill_diagonal_(0)
+            mask = torch.eq(idx, idx.T)
+            weights_i2t.masked_fill_(mask, 0)
+            weights_t2i.masked_fill_(mask, 0)
 
         # select a negative image for each text
         image_embeds_neg = []
@@ -211,7 +219,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         image_embeds_all = torch.cat([image_embeds_neg, image_embeds], dim=0)
         image_atts_all = torch.cat([image_atts, image_atts], dim=0)
 
-        output_neg = self.text_encoder.bert(
+        output_neg = super(type(self.text_encoder), self.text_encoder).forward(
             encoder_embeds=text_embeds_all,
             attention_mask=text_atts_all,
             encoder_hidden_states=image_embeds_all,
@@ -235,45 +243,10 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         ).to(self.device)
         loss_itm = F.cross_entropy(vl_output, itm_labels)
 
-        # MLM
-        input_ids = text.input_ids.clone()
-        labels = input_ids.clone()
-
-        probability_matrix = torch.full(labels.shape, self.mlm_probability)
-        input_ids, labels = self.mask(
-            input_ids,
-            self.text_encoder.config.vocab_size,
-            self.device,
-            targets=labels,
-            probability_matrix=probability_matrix,
-        )
-
-        with torch.no_grad():
-            logits_m = self.text_encoder_m(
-                input_ids,
-                attention_mask=text.attention_mask,
-                encoder_hidden_states=image_embeds_m,
-                encoder_attention_mask=image_atts,
-                return_dict=True,
-                return_logits=True,
-            )
-        mlm_output = self.text_encoder(
-            input_ids,
-            attention_mask=text.attention_mask,
-            encoder_hidden_states=image_embeds,
-            encoder_attention_mask=image_atts,
-            return_dict=True,
-            labels=labels,
-            soft_labels=F.softmax(logits_m, dim=-1),
-            alpha=alpha,
-        )
-        loss_mlm = mlm_output.loss
-
         return {
-            "loss": loss_ita + loss_itm + loss_mlm,
+            "loss": loss_ita + loss_itm,
             "loss_ita": loss_ita,
             "loss_itm": loss_itm,
-            "loss_mlm": loss_mlm,
         }
 
     def mask(
@@ -320,21 +293,17 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     @classmethod
     def _build_from_cfg(cls, cfg=None):
         image_encoder = VisionTransformerEncoder.build_from_cfg(
-            cfg, from_pretrained=True
+            cfg, from_pretrained=False
         )
-        config_text_encoder = BertConfig.from_json_file(cfg["med_config_path"])
-        config_text_encoder.fusion_layer = 6
-        text_encoder = BertForMaskedLM.from_pretrained(
-            "bert-base-uncased", config=config_text_encoder
-        )
+        text_encoder = XBertEncoder.build_from_cfg(cfg)
 
         embed_dim = cfg.get("embed_dim", 256)
         momentum = cfg.get("momentum", 0.995)
         alpha = cfg.get("alpha", 0.4)
-        mlm_mask_prob = cfg.get("mlm_mask_prob", 0.15)
         temp = cfg.get("temp", 0.07)
         max_txt_len = cfg.get("max_txt_len", 30)
         queue_size = cfg.get("queue_size", None)
+        use_distill = cfg.get("use_distill", True)
 
         assert queue_size, "queue_size must be specified."
 
@@ -343,9 +312,9 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             text_encoder=text_encoder,
             queue_size=queue_size,
             embed_dim=embed_dim,
-            mlm_mask_prob=mlm_mask_prob,
             temp=temp,
             momentum=momentum,
             alpha=alpha,
             max_txt_len=max_txt_len,
+            use_distill=use_distill,
         )

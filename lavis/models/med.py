@@ -432,7 +432,7 @@ class BertLayer(nn.Module):
 
         # TODO line 482 in albef/models/xbert.py
         # compatibility for ALBEF and BLIP
-        if mode == "multimodal" and hasattr(self, "crossattention"):
+        if mode in ["multimodal", "fusion"] and hasattr(self, "crossattention"):
             assert (
                 encoder_hidden_states is not None
             ), "encoder_hidden_states must be given for cross-attention layers"

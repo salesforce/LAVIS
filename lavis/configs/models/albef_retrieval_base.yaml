@@ -1,9 +1,9 @@
 model:
-  arch: albef_pretrain
+  arch: albef_retrieval
 
   # vit encoder
   vit_type: "base"
-  image_size: 224
+  image_size: 384
   vit_ckpt_layer: 0
   vit_drop_path_rate: 0
   vit_layer_norm_epsilon: 1e-6
@@ -11,11 +11,11 @@ model:
 
   # bert config
   med_config_path: "configs/models/med_config_albef.json"
-  mlm_mask_prob: 0.15
 
   embed_dim: 256
   momentum: 0.995
   alpha: 0.4
   temp: 0.07
+  use_distill: True
 
   max_txt_len: 30
