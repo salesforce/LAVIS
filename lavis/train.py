@@ -47,7 +47,8 @@ def setup_seeds(config):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    cudnn.benchmark = True
+    cudnn.benchmark = False
+    cudnn.deterministic = True
 
 
 def main():
