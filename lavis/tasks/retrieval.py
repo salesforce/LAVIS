@@ -80,7 +80,8 @@ class RetrievalTask(BaseTask):
         text_embeds = torch.cat(text_embeds, dim=0)
         text_ids = torch.cat(text_ids, dim=0)
         text_atts = torch.cat(text_atts, dim=0)
-        text_ids[:, 0] = model.tokenizer.enc_token_id
+        if hasattr(model.tokenizer, "enc_token_id"):
+            text_ids[:, 0] = model.tokenizer.enc_token_id
 
         image_feats = []
         image_embeds = []

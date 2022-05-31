@@ -3,15 +3,14 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from common.registry import registry
-from models.base_model import BaseModel
-from models.blip_models import (
+from models.base_model import (
+    BaseModel,
     MomentumDistilationMixin,
     SharedQueueMixin,
     all_gather_with_grad,
     concat_all_gather,
-    init_tokenizer,
-    load_from_pretrained,
 )
+from models.blip_models import init_tokenizer, load_from_pretrained
 from models.med import XBertEncoder
 from models.vit import VisionTransformerEncoder
 from torch import nn
@@ -127,7 +126,7 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             self.text_proj(text_output.last_hidden_state[:, 0, :]), dim=-1
         )
 
-        ###============== Image-text Contrastive Learning ===================###
+        # Image-text Contrastive Learning
         idx = idx.view(-1, 1)
         idx_all = torch.cat([idx.t(), self.idx_queue.clone().detach()], dim=1)
         pos_idx = torch.eq(idx, idx_all).float()
@@ -176,10 +175,9 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         loss_ita = (loss_i2t + loss_t2i) / 2
 
-        idxs = concat_all_gather(idx)
-        self._dequeue_and_enqueue(image_feat_m, text_feat_m, idxs)
+        self._dequeue_and_enqueue(image_feat_m, text_feat_m, idx)
 
-        ###============== Image-text Matching ===================###
+        # Image-text Matching
         encoder_input_ids = text.input_ids.clone()
         encoder_input_ids[:, 0] = self.tokenizer.enc_token_id
 
@@ -193,6 +191,7 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             return_dict=True,
         )
 
+        idxs = concat_all_gather(idx)
         if self.negative_all_rank:
             # compute sample similarity
             with torch.no_grad():

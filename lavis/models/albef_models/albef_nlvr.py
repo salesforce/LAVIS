@@ -2,19 +2,19 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.base_model import BaseModel, MomentumDistilationMixin
-from models.blip_models import (
-    init_tokenizer,
-    load_from_pretrained,
-)
-from models.med import XBertEncoder
-from models.vit import VisionTransformerEncoder
+
 from torch import nn
+from transformers import BertConfig
+
+from common.registry import registry
+from models.med import BertModel
+from models.vit import VisionTransformerEncoder
+from models.base_model import BaseModel, MomentumDistilationMixin
+from models.albef_models import init_tokenizer, load_from_pretrained
 
 
-@registry.register_model("blip_classification")
-class BlipClassification(BaseModel, MomentumDistilationMixin):
+@registry.register_model("albef_nlvr")
+class AlbefNLVR(BaseModel, MomentumDistilationMixin):
     def __init__(
         self,
         image_encoder,
@@ -22,12 +22,13 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         num_classes,
         momentum=0.995,
         alpha=0.4,
-        max_txt_len=40,
         use_distill=True,
+        max_txt_len=40,
     ):
         super().__init__()
 
         self.tokenizer = init_tokenizer()
+        self.max_txt_len = max_txt_len
 
         self.use_distill = use_distill
 
@@ -41,10 +42,14 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
             nn.Linear(hidden_size, num_classes),
         )
 
+        self.share_cross_attention(self.text_encoder.encoder)
+
         if self.use_distill:
             self.visual_encoder_m = deepcopy(self.visual_encoder)
             self.text_encoder_m = deepcopy(self.text_encoder)
             self.cls_head_m = deepcopy(self.cls_head)
+
+            self.share_cross_attention(self.text_encoder_m.encoder)
 
             self.momentum = momentum
             self.alpha = alpha
@@ -57,36 +62,50 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
             self.copy_params()
 
-        self.max_txt_len = max_txt_len
-
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_ve_base.yaml",
-            # "large": "configs/models/blip_pretrain_large.yaml"
+            "base": "configs/models/albef_nlvr_base.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
         return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
-        return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
+        return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples, is_train=True):
-        sentences = samples["text_input"]
-        sentences = self.tokenizer(
-            sentences,
+        text = samples["text_input"]
+        text = self.tokenizer(
+            text,
             padding="longest",
             truncation=True,
             max_length=self.max_txt_len,
             return_tensors="pt",
         ).to(self.device)
-        samples.update({"tokenized_text": sentences})
 
         targets = samples["label"]
 
-        image_embeds = self.visual_encoder(samples["image"])
-        multimodal_embeds = self.text_encoder(samples["tokenized_text"], image_embeds)
+        image0 = samples["image0"]
+        image1 = samples["image1"]
+        images = torch.cat([image0, image1], dim=0)
+
+        image_embeds = self.visual_encoder(images)
+        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+            self.device
+        )
+        image0_embeds, image1_embeds = torch.split(image_embeds, targets.size(0))
+
+        multimodal_embeds = self.text_encoder(
+            text.input_ids,
+            attention_mask=text.attention_mask,
+            encoder_hidden_states=[image0_embeds, image1_embeds],
+            encoder_attention_mask=[
+                image_atts[: image0_embeds.size(0)],
+                image_atts[image0_embeds.size(0) :],
+            ],
+            return_dict=True,
+        )
 
         prediction = self.cls_head(multimodal_embeds.last_hidden_state[:, 0, :])
 
@@ -95,9 +114,19 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
                 with torch.no_grad():
                     self._momentum_update()
 
-                    image_embeds_m = self.visual_encoder_m(samples["image"])
-                    multimodal_embeds_m = self.text_encoder_m(
-                        samples["tokenized_text"], image_embeds_m
+                    image_embeds_m = self.visual_encoder_m(images)
+                    image0_embeds_m, image1_embeds_m = torch.split(
+                        image_embeds_m, targets.size(0)
+                    )
+                    multimodal_embeds_m = self.text_encoder(
+                        text.input_ids,
+                        attention_mask=text.attention_mask,
+                        encoder_hidden_states=[image0_embeds_m, image1_embeds_m],
+                        encoder_attention_mask=[
+                            image_atts[: image0_embeds_m.size(0)],
+                            image_atts[image0_embeds_m.size(0) :],
+                        ],
+                        return_dict=True,
                     )
 
                     prediction_m = self.cls_head_m(
@@ -123,6 +152,21 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         else:
             return {"predictions": prediction, "targets": targets}
 
+    def share_cross_attention(self, model):
+        for i in range(6):
+            layer_num = 6 + i * 2
+            modules_0 = model.layer[layer_num].crossattention.self._modules
+            modules_1 = model.layer[layer_num + 1].crossattention.self._modules
+
+            for name in modules_0.keys():
+                if "key" in name or "value" in name:
+                    module_0 = modules_0[name]
+                    module_1 = modules_1[name]
+                    if hasattr(module_0, "weight"):
+                        module_0.weight = module_1.weight
+                        if hasattr(module_0, "bias"):
+                            module_0.bias = module_1.bias
+
     def predict(self, samples):
         output = self.forward(samples, is_train=False)
         return output
@@ -132,11 +176,17 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
 
         # text encoder + multimodal encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
-        use_distill = cfg.get("use_distill", True)
-        momentum = cfg.get("momentum", 0.995)
-        num_classes = cfg.get("num_classes", -1)
+        bert_config = BertConfig.from_json_file(cfg["med_config_path"])
+        bert_config.num_hidden_layers = 18
+
+        text_encoder = BertModel.from_pretrained(
+            "bert-base-uncased", config=bert_config, add_pooling_layer=False
+        )
+
         alpha = cfg.get("alpha", 0.4)
+        momentum = cfg.get("momentum", 0.995)
+        use_distill = cfg.get("use_distill", True)
+        num_classes = cfg.get("num_classes", -1)
         max_txt_len = cfg.get("max_txt_len", 40)
 
         assert num_classes > 1, "Invalid number of classes provided, found {}".format(

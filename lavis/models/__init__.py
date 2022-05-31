@@ -7,18 +7,29 @@ from .blip_models.blip_pretrain import BlipPretrain
 from .blip_models.blip_retrieval import BlipRetrieval
 from .blip_models.blip_classification import BlipClassification
 
+from .albef_models.albef_classification import AlbefClassification
+from .albef_models.albef_vqa import AlbefVQA
+from .albef_models.albef_pretrain import AlbefPretrain
+from .albef_models.albef_retrieval import AlbefRetrieval
+from .albef_models.albef_nlvr import AlbefNLVR
+
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
 
 __all__ = [
+    "AlbefClassification",
+    "AlbefNLVR",
+    "AlbefVQA",
+    "AlbefPretrain",
+    "AlbefRetrieval",
     "BaseModel",
-    "BlipCaption",
     "BlipBase",
+    "BlipCaption",
+    "BlipClassification",
     "BlipITM",
-    "BlipVQA",
     "BlipPretrain",
     "BlipRetrieval",
-    "BlipClassification",
-    "XBertLMHeadDecoder",
+    "BlipVQA",
     "VisionTransformerEncoder",
+    "XBertLMHeadDecoder",
 ]

@@ -402,7 +402,7 @@ def _load_weights(model: VisionTransformer, checkpoint_path: str, prefix: str = 
 def resize_pos_embed(posemb, posemb_new, num_tokens=1, gs_new=()):
     # Rescale the grid of position embeddings when loading from state_dict. Adapted from
     # https://github.com/google-research/vision_transformer/blob/00883dd691c63a6830751563748663526e811cee/vit_jax/checkpoint.py#L224
-    print('Resized position embedding: %s to %s', posemb.shape, posemb_new.shape)
+    print("Resized position embedding: %s to %s", posemb.shape, posemb_new.shape)
     ntok_new = posemb_new.shape[1]
     if num_tokens:
         posemb_tok, posemb_grid = posemb[:, :num_tokens], posemb[0, num_tokens:]
@@ -413,12 +413,14 @@ def resize_pos_embed(posemb, posemb_new, num_tokens=1, gs_new=()):
     if not len(gs_new):  # backwards compatibility
         gs_new = [int(math.sqrt(ntok_new))] * 2
     assert len(gs_new) >= 2
-    print('Position embedding grid-size from %s to %s', [gs_old, gs_old], gs_new)
+    print("Position embedding grid-size from %s to %s", [gs_old, gs_old], gs_new)
     posemb_grid = posemb_grid.reshape(1, gs_old, gs_old, -1).permute(0, 3, 1, 2)
-    posemb_grid = F.interpolate(posemb_grid, size=gs_new, mode='bicubic', align_corners=False)
+    posemb_grid = F.interpolate(
+        posemb_grid, size=gs_new, mode="bicubic", align_corners=False
+    )
     posemb_grid = posemb_grid.permute(0, 2, 3, 1).reshape(1, gs_new[0] * gs_new[1], -1)
     posemb = torch.cat([posemb_tok, posemb_grid], dim=1)
-    return 
+    return
 
 
 def interpolate_pos_embed(pos_embed_checkpoint, visual_encoder):
@@ -459,10 +461,17 @@ class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
 
         vit_type = cfg.get("vit_type", "base")
         image_size = cfg.get("image_size", 384)
-        use_grad_checkpointing = cfg.get("vit_grad_ckpt", False)
         ckpt_layer = cfg.get("vit_ckpt_layer", 0)
         drop_path_rate = cfg.get("vit_drop_path_rate", 0)
+        norm_layer_eps = cfg.get("vit_layer_norm_epsilon", -1)
+        use_grad_checkpointing = cfg.get("vit_grad_ckpt", False)
 
+        if norm_layer_eps == -1:
+            norm_layer = None
+        else:
+            norm_layer = partial(nn.LayerNorm, eps=norm_layer_eps)
+
+        #     norm_layer=partial(nn.LayerNorm, eps=1e-6),
         assert vit_type in ["base", "large"], "vit parameter must be base or large"
         if vit_type == "base":
             vision_width = 768
@@ -475,13 +484,16 @@ class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
                 use_grad_checkpointing=use_grad_checkpointing,
                 ckpt_layer=ckpt_layer,
                 drop_path_rate=0 or drop_path_rate,
+                norm_layer=norm_layer,
             )
 
             if from_pretrained:
                 checkpoint = torch.hub.load_state_dict_from_url(
                     url="https://dl.fbaipublicfiles.com/deit/deit_base_patch16_224-b5f2ef4d.pth",
-                    map_location="cpu", check_hash=True)
-                state_dict = checkpoint["model"]     
+                    map_location="cpu",
+                    check_hash=True,
+                )
+                state_dict = checkpoint["model"]
                 msg = visual_encoder.load_state_dict(state_dict, strict=False)
 
         elif vit_type == "large":
@@ -495,11 +507,15 @@ class VisionTransformerEncoder(VisionTransformer, BaseEncoder):
                 use_grad_checkpointing=use_grad_checkpointing,
                 ckpt_layer=ckpt_layer,
                 drop_path_rate=0.1 or drop_path_rate,
+                norm_layer=norm_layer,
             )
             if from_pretrained:
                 from timm.models.helpers import load_custom_pretrained
                 from timm.models.vision_transformer import default_cfgs
-                load_custom_pretrained(visual_encoder,default_cfgs['vit_large_patch16_224_in21k'])        
+
+                load_custom_pretrained(
+                    visual_encoder, default_cfgs["vit_large_patch16_224_in21k"]
+                )
 
         visual_encoder.vision_width = vision_width
         return visual_encoder

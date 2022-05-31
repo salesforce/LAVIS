@@ -1,0 +1,44 @@
+model:
+  arch: albef_classification
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  num_classes: 3
+
+datasets:
+  snli_ve: # name of the dataset builder
+    vis_processor: 
+        train: 
+          name: "blip_image_train"
+        eval:
+          name: "blip_image_eval"
+    text_processor:
+        train: 
+          name: "blip_caption"
+        eval: 
+          name: "blip_caption"
+
+run:
+  task: multimodal_classification
+  # optimization-specific
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 2e-5
+  min_lr: 0
+  weight_decay: 0.05
+  max_epoch: 10
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 4
+
+  seed: 42 
+  output_dir: "output/ALBEF/SNLI_VE"
+
+  evaluate: False
+  train_splits: ["train"]
+  valid_splits: ["val"]
+  test_splits: ["test"] 
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  

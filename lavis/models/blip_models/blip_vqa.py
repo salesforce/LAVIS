@@ -1,11 +1,8 @@
 import torch
 import torch.nn.functional as F
-
 from common.registry import registry
-
-from models.blip_models import load_from_pretrained, init_tokenizer, tile
-
-from models.base_model import BaseModel
+from models.base_model import BaseModel, tile
+from models.blip_models import init_tokenizer, load_from_pretrained
 from models.med import XBertEncoder, XBertLMHeadDecoder
 from models.vit import VisionTransformerEncoder
 

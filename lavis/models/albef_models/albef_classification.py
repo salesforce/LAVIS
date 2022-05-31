@@ -2,19 +2,19 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.base_model import BaseModel, MomentumDistilationMixin
-from models.blip_models import (
-    init_tokenizer,
-    load_from_pretrained,
-)
-from models.med import XBertEncoder
-from models.vit import VisionTransformerEncoder
+
 from torch import nn
 
+from common.registry import registry
 
-@registry.register_model("blip_classification")
-class BlipClassification(BaseModel, MomentumDistilationMixin):
+from models.med import XBertEncoder
+from models.vit import VisionTransformerEncoder
+from models.base_model import BaseModel, MomentumDistilationMixin
+from models.albef_models import init_tokenizer, load_from_pretrained
+
+
+@registry.register_model("albef_classification")
+class AlbefClassification(BaseModel, MomentumDistilationMixin):
     def __init__(
         self,
         image_encoder,
@@ -22,12 +22,13 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         num_classes,
         momentum=0.995,
         alpha=0.4,
-        max_txt_len=40,
         use_distill=True,
+        max_txt_len=40,
     ):
         super().__init__()
 
         self.tokenizer = init_tokenizer()
+        self.max_txt_len = max_txt_len
 
         self.use_distill = use_distill
 
@@ -57,13 +58,10 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
             self.copy_params()
 
-        self.max_txt_len = max_txt_len
-
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_ve_base.yaml",
-            # "large": "configs/models/blip_pretrain_large.yaml"
+            "base": "configs/models/albef_ve_base.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
@@ -133,10 +131,11 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
         # text encoder + multimodal encoder
         text_encoder = XBertEncoder.build_from_cfg(cfg)
-        use_distill = cfg.get("use_distill", True)
-        momentum = cfg.get("momentum", 0.995)
-        num_classes = cfg.get("num_classes", -1)
+
         alpha = cfg.get("alpha", 0.4)
+        momentum = cfg.get("momentum", 0.995)
+        use_distill = cfg.get("use_distill", True)
+        num_classes = cfg.get("num_classes", -1)
         max_txt_len = cfg.get("max_txt_len", 40)
 
         assert num_classes > 1, "Invalid number of classes provided, found {}".format(

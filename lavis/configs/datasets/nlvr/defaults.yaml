@@ -1,0 +1,19 @@
+datasets:
+  nlvr:
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+    
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train: 
+          url: /export/share/junnan-li/ALBEF/data/nlvr_train.json
+          storage: nlvr/annotations/train.json
+        val:
+          url: /export/share/junnan-li/ALBEF/data/nlvr_dev.json
+          storage: nlvr/annotations/dev.json
+        test: 
+          url: /export/share/junnan-li/ALBEF/data/nlvr_test.json
+          storage: nlvr/annotations/test.json
+      images:
+          storage: /export/share/datasets/vision/NLVR2/ 

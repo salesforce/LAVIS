@@ -2,50 +2,36 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
+from transformers import BertConfig
 from common.registry import registry
+from models.albef_models import init_tokenizer
 from models.base_model import BaseModel, MomentumDistilationMixin, SharedQueueMixin
-from models.blip_models import init_tokenizer, tie_encoder_decoder_weights
-from models.med import XBertEncoder, XBertLMHeadDecoder
+from models.med import BertForMaskedLM
 from models.vit import VisionTransformerEncoder
 from torch import nn
 
 
-@registry.register_model("blip_pretrain")
-class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
+@registry.register_model("albef_pretrain")
+class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     def __init__(
         self,
         image_encoder,
         text_encoder,
-        text_decoder,
         queue_size,
-        alpha=0.4,
         embed_dim=256,
+        mlm_mask_prob=0.15,
+        temp=0.07,
         momentum=0.995,
-        tie_enc_dec_weights=True,
+        alpha=0.4,
         max_txt_len=30,
     ):
-        """ """
         super().__init__()
 
         self.tokenizer = init_tokenizer()
 
-        text_encoder.resize_token_embeddings(len(self.tokenizer))
-        text_decoder.resize_token_embeddings(len(self.tokenizer))
-
-        if tie_enc_dec_weights:
-            tie_encoder_decoder_weights(
-                encoder=text_encoder,
-                decoder=text_decoder.bert,
-                base_model_prefix="",
-                skip_key="/attention",
-            )
-
         self.visual_encoder = image_encoder
-
         self.text_encoder = text_encoder
-        self.text_decoder = text_decoder
 
-        # creating projection layers for ITC
         text_width = text_encoder.config.hidden_size
         vision_width = image_encoder.vision_width
 
@@ -79,16 +65,17 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
 
         self.queue_size = queue_size
         self.momentum = momentum
-        self.temp = nn.Parameter(0.07 * torch.ones([]))
+        self.temp = nn.Parameter(temp * torch.ones([]))
 
         self.alpha = alpha
         self.max_txt_len = max_txt_len
 
+        self.mlm_probability = mlm_mask_prob
+
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_pretrain_base.yaml",
-            "large": "configs/models/blip_pretrain_large.yaml",
+            "base": "configs/models/albef_pretrain_base.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
@@ -112,9 +99,8 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
 
         image_embeds = self.visual_encoder(image)
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-            image.device
+            self.device
         )
-        image_feat = F.normalize(self.vision_proj(image_embeds[:, 0, :]), dim=-1)
 
         text = self.tokenizer(
             caption,
@@ -122,12 +108,18 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
             truncation=True,
             max_length=self.max_txt_len,
             return_tensors="pt",
-        ).to(image.device)
+        ).to(self.device)
 
-        text_output = self.text_encoder.forward_text_embeds(text)
-        text_feat = F.normalize(
-            self.text_proj(text_output.last_hidden_state[:, 0, :]), dim=-1
+        image_feat = F.normalize(self.vision_proj(image_embeds[:, 0, :]), dim=-1)
+
+        text_output = self.text_encoder.bert(
+            text.input_ids,
+            attention_mask=text.attention_mask,
+            return_dict=True,
+            mode="text",
         )
+        text_embeds = text_output.last_hidden_state
+        text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
 
         # get momentum features
         with torch.no_grad():
@@ -139,8 +131,12 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
             image_feat_all = torch.cat(
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
-
-            text_output_m = self.text_encoder_m.forward_text_embeds(text)
+            text_output_m = self.text_encoder_m.bert(
+                text.input_ids,
+                attention_mask=text.attention_mask,
+                return_dict=True,
+                mode="text",
+            )
             text_feat_m = F.normalize(
                 self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
             )
@@ -175,25 +171,22 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m)
 
-        # Image-text Matching
-        encoder_input_ids = text.input_ids.clone()
-        encoder_input_ids[:, 0] = self.tokenizer.enc_token_id
-
         # forward the positve image-text pair
-        bs = image.size(0)
-        output_pos = self.text_encoder.forward_bert(
-            encoder_input_ids,
+        output_pos = self.text_encoder.bert(
+            encoder_embeds=text_embeds,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
             encoder_attention_mask=image_atts,
             return_dict=True,
+            mode="fusion",
         )
-
         with torch.no_grad():
-            weights_t2i = F.softmax(sim_t2i[:, :bs], dim=1) + 1e-4
-            weights_t2i.fill_diagonal_(0)
-            weights_i2t = F.softmax(sim_i2t[:, :bs], dim=1) + 1e-4
+            bs = image.size(0)
+            weights_i2t = F.softmax(sim_i2t[:, :bs], dim=1)
+            weights_t2i = F.softmax(sim_t2i[:, :bs], dim=1)
+
             weights_i2t.fill_diagonal_(0)
+            weights_t2i.fill_diagonal_(0)
 
         # select a negative image for each text
         image_embeds_neg = []
@@ -203,28 +196,28 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         image_embeds_neg = torch.stack(image_embeds_neg, dim=0)
 
         # select a negative text for each image
-        text_ids_neg = []
+        text_embeds_neg = []
         text_atts_neg = []
         for b in range(bs):
             neg_idx = torch.multinomial(weights_i2t[b], 1).item()
-            text_ids_neg.append(encoder_input_ids[neg_idx])
+            text_embeds_neg.append(text_embeds[neg_idx])
             text_atts_neg.append(text.attention_mask[neg_idx])
-
-        text_ids_neg = torch.stack(text_ids_neg, dim=0)
+        text_embeds_neg = torch.stack(text_embeds_neg, dim=0)
         text_atts_neg = torch.stack(text_atts_neg, dim=0)
 
-        text_ids_all = torch.cat([encoder_input_ids, text_ids_neg], dim=0)
+        text_embeds_all = torch.cat([text_embeds, text_embeds_neg], dim=0)
         text_atts_all = torch.cat([text.attention_mask, text_atts_neg], dim=0)
 
         image_embeds_all = torch.cat([image_embeds_neg, image_embeds], dim=0)
         image_atts_all = torch.cat([image_atts, image_atts], dim=0)
 
-        output_neg = self.text_encoder.forward_bert(
-            text_ids_all,
+        output_neg = self.text_encoder.bert(
+            encoder_embeds=text_embeds_all,
             attention_mask=text_atts_all,
             encoder_hidden_states=image_embeds_all,
             encoder_attention_mask=image_atts_all,
             return_dict=True,
+            mode="fusion",
         )
 
         vl_embeddings = torch.cat(
@@ -239,60 +232,120 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         itm_labels = torch.cat(
             [torch.ones(bs, dtype=torch.long), torch.zeros(2 * bs, dtype=torch.long)],
             dim=0,
-        ).to(image.device)
+        ).to(self.device)
         loss_itm = F.cross_entropy(vl_output, itm_labels)
 
-        # LM
-        decoder_input_ids = text.input_ids.clone()
-        decoder_input_ids[:, 0] = self.tokenizer.bos_token_id
-        decoder_targets = decoder_input_ids.masked_fill(
-            decoder_input_ids == self.tokenizer.pad_token_id, -100
+        # MLM
+        input_ids = text.input_ids.clone()
+        labels = input_ids.clone()
+
+        probability_matrix = torch.full(labels.shape, self.mlm_probability)
+        input_ids, labels = self.mask(
+            input_ids,
+            self.text_encoder.config.vocab_size,
+            self.device,
+            targets=labels,
+            probability_matrix=probability_matrix,
         )
 
-        decoder_output = self.text_decoder.forward_bert(
-            decoder_input_ids,
+        with torch.no_grad():
+            logits_m = self.text_encoder_m(
+                input_ids,
+                attention_mask=text.attention_mask,
+                encoder_hidden_states=image_embeds_m,
+                encoder_attention_mask=image_atts,
+                return_dict=True,
+                return_logits=True,
+            )
+        mlm_output = self.text_encoder(
+            input_ids,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
             encoder_attention_mask=image_atts,
-            labels=decoder_targets,
             return_dict=True,
+            labels=labels,
+            soft_labels=F.softmax(logits_m, dim=-1),
+            alpha=alpha,
         )
+        loss_mlm = mlm_output.loss
 
-        loss_lm = decoder_output.loss
         return {
-            "loss": loss_ita + loss_itm + loss_lm,
+            "loss": loss_ita + loss_itm + loss_mlm,
             "loss_ita": loss_ita,
             "loss_itm": loss_itm,
-            "loss_lm": loss_lm,
+            "loss_mlm": loss_mlm,
         }
+
+    def mask(
+        self,
+        input_ids,
+        vocab_size,
+        device,
+        targets=None,
+        masked_indices=None,
+        probability_matrix=None,
+    ):
+        if masked_indices is None:
+            masked_indices = torch.bernoulli(probability_matrix).bool()
+
+        masked_indices[input_ids == self.tokenizer.pad_token_id] = False
+        masked_indices[input_ids == self.tokenizer.cls_token_id] = False
+
+        if targets is not None:
+            targets[~masked_indices] = -100  # We only compute loss on masked tokens
+
+        # 80% of the time, we replace masked input tokens with tokenizer.mask_token ([MASK])
+        indices_replaced = (
+            torch.bernoulli(torch.full(input_ids.shape, 0.8)).bool() & masked_indices
+        )
+        input_ids[indices_replaced] = self.tokenizer.mask_token_id
+
+        # 10% of the time, we replace masked input tokens with random word
+        indices_random = (
+            torch.bernoulli(torch.full(input_ids.shape, 0.5)).bool()
+            & masked_indices
+            & ~indices_replaced
+        )
+        random_words = torch.randint(vocab_size, input_ids.shape, dtype=torch.long).to(
+            device
+        )
+        input_ids[indices_random] = random_words[indices_random]
+        # The rest of the time (10% of the time) we keep the masked input tokens unchanged
+
+        if targets is not None:
+            return input_ids, targets
+        else:
+            return input_ids
 
     @classmethod
     def _build_from_cfg(cls, cfg=None):
-        # set from_pretrained=True to load weights for 'bert-base-uncased'
         image_encoder = VisionTransformerEncoder.build_from_cfg(
             cfg, from_pretrained=True
         )
-        text_encoder = XBertEncoder.build_from_cfg(cfg, from_pretrained=True)
-        text_decoder = XBertLMHeadDecoder.build_from_cfg(cfg, from_pretrained=True)
+        config_text_encoder = BertConfig.from_json_file(cfg["med_config_path"])
+        config_text_encoder.fusion_layer = 6
+        text_encoder = BertForMaskedLM.from_pretrained(
+            "bert-base-uncased", config=config_text_encoder
+        )
 
         embed_dim = cfg.get("embed_dim", 256)
         momentum = cfg.get("momentum", 0.995)
         alpha = cfg.get("alpha", 0.4)
+        mlm_mask_prob = cfg.get("mlm_mask_prob", 0.15)
+        temp = cfg.get("temp", 0.07)
         max_txt_len = cfg.get("max_txt_len", 30)
         queue_size = cfg.get("queue_size", None)
 
         assert queue_size, "queue_size must be specified."
 
-        model = cls(
+        return cls(
             image_encoder=image_encoder,
             text_encoder=text_encoder,
-            text_decoder=text_decoder,
-            embed_dim=embed_dim,
             queue_size=queue_size,
+            embed_dim=embed_dim,
+            mlm_mask_prob=mlm_mask_prob,
+            temp=temp,
             momentum=momentum,
             alpha=alpha,
-            tie_enc_dec_weights=True,
             max_txt_len=max_txt_len,
         )
-
-        return model
