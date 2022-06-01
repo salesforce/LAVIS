@@ -1,10 +1,26 @@
 repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: check-ast
+    -   id: no-commit-to-branch
+        args: ['--branch=master']
+    -   id: check-added-large-files
+        args: ['--maxkb=500']
+    -   id: end-of-file-fixer
+
 -   repo: https://github.com/psf/black
     rev: stable
     hooks:
     - id: black
       language_version: python3.8
-      # -   repo: https://github.com/pre-commit/pre-commit-hooks
-      # rev: v1.2.3
-      # hooks:
-      # - id: flake8
+
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.9.2
+    hooks:
+    -   id: flake8
+        args: [
+            # only error for syntax errors and undefined names
+            "--select=E9,F63,F7,F82",
+        ]
