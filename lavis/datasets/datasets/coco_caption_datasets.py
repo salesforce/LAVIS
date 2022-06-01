@@ -3,7 +3,7 @@ import json
 
 from PIL import Image
 
-from datasets.datasets.caption_datasets import CaptionDataset, CaptionEvalDataset
+from lavis.datasets.datasets.caption_datasets import CaptionDataset, CaptionEvalDataset
 
 COCOCapDataset = CaptionDataset
 

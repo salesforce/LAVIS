@@ -1,10 +1,10 @@
-from .base_processor import BaseProcessor
-from .blip_processors import (
+from lavis.processors.base_processor import BaseProcessor
+from lavis.processors.blip_processors import (
     BlipImageTrainProcessor,
     BlipImageEvalProcessor,
     BlipCaptionProcessor,
 )
-from .blipv2_processors import (
+from lavis.processors.blipv2_processors import (
     BlipV2ImageBaseProcessor,
     BlipV2ImageTrainProcessor,
     BlipV2ImageEvalProcessor,

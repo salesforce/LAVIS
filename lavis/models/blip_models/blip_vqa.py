@@ -1,10 +1,10 @@
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.base_model import BaseModel, tile
-from models.blip_models import init_tokenizer, load_from_pretrained
-from models.med import XBertEncoder, XBertLMHeadDecoder
-from models.vit import VisionTransformerEncoder
+from lavis.common.registry import registry
+from lavis.models.base_model import BaseModel, tile
+from lavis.models.blip_models import init_tokenizer, load_from_pretrained
+from lavis.models.med import XBertEncoder, XBertLMHeadDecoder
+from lavis.models.vit import VisionTransformerEncoder
 
 
 @registry.register_model("blip_vqa")
@@ -23,8 +23,8 @@ class BlipVQA(BaseModel):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_vqa_base.yaml",
-            # "large": "configs/models/blip_vqa_large.yaml"
+            "base": "lavis/configs/models/blip_vqa_base.yaml",
+            # "large": "lavis/configs/models/blip_vqa_large.yaml"
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
@@ -37,8 +37,7 @@ class BlipVQA(BaseModel):
         return decoder_out
 
     def forward_encoder(self, samples):
-        # TODO rename to 'text_input'?
-        questions = samples["question"]
+        questions = samples["text_input"]
         questions = self.tokenizer(
             questions,
             padding="longest",

@@ -9,7 +9,7 @@ model:
   image_size: 384
 
   # bert config
-  med_config_path: "configs/models/med_config.json"
+  med_config_path: "lavis/configs/models/med_config.json"
 
   embed_dim: 256
 

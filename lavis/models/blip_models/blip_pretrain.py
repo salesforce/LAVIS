@@ -2,11 +2,15 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.base_model import BaseModel, MomentumDistilationMixin, SharedQueueMixin
-from models.blip_models import init_tokenizer, tie_encoder_decoder_weights
-from models.med import XBertEncoder, XBertLMHeadDecoder
-from models.vit import VisionTransformerEncoder
+from lavis.common.registry import registry
+from lavis.models.base_model import (
+    BaseModel,
+    MomentumDistilationMixin,
+    SharedQueueMixin,
+)
+from lavis.models.blip_models import init_tokenizer, tie_encoder_decoder_weights
+from lavis.models.med import XBertEncoder, XBertLMHeadDecoder
+from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
@@ -87,8 +91,8 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_pretrain_base.yaml",
-            "large": "configs/models/blip_pretrain_large.yaml",
+            "base": "lavis/configs/models/blip_pretrain_base.yaml",
+            "large": "lavis/configs/models/blip_pretrain_large.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)

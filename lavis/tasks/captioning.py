@@ -1,12 +1,10 @@
 import os
 import json
 
-import torch
+from lavis.tasks.base_task import BaseTask
+from lavis.common.registry import registry
 
-from tasks.base_task import BaseTask
-from common.registry import registry
-
-import common.utils as utils
+import lavis.common.utils as utils
 
 
 @registry.register_task("captioning")

@@ -10,7 +10,7 @@ model:
   vit_grad_ckpt: False
 
   # bert config
-  med_config_path: "configs/models/med_config_albef.json"
+  med_config_path: "lavis/configs/models/med_config_albef.json"
   mlm_mask_prob: 0.15
 
   embed_dim: 256

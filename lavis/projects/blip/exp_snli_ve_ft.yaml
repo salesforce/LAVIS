@@ -29,7 +29,7 @@ run:
   num_workers: 4
 
   seed: 42 
-  output_dir: "output/SNLI_VE"
+  output_dir: "lavis/output/SNLI_VE"
 
   evaluate: False
   train_splits: ["train"]

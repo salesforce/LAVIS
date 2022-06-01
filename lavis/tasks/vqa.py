@@ -2,13 +2,13 @@ import json
 import logging
 import os
 
-import common.utils as utils
+import lavis.common.utils as utils
 import torch.distributed as dist
-from common.registry import registry
-from common.vqa_tools.vqa import VQA
-from common.vqa_tools.vqa_eval import VQAEval
+from lavis.common.registry import registry
+from lavis.common.vqa_tools.vqa import VQA
+from lavis.common.vqa_tools.vqa_eval import VQAEval
 
-from tasks.base_task import BaseTask
+from lavis.tasks.base_task import BaseTask
 
 
 @registry.register_task("vqa")

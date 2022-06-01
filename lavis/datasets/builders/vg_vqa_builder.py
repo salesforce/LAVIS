@@ -1,7 +1,7 @@
-from datasets.builders.base_dataset_builder import BaseDatasetBuilder
-from datasets.datasets.vg_vqa_datasets import VGVQADataset
+from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+from lavis.datasets.datasets.vg_vqa_datasets import VGVQADataset
 
-from common.registry import registry
+from lavis.common.registry import registry
 
 
 @registry.register_builder("vg_vqa")
@@ -17,9 +17,9 @@ class VGVQABuilder(BaseDatasetBuilder):
         }
     }
 
-    def __init__(self, cfg):
+    def __init__(self, cfg=None):
         super().__init__(cfg)
 
     @classmethod
     def default_config_path(cls):
-        return "configs/datasets/vg/defaults_vqa.yaml"
+        return "lavis/configs/datasets/vg/defaults_vqa.yaml"

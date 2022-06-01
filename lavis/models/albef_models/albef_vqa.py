@@ -4,12 +4,12 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from common.utils import is_url
-from models.albef_models import init_tokenizer
-from models.base_model import BaseModel, MomentumDistilationMixin, tile
-from models.med import BertConfig, BertLMHeadModel, XBertEncoder
-from models.vit import VisionTransformerEncoder, interpolate_pos_embed
+from lavis.common.registry import registry
+from lavis.common.utils import is_url
+from lavis.models.albef_models import init_tokenizer
+from lavis.models.base_model import BaseModel, MomentumDistilationMixin, tile
+from lavis.models.med import BertConfig, BertLMHeadModel, XBertEncoder
+from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
 from timm.models.hub import download_cached_file
 
 
@@ -56,8 +56,8 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/albef_vqa_base.yaml",
-            # "large": "configs/models/blip_pretrain_large.yaml"
+            "base": "lavis/configs/models/albef_vqa_base.yaml",
+            # "large": "lavis/configs/models/blip_pretrain_large.yaml"
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
@@ -73,7 +73,7 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         return decoder_out
 
     def forward_encoder(self, samples):
-        questions = samples["question"]
+        questions = samples["text_input"]
         questions = self.tokenizer(
             questions,
             padding="longest",

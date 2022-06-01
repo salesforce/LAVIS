@@ -52,6 +52,6 @@ run:
 
   # misc
   seed: 42 
-  output_dir: "output/Retrieval_COCO"
+  output_dir: "lavis/output/Retrieval_COCO"
 
   evaluate: False

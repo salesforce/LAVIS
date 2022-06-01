@@ -29,7 +29,7 @@ run:
   num_workers: 4
 
   seed: 42 
-  output_dir: "output/ALBEF/NLVR"
+  output_dir: "lavis/output/ALBEF/NLVR"
 
   evaluate: False
   train_splits: ["train"]

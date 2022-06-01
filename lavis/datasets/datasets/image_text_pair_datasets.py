@@ -1,9 +1,7 @@
 import os
-import json
 
+from lavis.datasets.datasets.base_dataset import BaseDataset
 from PIL import Image
-
-from datasets.datasets.base_dataset import BaseDataset
 
 
 class ImageTextPairDataset(BaseDataset):

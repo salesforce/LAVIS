@@ -3,8 +3,8 @@ import os
 from typing import List
 
 import torch
-from common.utils import is_url
-from models.vit import interpolate_pos_embed
+from lavis.common.utils import is_url
+from lavis.models.vit import interpolate_pos_embed
 from timm.models.hub import download_cached_file
 from torch import nn
 from transformers import BertTokenizer

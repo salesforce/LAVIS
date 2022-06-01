@@ -2,7 +2,7 @@ model:
   arch: blip_caption
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model*_base.pth"
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  pretrained: /export/home/workspace/LAVIS/lavis/output/Pretrain/20220518103129/checkpoint_19.pth
+  pretrained: /export/home/workspace/LAVIS/lavis/output//Pretrain/20220518103129/checkpoint_19.pth
   # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
 
 datasets:
@@ -37,7 +37,7 @@ run:
   num_beams: 3
 
   seed: 42 
-  output_dir: "output/Caption_coco"
+  output_dir: "lavis/output/Caption_coco"
 
   evaluate: False
   train_splits: ["train"]

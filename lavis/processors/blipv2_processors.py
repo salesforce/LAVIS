@@ -1,13 +1,12 @@
-import re
 from omegaconf import OmegaConf
 
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 
-from common.registry import registry
-from datasets.randaugment import RandomAugment
+from lavis.common.registry import registry
+from lavis.datasets.randaugment import RandomAugment
 
-from processors.base_processor import BaseProcessor
+from lavis.processors.base_processor import BaseProcessor
 
 
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD

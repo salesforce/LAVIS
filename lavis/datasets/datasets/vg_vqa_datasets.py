@@ -2,7 +2,7 @@ import os
 
 from PIL import Image
 
-from datasets.datasets.vqa_datasets import VQADataset
+from lavis.datasets.datasets.vqa_datasets import VQADataset
 
 
 class VGVQADataset(VQADataset):
@@ -24,7 +24,7 @@ class VGVQADataset(VQADataset):
 
         return {
             "image": image,
-            "question": question,
+            "text_input": question,
             "answers": answers,
             "weights": weights,
         }

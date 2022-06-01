@@ -1,10 +1,10 @@
-from common.registry import registry
+from lavis.common.registry import registry
 
-from models.blip_models import load_from_pretrained, init_tokenizer
+from lavis.models.blip_models import load_from_pretrained, init_tokenizer
 
-from models.base_model import BaseModel
-from models.med import XBertLMHeadDecoder
-from models.vit import VisionTransformerEncoder
+from lavis.models.base_model import BaseModel
+from lavis.models.med import XBertLMHeadDecoder
+from lavis.models.vit import VisionTransformerEncoder
 
 
 @registry.register_model("blip_caption")
@@ -25,8 +25,8 @@ class BlipCaption(BaseModel):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_caption_base.yaml",
-            "large": "configs/models/blip_caption_large.yaml",
+            "base": "lavis/configs/models/blip_caption_base.yaml",
+            "large": "lavis/configs/models/blip_caption_large.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)

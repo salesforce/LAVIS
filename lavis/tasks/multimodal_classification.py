@@ -1,13 +1,12 @@
 import json
-import logging
 import os
 
 import numpy as np
 
-from common.utils import main_process, save_result
-from common.registry import registry
+from lavis.common.utils import main_process, save_result
+from lavis.common.registry import registry
 
-from tasks.base_task import BaseTask
+from lavis.tasks.base_task import BaseTask
 
 
 @registry.register_task("multimodal_classification")

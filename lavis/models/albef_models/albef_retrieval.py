@@ -2,11 +2,15 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.albef_models import init_tokenizer, load_from_pretrained
-from models.base_model import BaseModel, MomentumDistilationMixin, SharedQueueMixin
-from models.med import BertModel, XBertEncoder
-from models.vit import VisionTransformerEncoder
+from lavis.common.registry import registry
+from lavis.models.albef_models import init_tokenizer, load_from_pretrained
+from lavis.models.base_model import (
+    BaseModel,
+    MomentumDistilationMixin,
+    SharedQueueMixin,
+)
+from lavis.models.med import BertModel, XBertEncoder
+from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
@@ -74,7 +78,7 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/albef_retrieval_base.yaml",
+            "base": "lavis/configs/models/albef_retrieval_base.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)

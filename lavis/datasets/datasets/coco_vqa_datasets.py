@@ -3,7 +3,7 @@ import json
 
 from PIL import Image
 
-from datasets.datasets.vqa_datasets import VQADataset, VQAEvalDataset
+from lavis.datasets.datasets.vqa_datasets import VQADataset, VQAEvalDataset
 
 
 class COCOVQADataset(VQADataset):
@@ -31,7 +31,7 @@ class COCOVQADataset(VQADataset):
 
         return {
             "image": image,
-            "question": question,
+            "text_input": question,
             "answers": answers,
             "weights": weights,
         }
@@ -70,4 +70,4 @@ class COCOVQAEvalDataset(VQAEvalDataset):
 
         question_id = ann["question_id"]
 
-        return {"image": image, "question": question, "question_id": question_id}
+        return {"image": image, "text_input": question, "question_id": question_id}

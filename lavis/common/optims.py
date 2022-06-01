@@ -1,6 +1,6 @@
 import math
 
-from common.registry import registry
+from lavis.common.registry import registry
 
 
 @registry.register_lr_scheduler("linear_warmup_step_lr")

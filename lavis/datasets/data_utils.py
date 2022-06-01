@@ -8,7 +8,7 @@ import gzip
 
 from tqdm import tqdm
 
-from datasets.datasets.base_dataset import ConcatDataset
+from lavis.datasets.datasets.base_dataset import ConcatDataset
 
 
 def apply_to_sample(f, sample):

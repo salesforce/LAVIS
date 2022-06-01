@@ -2,17 +2,17 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.base_model import (
+from lavis.common.registry import registry
+from lavis.models.base_model import (
     BaseModel,
     MomentumDistilationMixin,
     SharedQueueMixin,
     all_gather_with_grad,
     concat_all_gather,
 )
-from models.blip_models import init_tokenizer, load_from_pretrained
-from models.med import XBertEncoder
-from models.vit import VisionTransformerEncoder
+from lavis.models.blip_models import init_tokenizer, load_from_pretrained
+from lavis.models.med import XBertEncoder
+from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
@@ -83,8 +83,8 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_retrieval_base.yaml",
-            "large": "configs/models/blip_retrieval_large.yaml",
+            "base": "lavis/configs/models/blip_retrieval_base.yaml",
+            "large": "lavis/configs/models/blip_retrieval_large.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)

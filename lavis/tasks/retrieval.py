@@ -2,14 +2,14 @@ import datetime
 import logging
 import time
 
-import common.utils as utils
+import lavis.common.utils as utils
 import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
-from common.registry import registry
+from lavis.common.registry import registry
 
-from tasks.base_task import BaseTask
+from lavis.tasks.base_task import BaseTask
 
 
 @registry.register_task("retrieval")

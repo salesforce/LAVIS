@@ -15,4 +15,4 @@ model:
   image_size: 384
 
   # bert config
-  med_config_path: "configs/models/med_config_albef.json"
+  med_config_path: "lavis/configs/models/med_config_albef.json"

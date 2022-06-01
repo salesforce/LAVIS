@@ -2,7 +2,7 @@ import logging
 import json
 
 from omegaconf import OmegaConf
-from common.registry import registry
+from lavis.common.registry import registry
 
 
 class Config:

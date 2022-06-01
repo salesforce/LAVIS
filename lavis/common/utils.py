@@ -373,7 +373,7 @@ def coco_caption_eval(coco_gt_root, results_file, split):
 
 
 def build_default_model(name, model_type="base"):
-    from common.registry import registry
+    from lavis.common.registry import registry
 
     return registry.get_model_class(name).build_default_model(model_type=model_type)
 

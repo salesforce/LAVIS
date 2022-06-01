@@ -1,7 +1,7 @@
-from datasets.builders.base_dataset_builder import BaseDatasetBuilder
+from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
 
-from common.registry import registry
-from datasets.datasets.coco_vqa_datasets import COCOVQADataset, COCOVQAEvalDataset
+from lavis.common.registry import registry
+from lavis.datasets.datasets.coco_vqa_datasets import COCOVQADataset, COCOVQAEvalDataset
 
 
 @registry.register_builder("coco_vqa")
@@ -19,9 +19,9 @@ class COCOVQABuilder(BaseDatasetBuilder):
         }
     }
 
-    def __init__(self, cfg):
+    def __init__(self, cfg=None):
         super().__init__(cfg)
 
     @classmethod
     def default_config_path(cls):
-        return "configs/datasets/coco/defaults_vqa.yaml"
+        return "lavis/configs/datasets/coco/defaults_vqa.yaml"

@@ -1,7 +1,10 @@
-from datasets.builders.base_dataset_builder import BaseDatasetBuilder
-from datasets.datasets.retrieval_datasets import RetrievalDataset, RetrievalEvalDataset
+from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+from lavis.datasets.datasets.retrieval_datasets import (
+    RetrievalDataset,
+    RetrievalEvalDataset,
+)
 
-from common.registry import registry
+from lavis.common.registry import registry
 
 
 @registry.register_builder("coco_retrieval")
@@ -17,9 +20,9 @@ class COCORetrievalBuilder(BaseDatasetBuilder):
         }
     }
 
-    def __init__(self, cfg):
+    def __init__(self, cfg=None):
         super().__init__(cfg)
 
     @classmethod
     def default_config_path(cls):
-        return "configs/datasets/coco/defaults_ret.yaml"
+        return "lavis/configs/datasets/coco/defaults_ret.yaml"

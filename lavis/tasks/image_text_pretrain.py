@@ -1,5 +1,5 @@
-from common.registry import registry
-from tasks.base_task import BaseTask
+from lavis.common.registry import registry
+from lavis.tasks.base_task import BaseTask
 
 
 @registry.register_task("image_text_pretrain")

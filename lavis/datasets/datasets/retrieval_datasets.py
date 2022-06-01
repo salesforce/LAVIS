@@ -2,7 +2,7 @@ import os
 
 from PIL import Image
 
-from datasets.datasets.base_dataset import BaseDataset
+from lavis.datasets.datasets.base_dataset import BaseDataset
 
 
 class RetrievalDataset(BaseDataset):

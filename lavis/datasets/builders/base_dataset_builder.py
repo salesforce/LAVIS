@@ -2,27 +2,32 @@ import logging
 import os
 import shutil
 
+import lavis.common.utils as utils
 import torch.distributed as dist
-import common.utils as utils
-
-from common.registry import registry
-
+from lavis.common.registry import registry
+from lavis.datasets.data_utils import extract_archive
+from lavis.processors.base_processor import BaseProcessor
+from omegaconf import OmegaConf
 from torchvision.datasets.utils import download_url
-
-from datasets.data_utils import extract_archive
 
 
 class BaseDatasetBuilder:
     train_dataset_cls, eval_dataset_cls = None, None
 
-    def __init__(self, cfg):
+    def __init__(self, cfg=None):
         super().__init__()
 
-        self.config = cfg
-        self.data_type = cfg.data_type
+        if cfg is None:
+            # help to create datasets from default config.
+            cfg = OmegaConf.load(self.default_config_path()).datasets
+            self.config = cfg[list(cfg.keys())[0]]
+        else:
+            self.config = cfg
 
-        self.vis_processors = dict()
-        self.text_processors = dict()
+        self.data_type = self.config.data_type
+
+        self.vis_processors = {"train": BaseProcessor(), "eval": BaseProcessor()}
+        self.text_processors = {"train": BaseProcessor(), "eval": BaseProcessor()}
 
     def build_datasets(self):
         # download, split, etc...
@@ -40,40 +45,30 @@ class BaseDatasetBuilder:
         return datasets
 
     def build_processors(self):
-        """
-        Building processors is task-specific.
+        vis_proc_cfg = self.config.get("vis_processor")
+        txt_proc_cfg = self.config.get("text_processor")
 
-        Some tasks require both visual and text processors, e.g. retrieval, QA.
-        Some tasks require only visual processors, e.g. captioning.
+        if vis_proc_cfg is not None:
+            vis_train_cfg = vis_proc_cfg.get("train")
+            vis_eval_cfg = vis_proc_cfg.get("eval")
 
-        Overwrite for data-specific processors.
-        """
-        vis_train_cfg = self.config.vis_processor.get("train", None)
-        vis_eval_cfg = self.config.vis_processor.get("eval", None)
+            self.vis_processors["train"] = self._build_proc_from_cfg(vis_train_cfg)
+            self.vis_processors["eval"] = self._build_proc_from_cfg(vis_eval_cfg)
 
-        text_train_cfg = self.config.text_processor.get("train", None)
-        text_eval_cfg = self.config.text_processor.get("eval", None)
+        if txt_proc_cfg is not None:
+            txt_train_cfg = txt_proc_cfg.get("train")
+            txt_eval_cfg = txt_proc_cfg.get("eval")
 
-        self.vis_processors["train"] = self._build_from_config(vis_train_cfg)
-        self.vis_processors["eval"] = self._build_from_config(vis_eval_cfg)
-
-        self.text_processors["train"] = self._build_from_config(text_train_cfg)
-        self.text_processors["eval"] = self._build_from_config(text_eval_cfg)
+            self.text_processors["train"] = self._build_proc_from_cfg(txt_train_cfg)
+            self.text_processors["eval"] = self._build_proc_from_cfg(txt_eval_cfg)
 
     @staticmethod
-    def _build_from_config(cfg):
-        if cfg is None:
-            return None
-        else:
-            return registry.get_processor_class(cfg.name).build_from_cfg(cfg)
-
-    @staticmethod
-    def save_build_info(build_info_path, url):
-        from datetime import datetime
-        import json
-
-        info = {"date": str(datetime.now()), "from": url}
-        json.dump(info, open(build_info_path, "w+"))
+    def _build_proc_from_cfg(cfg):
+        return (
+            registry.get_processor_class(cfg.name).build_from_cfg(cfg)
+            if cfg is not None
+            else None
+        )
 
     @classmethod
     def default_config_path(cls):

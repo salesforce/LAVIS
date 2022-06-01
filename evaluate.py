@@ -7,18 +7,21 @@ import torch
 import torch.backends.cudnn as cudnn
 from omegaconf import OmegaConf
 
-import common.utils as utils
-import tasks
-from common.config import Config
-from common.optims import LinearWarmupCosineLRScheduler, LinearWarmupStepLRScheduler
-from common.registry import registry
+import lavis.common.utils as utils
+import lavis.tasks as tasks
+from lavis.common.config import Config
+from lavis.common.optims import (
+    LinearWarmupCosineLRScheduler,
+    LinearWarmupStepLRScheduler,
+)
+from lavis.common.registry import registry
 
 # imports modules for registration
-from datasets.builders import *
-from models import *
-from processors import *
-from runners.runner_base import Runner
-from tasks import *
+from lavis.datasets.builders import *
+from lavis.models import *
+from lavis.processors import *
+from lavis.runners.runner_base import Runner
+from lavis.tasks import *
 
 
 def parse_args():
@@ -58,11 +61,11 @@ def main():
     # set before init_distributed_mode() to ensure the same job_id shared across all ranks.
     job_id = utils.now()
 
-    root_dir = os.getcwd()
-    default_cfg = OmegaConf.load(os.path.join(root_dir, "configs/default.yaml"))
+    # root_dir = os.getcwd()
+    # default_cfg = OmegaConf.load(os.path.join(root_dir, "lavis/configs/default.yaml"))
 
-    registry.register_path("library_root", root_dir)
-    registry.register_path("cache_root", default_cfg.env.cache_root)
+    # registry.register_path("library_root", root_dir)
+    # registry.register_path("cache_root", default_cfg.env.cache_root)
 
     cfg = Config(parse_args())
 
@@ -80,7 +83,7 @@ def main():
     model = task.build_model(cfg)
 
     runner = Runner(cfg=cfg, job_id=job_id, task=task, model=model, datasets=datasets)
-    runner.train()
+    runner.evaluate()
 
 
 if __name__ == "__main__":

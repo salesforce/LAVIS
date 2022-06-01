@@ -6,11 +6,11 @@ import torch.nn.functional as F
 from torch import nn
 from transformers import BertConfig
 
-from common.registry import registry
-from models.med import BertModel
-from models.vit import VisionTransformerEncoder
-from models.base_model import BaseModel, MomentumDistilationMixin
-from models.albef_models import init_tokenizer, load_from_pretrained
+from lavis.common.registry import registry
+from lavis.models.med import BertModel
+from lavis.models.vit import VisionTransformerEncoder
+from lavis.models.base_model import BaseModel, MomentumDistilationMixin
+from lavis.models.albef_models import init_tokenizer, load_from_pretrained
 
 
 @registry.register_model("albef_nlvr")
@@ -65,7 +65,7 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/albef_nlvr_base.yaml",
+            "base": "lavis/configs/models/albef_nlvr_base.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)

@@ -1,7 +1,7 @@
 import os
 
 from PIL import Image
-from datasets.datasets.multimodal_classification_datasets import (
+from lavis.datasets.datasets.multimodal_classification_datasets import (
     MultimodalClassificationDataset,
 )
 

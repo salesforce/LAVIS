@@ -6,7 +6,7 @@ model:
 datasets:
   coco_vqa: # name of the dataset builder
     # if no config_path is specified, fallback to the default config path
-    config_path: "configs/datasets/coco/eval_vqa.yaml"
+    config_path: "lavis/configs/datasets/coco/eval_vqa.yaml"
 
     vis_processor: 
         train: 
@@ -52,7 +52,7 @@ run:
   # inference_method: "rank" 
 
   seed: 42 
-  output_dir: "output/VQA/BLIPv2"
+  output_dir: "lavis/output/VQA/BLIPv2"
 
   evaluate: True
   test_splits: ["test"] 

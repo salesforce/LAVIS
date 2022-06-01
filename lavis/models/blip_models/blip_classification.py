@@ -2,14 +2,14 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-from common.registry import registry
-from models.base_model import BaseModel, MomentumDistilationMixin
-from models.blip_models import (
+from lavis.common.registry import registry
+from lavis.models.base_model import BaseModel, MomentumDistilationMixin
+from lavis.models.blip_models import (
     init_tokenizer,
     load_from_pretrained,
 )
-from models.med import XBertEncoder
-from models.vit import VisionTransformerEncoder
+from lavis.models.med import XBertEncoder
+from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
@@ -62,8 +62,8 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "configs/models/blip_ve_base.yaml",
-            # "large": "configs/models/blip_pretrain_large.yaml"
+            "base": "lavis/configs/models/blip_ve_base.yaml",
+            # "large": "lavis/configs/models/blip_pretrain_large.yaml"
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)

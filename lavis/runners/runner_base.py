@@ -2,15 +2,14 @@ import datetime
 import logging
 import os
 import json
-import random
 import time
 from pathlib import Path
 
 import torch
 import torch.distributed as dist
 
-import common.utils as utils
-from common.registry import registry
+import lavis.common.utils as utils
+from lavis.common.registry import registry
 from torch.utils.data import DataLoader
 
 

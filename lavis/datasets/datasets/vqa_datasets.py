@@ -1,6 +1,6 @@
 import torch
 
-from datasets.datasets.base_dataset import BaseDataset
+from lavis.datasets.datasets.base_dataset import BaseDataset
 
 
 class VQADataset(BaseDataset):
@@ -25,7 +25,7 @@ class VQADataset(BaseDataset):
 
         return {
             "image": torch.stack(image_list, dim=0),
-            "question": question_list,
+            "text_input": question_list,
             "answer": answer_list,
             "weight": torch.Tensor(weight_list),
             "n_answers": torch.LongTensor(num_answers),

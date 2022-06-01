@@ -26,6 +26,10 @@ class BaseDataset(Dataset):
     def collater(self, samples):
         return default_collate(samples)
 
+    def set_processors(self, vis_processor, text_processor):
+        self.vis_processor = vis_processor
+        self.text_processor = text_processor
+
 
 class ConcatDataset(ConcatDataset):
     def __init__(self, datasets: Iterable[Dataset]) -> None:

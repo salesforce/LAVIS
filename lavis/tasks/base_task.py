@@ -1,10 +1,10 @@
 import logging
 import torch.distributed as dist
-from datasets.data_utils import prepare_sample
-import common.utils as utils
+from lavis.datasets.data_utils import prepare_sample
+import lavis.common.utils as utils
 
-from common.registry import registry
-from datasets.data_utils import concat_datasets
+from lavis.common.registry import registry
+from lavis.datasets.data_utils import concat_datasets
 
 
 class BaseTask:

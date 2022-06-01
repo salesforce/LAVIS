@@ -18,12 +18,12 @@ class Registry:
 
         Usage:
 
-            from common.registry import registry
-            from datasets.base_dataset_builder import BaseDatasetBuilder
+            from lavis.common.registry import registry
+            from lavis.datasets.base_dataset_builder import BaseDatasetBuilder
         """
 
         def wrap(builder_cls):
-            from datasets.builders.base_dataset_builder import BaseDatasetBuilder
+            from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
 
             assert issubclass(
                 builder_cls, BaseDatasetBuilder
@@ -50,11 +50,11 @@ class Registry:
 
         Usage:
 
-            from common.registry import registry
+            from lavis.common.registry import registry
         """
 
         def wrap(task_cls):
-            from tasks.base_task import BaseTask
+            from lavis.tasks.base_task import BaseTask
 
             assert issubclass(
                 task_cls, BaseTask
@@ -79,11 +79,11 @@ class Registry:
 
         Usage:
 
-            from common.registry import registry
+            from lavis.common.registry import registry
         """
 
         def wrap(model_cls):
-            from models import BaseModel
+            from lavis.models import BaseModel
 
             assert issubclass(
                 model_cls, BaseModel
@@ -108,11 +108,11 @@ class Registry:
 
         Usage:
 
-            from common.registry import registry
+            from lavis.common.registry import registry
         """
 
         def wrap(processor_cls):
-            from processors import BaseProcessor
+            from lavis.processors import BaseProcessor
 
             assert issubclass(
                 processor_cls, BaseProcessor
@@ -137,7 +137,7 @@ class Registry:
 
         Usage:
 
-            from common.registry import registry
+            from lavis.common.registry import registry
         """
 
         def wrap(lr_sched_cls):
@@ -161,7 +161,7 @@ class Registry:
 
         Usage:
 
-            from common.registry import registry
+            from lavis.common.registry import registry
         """
         assert isinstance(path, str), "All path must be str."
         if name in cls.mapping["paths"]:
@@ -177,7 +177,7 @@ class Registry:
 
         Usage::
 
-            from common.registry import registry
+            from lavis.common.registry import registry
 
             registry.register("config", {})
         """
