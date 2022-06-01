@@ -49,6 +49,13 @@ class COCOVQAEvalDataset(VQAEvalDataset):
         self.annotation = json.load(open(ann_paths[0]))
         self.answer_list = json.load(open(ann_paths[1]))
 
+        try:
+            self.coco_fmt_qust_file = ann_paths[2]
+            self.coco_fmt_anno_file = ann_paths[3]
+        except IndexError:
+            self.coco_fmt_qust_file = None
+            self.coco_fmt_anno_file = None
+
         self.vis_processor = vis_processor
         self.text_processor = text_processor
 

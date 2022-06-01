@@ -190,7 +190,9 @@ class Runner:
     def train_splits(self):
         train_splits = self.config.run_cfg.get("train_splits", [])
 
-        assert len(train_splits) > 0, "Empty train splits."
+        if len(train_splits) == 0:
+            logging.info("Empty train splits.")
+
         return train_splits
 
     @property
@@ -278,6 +280,15 @@ class Runner:
             dist.barrier()
 
         # testing phase
+        self.evaluate(self, cur_epoch=cur_epoch)
+
+        total_time = time.time() - start_time
+        total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+        logging.info("Training time {}".format(total_time_str))
+
+    def evaluate(self, cur_epoch="best"):
+        test_logs = dict()
+
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
                 test_result = self.evaluation(split_name=split_name)
@@ -287,10 +298,9 @@ class Runner:
                     epoch=cur_epoch,
                     result_dir=self.result_dir,
                 )
+                test_logs[split_name] = test_log
 
-        total_time = time.time() - start_time
-        total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        logging.info("Training time {}".format(total_time_str))
+            return test_logs
 
     def train_epoch(self, epoch):
         # train

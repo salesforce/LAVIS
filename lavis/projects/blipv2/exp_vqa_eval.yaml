@@ -1,0 +1,65 @@
+model:
+  arch: blipv2_t0
+  # pretrained: ""
+  # image_size: 224 
+
+datasets:
+  coco_vqa: # name of the dataset builder
+    # if no config_path is specified, fallback to the default config path
+    config_path: "configs/datasets/coco/eval_vqa.yaml"
+
+    vis_processor: 
+        train: 
+          name: "blipv2_image_train"
+          # image_size: 224 
+        eval:
+          name: "blipv2_image_eval"
+          # image_size: 224
+    text_processor:
+        train: 
+          name: "blipv2_question"
+          # max_words: 100
+        eval: 
+          name: "blipv2_question"
+          # max_words: 100
+
+  # vg_vqa: # name of the dataset builder
+  #   vis_processor: 
+  #       train: 
+  #         name: "blip_image_train"
+  #         image_size: 480
+  #   text_processor:
+  #       train: 
+  #         name: "blip_question"
+
+run:
+  task: vqa
+  # optimization-specific
+  # lr_sched: "linear_warmup_cosine_lr"
+  # init_lr: 2e-5
+  # min_lr: 0
+  # weight_decay: 0.05
+  # max_epoch: 10
+  # batch_size_train: 16
+  batch_size_eval: 300
+  num_workers: 4
+
+  # inference-specific
+  max_len: 10
+  min_len: 1
+  # num_beams: 3
+  # num_ans_candidates: 128
+  # inference_method: "rank" 
+
+  seed: 42 
+  output_dir: "output/VQA/BLIPv2"
+
+  evaluate: True
+  test_splits: ["test"] 
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  

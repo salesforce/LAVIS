@@ -75,13 +75,15 @@ class Config:
 
         dataset_config = OmegaConf.create()
 
-        for dataset in datasets:
-            builder_cls = registry.get_builder_class(dataset)
-            default_dataset_config_path = builder_cls.default_config_path()
+        for dataset_name in datasets:
+            builder_cls = registry.get_builder_class(dataset_name)
+            dataset_config_path = datasets[dataset_name].get(
+                "config_path", builder_cls.default_config_path()
+            )
 
             # hiararchy override, customized config > default config
             dataset_config = OmegaConf.merge(
-                dataset_config, OmegaConf.load(default_dataset_config_path), config
+                dataset_config, OmegaConf.load(dataset_config_path), config
             )
 
         return dataset_config

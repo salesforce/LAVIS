@@ -1,0 +1,7 @@
+model:
+  arch: blipv2_t0
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_vqa_capfilt_large.pth"
+
+  # vit encoder
+  vit_type: "base"
+  lm_type: "bigscience/T0_3B"

@@ -13,6 +13,8 @@ from .albef_models.albef_pretrain import AlbefPretrain
 from .albef_models.albef_retrieval import AlbefRetrieval
 from .albef_models.albef_nlvr import AlbefNLVR
 
+from .blipv2_models.model_t0 import BLIPv2_T0
+
 from .med import XBertLMHeadDecoder
 from .vit import VisionTransformerEncoder
 
@@ -30,6 +32,7 @@ __all__ = [
     "BlipPretrain",
     "BlipRetrieval",
     "BlipVQA",
+    "BLIPv2_T0",
     "VisionTransformerEncoder",
     "XBertLMHeadDecoder",
 ]
