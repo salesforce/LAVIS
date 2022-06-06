@@ -279,7 +279,7 @@ class Runner:
             dist.barrier()
 
         # testing phase
-        self.evaluate(self, cur_epoch=cur_epoch)
+        self.evaluate(cur_epoch=cur_epoch)
 
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))

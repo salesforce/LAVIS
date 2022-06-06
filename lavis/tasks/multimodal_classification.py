@@ -2,6 +2,7 @@ import json
 import os
 
 import numpy as np
+import torch
 
 from lavis.common.utils import main_process, save_result
 from lavis.common.registry import registry
@@ -36,6 +37,9 @@ class MultimodalClassificationTask(BaseTask):
         indices = samples[self.ID_KEY]
 
         for pred, tgt, index in zip(predictions, targets, indices):
+            if isinstance(index, torch.Tensor):
+                index = index.item()
+
             results.append(
                 {self.ID_KEY: index, "prediction": pred.item(), "target": tgt.item()}
             )
