@@ -24,5 +24,9 @@ class COCOCapBuilder(BaseDatasetBuilder):
         super().__init__(cfg)
 
     @classmethod
-    def default_config_path(cls):
-        return "lavis/configs/datasets/coco/defaults_cap.yaml"
+    def default_config_path(cls, type="default"):
+        paths = {
+            "default": "lavis/configs/datasets/coco/defaults_cap.yaml",
+        }
+
+        return paths[type]

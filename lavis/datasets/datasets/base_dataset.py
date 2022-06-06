@@ -30,6 +30,14 @@ class BaseDataset(Dataset):
         self.vis_processor = vis_processor
         self.text_processor = text_processor
 
+    def add_image_ids(self):
+        cnt = 0
+
+        for ann in self.annotation:
+            ann["image_id"] = cnt
+
+            cnt += 1
+
 
 class ConcatDataset(ConcatDataset):
     def __init__(self, datasets: Iterable[Dataset]) -> None:

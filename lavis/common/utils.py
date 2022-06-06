@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 import torch
 import torch.distributed as dist
+from lavis.common.registry import registry
 
 
 class SmoothedValue(object):
@@ -372,10 +373,11 @@ def coco_caption_eval(coco_gt_root, results_file, split):
     return coco_eval
 
 
-def build_default_model(name, model_type="base"):
-    from lavis.common.registry import registry
-
+def load_model(name, model_type="base"):
     return registry.get_model_class(name).build_default_model(model_type=model_type)
+
+
+build_default_model = load_model
 
 
 def get_dist_info():

@@ -8,8 +8,10 @@ class Flickr30kBuilder(BaseDatasetBuilder):
         super().__init__(cfg)
 
     @classmethod
-    def default_config_path(cls):
-        return "lavis/configs/datasets/flickr30k/defaults.yaml"
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/flickr30k/defaults.yaml"}
+
+        return paths[type]
 
     def _download_vis(self):
         pass

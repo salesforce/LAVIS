@@ -12,6 +12,8 @@ class NLVRDataset(MultimodalClassificationDataset):
 
         self.class_labels = self._build_class_labels()
 
+        self.add_image_ids()
+
     def _build_class_labels(self):
         return {"False": 0, "True": 1}
 
@@ -34,4 +36,5 @@ class NLVRDataset(MultimodalClassificationDataset):
             "image1": image1,
             "text_input": sentence,
             "label": label,
+            "image_id": ann["image_id"],
         }

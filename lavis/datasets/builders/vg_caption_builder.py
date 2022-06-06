@@ -21,5 +21,7 @@ class VGCaptionBuilder(BaseDatasetBuilder):
         super().__init__(cfg)
 
     @classmethod
-    def default_config_path(cls):
-        return "lavis/configs/datasets/vg/defaults_caption.yaml"
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/vg/defaults_caption.yaml"}
+
+        return paths[type]

@@ -21,6 +21,9 @@ class BaseDatasetBuilder:
             # help to create datasets from default config.
             cfg = OmegaConf.load(self.default_config_path()).datasets
             self.config = cfg[list(cfg.keys())[0]]
+        elif isinstance(cfg, str):
+            cfg = OmegaConf.load(cfg).datasets
+            self.config = cfg[list(cfg.keys())[0]]
         else:
             self.config = cfg
 

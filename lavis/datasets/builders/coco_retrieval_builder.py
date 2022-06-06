@@ -24,5 +24,7 @@ class COCORetrievalBuilder(BaseDatasetBuilder):
         super().__init__(cfg)
 
     @classmethod
-    def default_config_path(cls):
-        return "lavis/configs/datasets/coco/defaults_ret.yaml"
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/coco/defaults_ret.yaml"}
+
+        return paths[type]

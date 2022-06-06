@@ -12,8 +12,12 @@ class ConceptualCaption3MBuilder(BaseDatasetBuilder):
         super().__init__(cfg)
 
     @classmethod
-    def default_config_path(cls):
-        return "lavis/configs/datasets/conceptual_caption/defaults_3m.yaml"
+    def default_config_path(cls, type="default"):
+        paths = {
+            "default": "lavis/configs/datasets/conceptual_caption/defaults_3m.yaml"
+        }
+
+        return paths[type]
 
     def _download_vis(self):
         pass
@@ -27,8 +31,12 @@ class ConceptualCaption12MBuilder(BaseDatasetBuilder):
         super().__init__(cfg)
 
     @classmethod
-    def default_config_path(cls):
-        return "lavis/configs/datasets/conceptual_caption/defaults_12m.yaml"
+    def default_config_path(cls, type="default"):
+        paths = {
+            "default": "lavis/configs/datasets/conceptual_caption/defaults_12m.yaml"
+        }
+
+        return paths[type]
 
     def _download_vis(self):
         pass
