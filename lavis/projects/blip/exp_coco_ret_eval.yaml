@@ -1,11 +1,13 @@
 model:
-  arch: albef_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  arch: blip_retrieval
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
+  pretrained: "/export/home/workspace/LAVIS/lavis/output/Retrieval_COCO/202205211551/checkpoint_best.pth"
 
-  queue_size: 65536
-  alpha: 0.4
+  queue_size: 57600
+  # alpha: 0.4
 
-  negative_all_rank: True
+  # negative_all_rank: True
 
 datasets:
   coco_retrieval: # name of the dataset builder
@@ -23,21 +25,16 @@ datasets:
           name: "blip_caption"
 
 run:
-  task: retrieval_for_blip
-  # optimizer
-  lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 1e-5
-  min_lr: 1e-6
-  weight_decay: 0.05
-  max_epoch: 5
+  task: retrieval
 
   # dataloading
   num_workers: 4
   batch_size_train: 32
-  batch_size_eval: 64
+  batch_size_eval: 128
 
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
+  test_splits: ["test"]
 
   # distribution
   device: "cuda"
@@ -51,6 +48,6 @@ run:
 
   # misc
   seed: 42
-  output_dir: "lavis/output/ALBEF/Retrieval_COCO"
+  output_dir: "lavis/output/Retrieval_COCO"
 
-  evaluate: False
+  evaluate: True

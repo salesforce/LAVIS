@@ -1,19 +1,22 @@
 model:
   arch: albef_nlvr
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/pretrain_model_nlvr.pth"
   num_classes: 2
 
 datasets:
   nlvr: # name of the dataset builder
-    vis_processor: 
-        train: 
+    vis_processor:
+        train:
           name: "blip_image_train"
+          image_size: 384
         eval:
           name: "blip_image_eval"
+          image_size: 384
     text_processor:
-        train: 
+        train:
           name: "blip_caption"
-        eval: 
+        eval:
           name: "blip_caption"
 
 run:
@@ -21,24 +24,24 @@ run:
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
-  min_lr: 0
-  weight_decay: 0.05
+  min_lr: 5e-6 # 82.53
+  # min_lr: 1e-5 # 82.47
+  weight_decay: 0.04
   max_epoch: 10
   batch_size_train: 16
   batch_size_eval: 64
   num_workers: 4
 
-  seed: 42 
-  output_dir: "lavis/output/ALBEF/NLVR"
+  seed: 42
+  output_dir: "output/ALBEF/NLVR"
 
   evaluate: False
   train_splits: ["train"]
   valid_splits: ["val"]
-  test_splits: ["test"] 
+  test_splits: ["test"]
 
   # distribution-specific
   device: "cuda"
   world_size: 1
   dist_url: "env://"
   distributed: True
-  

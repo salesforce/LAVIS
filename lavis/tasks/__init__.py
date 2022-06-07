@@ -1,11 +1,11 @@
 from lavis.common.registry import registry
-
 from lavis.tasks.base_task import BaseTask
-from lavis.tasks.retrieval import RetrievalTask
 from lavis.tasks.captioning import CaptionTask
-from lavis.tasks.vqa import VQATask
-from lavis.tasks.multimodal_classification import MultimodalClassificationTask
 from lavis.tasks.image_text_pretrain import ImageTextPretrainTask
+from lavis.tasks.multimodal_classification import MultimodalClassificationTask
+from lavis.tasks.retrieval_blip import RetrievalTaskForBlip
+from lavis.tasks.retrieval import RetrievalTask
+from lavis.tasks.vqa import VQATask
 
 
 def setup_task(cfg):
@@ -20,6 +20,7 @@ def setup_task(cfg):
 
 __all__ = [
     "BaseTask",
+    "RetrievalTaskForBlip",
     "RetrievalTask",
     "CaptionTask",
     "VQATask",

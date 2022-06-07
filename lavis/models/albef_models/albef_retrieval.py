@@ -3,7 +3,11 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
-from lavis.models.albef_models import init_tokenizer, load_from_pretrained
+from lavis.models.albef_models import (
+    compute_sim_matrix,
+    init_tokenizer,
+    load_from_pretrained,
+)
 from lavis.models.base_model import (
     BaseModel,
     MomentumDistilationMixin,
@@ -284,3 +288,11 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             )
 
         return model
+
+    def compute_sim_matrix(self, data_loader, task_cfg):
+        """
+        Compute similarity i2t, t2i matrix for the given data loader.
+        """
+        k_test = task_cfg.k_test
+
+        return compute_sim_matrix(model=self, data_loader=data_loader, k_test=k_test)

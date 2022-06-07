@@ -373,13 +373,6 @@ def coco_caption_eval(coco_gt_root, results_file, split):
     return coco_eval
 
 
-def load_model(name, model_type="base"):
-    return registry.get_model_class(name).build_default_model(model_type=model_type)
-
-
-build_default_model = load_model
-
-
 def get_dist_info():
     if torch.__version__ < "1.0":
         initialized = dist._initialized
