@@ -1,0 +1,6 @@
+model:
+  arch: clip
+
+  model_type: RN50
+
+  pretrained: openai

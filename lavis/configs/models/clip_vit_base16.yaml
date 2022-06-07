@@ -1,0 +1,6 @@
+model:
+  arch: clip
+
+  model_type: ViT-B-16
+
+  pretrained: openai

@@ -22,7 +22,7 @@ class BlipImageBaseProcessor(BaseProcessor):
 
 @registry.register_processor("blip_caption")
 class BlipCaptionProcessor(BaseProcessor):
-    def __init__(self, prompt="", max_words=30):
+    def __init__(self, prompt="", max_words=50):
         self.prompt = prompt
         self.max_words = max_words
 
@@ -37,7 +37,7 @@ class BlipCaptionProcessor(BaseProcessor):
             cfg = OmegaConf.create()
 
         prompt = cfg.get("prompt", "")
-        max_words = cfg.get("max_words", 30)
+        max_words = cfg.get("max_words", 50)
 
         return cls(prompt=prompt, max_words=max_words)
 

@@ -10,6 +10,7 @@ from lavis.processors.blipv2_processors import (
     BlipV2ImageEvalProcessor,
     BlipV2QuestionProcessor,
 )
+from lavis.processors.clip_processors import ClipImageTrainProcessor
 
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "BlipV2ImageTrainProcessor",
     "BlipV2ImageEvalProcessor",
     "BlipV2QuestionProcessor",
+    "ClipImageTrainProcessor",
 ]
