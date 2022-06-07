@@ -7,7 +7,7 @@ repos:
     -   id: no-commit-to-branch
         args: ['--branch=main']
     -   id: check-added-large-files
-        args: ['--maxkb=500']
+        args: ['--maxkb=5000']
     -   id: end-of-file-fixer
 
 -   repo: https://github.com/psf/black
