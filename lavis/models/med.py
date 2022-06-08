@@ -390,9 +390,11 @@ class BertLayer(nn.Module):
             # ALBEF
             fusion_layer = self.config.fusion_layer
             add_cross_attention = fusion_layer <= layer_num
+
+            self.fusion_layer = fusion_layer
         except AttributeError:
             # BLIP
-            self.config.fusion_layer = self.config.num_hidden_layers
+            self.fusion_layer = self.config.num_hidden_layers
             add_cross_attention = self.config.add_cross_attention
 
         # if self.config.add_cross_attention:
@@ -443,11 +445,11 @@ class BertLayer(nn.Module):
                     attention_mask,
                     head_mask,
                     encoder_hidden_states[
-                        (self.layer_num - self.config.fusion_layer)
+                        (self.layer_num - self.fusion_layer)
                         % len(encoder_hidden_states)
                     ],
                     encoder_attention_mask[
-                        (self.layer_num - self.config.fusion_layer)
+                        (self.layer_num - self.fusion_layer)
                         % len(encoder_hidden_states)
                     ],
                     output_attentions=output_attentions,
@@ -517,12 +519,21 @@ class BertEncoder(nn.Module):
 
         next_decoder_cache = () if use_cache else None
 
+        try:
+            # ALBEF
+            fusion_layer = self.config.fusion_layer
+        except AttributeError:
+            # BLIP
+            fusion_layer = self.config.num_hidden_layers
+
         if mode == "text":
             start_layer = 0
-            output_layer = self.config.fusion_layer
+            # output_layer = self.config.fusion_layer
+            output_layer = fusion_layer
 
         elif mode == "fusion":
-            start_layer = self.config.fusion_layer
+            # start_layer = self.config.fusion_layer
+            start_layer = fusion_layer
             output_layer = self.config.num_hidden_layers
 
         elif mode == "multimodal":
