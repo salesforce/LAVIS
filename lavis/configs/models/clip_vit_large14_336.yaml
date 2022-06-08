@@ -1,0 +1,41 @@
+model:
+  arch: clip
+
+  model_type: ViT-L-16
+#   ['RN50',
+#  'RN50-quickgelu',
+#  'RN50x4',
+#  'RN50x16',
+#  'RN101',
+#  'RN101-quickgelu',
+#  'timm-efficientnetv2_rw_s',
+#  'timm-resnet50d',
+#  'timm-resnetaa50d',
+#  'timm-resnetblur50',
+#  'timm-swin_base_patch4_window7_224',
+#  'timm-vit_base_patch16_224',
+#  'timm-vit_base_patch32_224',
+#  'timm-vit_small_patch16_224',
+#  'ViT-B-16',
+#  'ViT-B-16-plus',
+#  'ViT-B-16-plus-240',
+#  'ViT-B-32',
+#  'ViT-B-32-plus-256',
+#  'ViT-B-32-quickgelu',
+#  'ViT-g-14',
+#  'ViT-H-14',
+#  'ViT-H-16',
+#  'ViT-L-14',
+#  'ViT-L-14-280',
+#  'ViT-L-14-336',
+#  'ViT-L-16',
+#  'ViT-L-16-320']
+
+  pretrained: openai
+  # "openai"
+  # following not available for all models
+  # "yfcc15m"
+  # "cc12m"
+  # "laion400m_e31"
+  # "laion400m_e32"
+  # "laion400m_avg"

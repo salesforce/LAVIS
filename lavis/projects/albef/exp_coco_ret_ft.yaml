@@ -1,6 +1,7 @@
 model:
   arch: albef_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  pretrained: "/export/home/workspace/LAVIS/lavis/lavis/output/Pretrain/202206051344/checkpoint_19.pth"
 
   queue_size: 65536
   alpha: 0.4
@@ -23,7 +24,7 @@ datasets:
           name: "blip_caption"
 
 run:
-  task: retrieval_for_blip
+  task: retrieval
   # optimizer
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 1e-5

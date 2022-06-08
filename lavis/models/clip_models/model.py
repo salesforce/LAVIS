@@ -2,13 +2,16 @@
 Adapted from https://github.com/openai/CLIP. Originally MIT License, Copyright (c) 2021 OpenAI.
 """
 
+import datetime
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Callable, Optional, Tuple, Union
 
+import lavis.common.utils as utils
 import numpy as np
 import torch
 import torch.nn.functional as F
+import time
 from lavis.common.registry import registry
 from lavis.models.base_model import BaseModel
 from torch import nn
@@ -548,13 +551,14 @@ class CLIP(BaseModel):
 
     @classmethod
     def default_config_path(cls, model_type="base"):
-        model_type = "vit_base32" if model_type == "base" else model_type
+        model_type = "ViT-B-32" if model_type == "base" else model_type
 
         paths = {
-            "vit_base32": "lavis/configs/models/clip_vit_base32.yaml",
-            "vit_base16": "lavis/configs/models/clip_vit_base16.yaml",
-            "vit_large14": "lavis/configs/models/clip_vit_large14.yaml",
-            "resnet50": "lavis/configs/models/clip_resnet50.yaml",
+            "ViT-B-32": "lavis/configs/models/clip_vit_base32.yaml",
+            "ViT-B-16": "lavis/configs/models/clip_vit_base16.yaml",
+            "ViT-L-14": "lavis/configs/models/clip_vit_large14.yaml",
+            "ViT-L-14-336": "lavis/configs/models/clip_vit_large14_336.yaml",
+            "RN50": "lavis/configs/models/clip_resnet50.yaml",
         }
 
         assert (
@@ -598,6 +602,48 @@ class CLIP(BaseModel):
             text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
 
             print("Label probs:", text_probs)  # prints: [[1., 0., 0.]]
+
+    def compute_sim_matrix(self, data_loader, **kwargs):
+        logging.info("Computing features for evaluation...")
+        start_time = time.time()
+
+        texts = data_loader.dataset.text
+        num_text = len(texts)
+        text_bs = 256
+        text_features = []
+
+        for i in range(0, num_text, text_bs):
+
+            text = texts[i : min(num_text, i + text_bs)]
+            text_input = self.tokenizer(text).to(self.device)
+
+            text_feat = self.encode_text(text_input)
+            text_feat = F.normalize(text_feat, dim=-1)
+
+            text_features.append(text_feat)
+
+        text_features = torch.cat(text_features, dim=0)
+
+        image_features = []
+        for samples in data_loader:
+            image = samples["image"]
+
+            image = image.to(self.device)
+            image_feat = self.encode_image(image)
+            image_feat = F.normalize(image_feat, dim=-1)
+
+            image_features.append(image_feat)
+
+        image_features = torch.cat(image_features, dim=0)
+
+        sims_matrix_i2t = image_features @ text_features.t()
+        sims_matrix_t2i = sims_matrix_i2t.t()
+
+        total_time = time.time() - start_time
+        total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+        logging.info("Evaluation time {}".format(total_time_str))
+
+        return sims_matrix_i2t.cpu().numpy(), sims_matrix_t2i.cpu().numpy()
 
 
 def convert_weights_to_fp16(model: nn.Module):
@@ -741,7 +787,7 @@ import torch
 
 # from .model import CLIP, convert_weights_to_fp16
 # from .openai import load_openai_model
-from .pretrained import get_pretrained_url, download_pretrained
+from .pretrained import download_pretrained, get_pretrained_url
 
 # from .transform import image_transform
 
@@ -910,12 +956,13 @@ Adapted from https://github.com/openai/CLIP. Originally MIT License, Copyright (
 
 # import os
 import warnings
-from typing import Union, List
-
-# import torch
+from typing import List, Union
 
 # from .model import build_model_from_openai_state_dict
 from .pretrained import list_pretrained_tag_models
+
+# import torch
+
 
 # (
 # get_pretrained_url,

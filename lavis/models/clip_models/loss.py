@@ -90,8 +90,6 @@ class ClipLoss(nn.Module):
         self.prev_num_logits = 0
         self.labels = {}
 
-        logging.warning(f"rank {rank} of {world_size}")
-
     def forward(self, image_features, text_features, logit_scale):
         device = image_features.device
         if self.world_size > 1:
