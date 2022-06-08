@@ -3,10 +3,8 @@ import os
 
 import numpy as np
 import torch
-
-from lavis.common.utils import main_process, save_result
+from lavis.common.dist_utils import main_process
 from lavis.common.registry import registry
-
 from lavis.tasks.base_task import BaseTask
 
 
@@ -47,7 +45,7 @@ class MultimodalClassificationTask(BaseTask):
         return results
 
     def after_evaluation(self, val_result, split_name, epoch, **kwargs):
-        eval_result_file = save_result(
+        eval_result_file = self.save_result(
             result=val_result,
             result_dir=registry.get_path("result_dir"),
             filename="{}_epoch{}".format(split_name, epoch),

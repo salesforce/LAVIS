@@ -5,16 +5,16 @@ import random
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-from omegaconf import OmegaConf
 
-import lavis.common.utils as utils
 import lavis.tasks as tasks
 from lavis.common.config import Config
+from lavis.common.dist_utils import get_rank, init_distributed_mode
+from lavis.common.logger import setup_logger
 from lavis.common.optims import (
     LinearWarmupCosineLRScheduler,
     LinearWarmupStepLRScheduler,
 )
-from lavis.common.registry import registry
+from lavis.common.utils import now
 
 # imports modules for registration
 from lavis.datasets.builders import *
@@ -44,7 +44,7 @@ def parse_args():
 
 
 def setup_seeds(config):
-    seed = config.run_cfg.seed + utils.get_rank()
+    seed = config.run_cfg.seed + get_rank()
 
     random.seed(seed)
     np.random.seed(seed)
@@ -59,22 +59,16 @@ def main():
     os.environ["NCCL_BLOCKING_WAIT"] = "1"
 
     # set before init_distributed_mode() to ensure the same job_id shared across all ranks.
-    job_id = utils.now()
-
-    # root_dir = os.getcwd()
-    # default_cfg = OmegaConf.load(os.path.join(root_dir, "lavis/configs/default.yaml"))
-
-    # registry.register_path("library_root", root_dir)
-    # registry.register_path("cache_root", default_cfg.env.cache_root)
+    job_id = now()
 
     cfg = Config(parse_args())
 
-    utils.init_distributed_mode(cfg.run_cfg)
+    init_distributed_mode(cfg.run_cfg)
 
     setup_seeds(cfg)
 
     # set after init_distributed_mode() to only log on master.
-    utils.setup_logger()
+    setup_logger()
 
     cfg.pretty_print()
 

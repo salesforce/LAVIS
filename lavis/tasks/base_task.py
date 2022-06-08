@@ -1,10 +1,11 @@
 import logging
-import torch.distributed as dist
-from lavis.datasets.data_utils import prepare_sample
-import lavis.common.utils as utils
+import os
 
+import torch.distributed as dist
+from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
+from lavis.common.logger import MetricLogger, SmoothedValue
 from lavis.common.registry import registry
-from lavis.datasets.data_utils import concat_datasets
+from lavis.datasets.data_utils import concat_datasets, prepare_sample
 
 
 class BaseTask:
@@ -71,7 +72,7 @@ class BaseTask:
         raise NotImplementedError
 
     def evaluation(self, model, data_loader, cuda_enabled=True):
-        metric_logger = utils.MetricLogger(delimiter="  ")
+        metric_logger = MetricLogger(delimiter="  ")
         header = "Evaluation"
         # TODO make it configurable
         print_freq = 10
@@ -98,13 +99,9 @@ class BaseTask:
         cuda_enabled=True,
         log_freq=50,
     ):
-        metric_logger = utils.MetricLogger(delimiter="  ")
-        metric_logger.add_meter(
-            "lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}")
-        )
-        metric_logger.add_meter(
-            "loss", utils.SmoothedValue(window_size=1, fmt="{value:.4f}")
-        )
+        metric_logger = MetricLogger(delimiter="  ")
+        metric_logger.add_meter("lr", SmoothedValue(window_size=1, fmt="{value:.6f}"))
+        metric_logger.add_meter("loss", SmoothedValue(window_size=1, fmt="{value:.4f}"))
 
         header = "Train Epoch: [{}]".format(epoch)
 
@@ -136,3 +133,44 @@ class BaseTask:
             k: "{:.3f}".format(meter.global_avg)
             for k, meter in metric_logger.meters.items()
         }
+
+    @staticmethod
+    def save_result(result, result_dir, filename, remove_duplicate=""):
+        import json
+
+        logging.warning("rank %d starts dumping." % get_rank())
+        result_file = os.path.join(
+            result_dir, "%s_rank%d.json" % (filename, get_rank())
+        )
+        logging.warning("rank %d finish dumping." % get_rank())
+        final_result_file = os.path.join(result_dir, "%s.json" % filename)
+
+        json.dump(result, open(result_file, "w"))
+
+        dist.barrier()
+
+        if is_main_process():
+            logging.warning("rank %d starts merging." % get_rank())
+            # combine results from all processes
+            result = []
+
+            for rank in range(get_world_size()):
+                result_file = os.path.join(
+                    result_dir, "%s_rank%d.json" % (filename, rank)
+                )
+                res = json.load(open(result_file, "r"))
+                result += res
+
+            if remove_duplicate:
+                result_new = []
+                id_list = []
+                for res in result:
+                    if res[remove_duplicate] not in id_list:
+                        id_list.append(res[remove_duplicate])
+                        result_new.append(res)
+                result = result_new
+
+            json.dump(result, open(final_result_file, "w"))
+            print("result file saved to %s" % final_result_file)
+
+        return final_result_file

@@ -1,14 +1,13 @@
 import datetime
+import json
 import logging
 import os
-import json
 import time
 from pathlib import Path
 
 import torch
 import torch.distributed as dist
-
-import lavis.common.utils as utils
+from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
 from lavis.common.registry import registry
 from torch.utils.data import DataLoader
 
@@ -116,8 +115,8 @@ class Runner:
                 samplers = create_sampler(
                     datasets=datasets,
                     shuffles=is_train,
-                    num_tasks=utils.get_world_size(),
-                    global_rank=utils.get_rank(),
+                    num_tasks=get_world_size(),
+                    global_rank=get_rank(),
                 )
                 if not self.use_dist_eval_sampler:
                     # e.g. retrieval evaluation
@@ -238,7 +237,7 @@ class Runner:
 
                 train_stats = self.train_epoch(cur_epoch)
 
-                if utils.is_main_process():
+                if is_main_process():
                     self.log_stats(split_name="train", stats=train_stats)
 
             # evaluation phase
@@ -254,7 +253,7 @@ class Runner:
                         val_result=val_result, split_name=split_name, epoch=cur_epoch
                     )
 
-                    if utils.is_main_process():
+                    if is_main_process():
                         assert (
                             "agg_metrics" in val_log
                         ), "agg_metrics must be present in evaluation log if validation set is used."
@@ -271,7 +270,7 @@ class Runner:
 
             else:
                 # no validation split is provided.
-                if not self.evaluate_only and utils.is_main_process():
+                if not self.evaluate_only and is_main_process():
                     self.save_checkpoint(cur_epoch, is_best=False)
 
             if self.evaluate_only:

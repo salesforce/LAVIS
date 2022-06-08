@@ -3,7 +3,9 @@ import logging
 import os
 import time
 
-import lavis.common.utils as utils
+import lavis.common.dist_utils as dist_utils
+from lavis.common.logger import MetricLogger
+
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
@@ -66,7 +68,7 @@ def load_from_pretrained(model, url_or_filename):
 def compute_sim_matrix(model, data_loader, **kwargs):
     k_test = kwargs.pop("k_test")
 
-    metric_logger = utils.MetricLogger(delimiter="  ")
+    metric_logger = MetricLogger(delimiter="  ")
     header = "Evaluation:"
 
     logging.info("Computing features for evaluation...")
@@ -123,8 +125,8 @@ def compute_sim_matrix(model, data_loader, **kwargs):
         (len(data_loader.dataset.image), len(texts)), -100.0
     ).to(model.device)
 
-    num_tasks = utils.get_world_size()
-    rank = utils.get_rank()
+    num_tasks = dist_utils.get_world_size()
+    rank = dist_utils.get_rank()
     step = sims_matrix.size(0) // num_tasks + 1
     start = rank * step
     end = min(sims_matrix.size(0), start + step)
@@ -177,7 +179,7 @@ def compute_sim_matrix(model, data_loader, **kwargs):
         score = model.itm_head(output.last_hidden_state[:, 0, :])[:, 1]
         score_matrix_t2i[start + i, topk_idx] = score + topk_sim
 
-    if utils.is_dist_avail_and_initialized():
+    if dist_utils.is_dist_avail_and_initialized():
         dist.barrier()
         torch.distributed.all_reduce(
             score_matrix_i2t, op=torch.distributed.ReduceOp.SUM

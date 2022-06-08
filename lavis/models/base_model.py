@@ -48,6 +48,21 @@ class BaseModel(nn.Module):
     def device(self):
         return list(self.parameters())[0].device
 
+    def show_n_params(self, return_str=True):
+        tot = 0
+        for p in self.parameters():
+            w = 1
+            for x in p.shape:
+                w *= x
+            tot += w
+        if return_str:
+            if tot >= 1e6:
+                return "{:.1f}M".format(tot / 1e6)
+            else:
+                return "{:.1f}K".format(tot / 1e3)
+        else:
+            return tot
+
 
 class BaseEncoder(nn.Module):
     """

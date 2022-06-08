@@ -1,13 +1,9 @@
-import json
 import logging
-import os
 
-import lavis.common.utils as utils
-import torch.distributed as dist
+import lavis.common.dist_utils as dist_utils
 from lavis.common.registry import registry
 from lavis.common.vqa_tools.vqa import VQA
 from lavis.common.vqa_tools.vqa_eval import VQAEval
-
 from lavis.tasks.base_task import BaseTask
 
 
@@ -95,7 +91,7 @@ class VQATask(BaseTask):
         return pred_qa_pairs
 
     def after_evaluation(self, val_result, result_dir, split_name, **kwargs):
-        result_file = save_result(
+        result_file = self.save_result(
             val_result,
             result_dir,
             filename="vqa_result",
@@ -106,7 +102,7 @@ class VQATask(BaseTask):
 
         return metrics
 
-    @utils.main_process
+    @dist_utils.main_process
     def _report_metrics(self, result_file, split):
         metrics = {}
 
@@ -137,38 +133,3 @@ class VQATask(BaseTask):
                 metrics["ansType"] = vqa_scorer.accuracy["perAnswerType"][ans_type]
 
         return metrics
-
-
-def save_result(result, result_dir, filename, remove_duplicate=""):
-    result_file = os.path.join(
-        result_dir, "%s_rank%d.json" % (filename, utils.get_rank())
-    )
-    final_result_file = os.path.join(result_dir, "%s.json" % filename)
-
-    json.dump(result, open(result_file, "w"))
-
-    dist.barrier()
-
-    if utils.is_main_process():
-        logging.info("Merging results from all ranks.")
-        # combine results from all processes
-        result = []
-
-        for rank in range(utils.get_world_size()):
-            result_file = os.path.join(result_dir, "%s_rank%d.json" % (filename, rank))
-            res = json.load(open(result_file, "r"))
-            result += res
-
-        if remove_duplicate:
-            result_new = []
-            id_list = []
-            for res in result:
-                if res[remove_duplicate] not in id_list:
-                    id_list.append(res[remove_duplicate])
-                    result_new.append(res)
-            result = result_new
-
-        json.dump(result, open(final_result_file, "w"))
-        logging.info("result file saved to %s" % final_result_file)
-
-    return final_result_file

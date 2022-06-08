@@ -1,14 +1,9 @@
-import datetime
 import logging
-import time
 
-import lavis.common.utils as utils
 import numpy as np
 import torch
-import torch.distributed as dist
-import torch.nn.functional as F
+from lavis.common.dist_utils import is_main_process
 from lavis.common.registry import registry
-
 from lavis.tasks.base_task import BaseTask
 
 
@@ -29,7 +24,7 @@ class RetrievalTask(BaseTask):
         # score_i2t, score_t2i = model.compute_sim_matrix(model, data_loader)
         score_i2t, score_t2i = model.compute_sim_matrix(data_loader, task_cfg=self.cfg)
 
-        if utils.is_main_process():
+        if is_main_process():
             eval_result = self._report_metrics(
                 score_i2t,
                 score_t2i,
