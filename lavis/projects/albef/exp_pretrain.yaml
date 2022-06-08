@@ -4,13 +4,15 @@ model:
 
   queue_size: 65536
 
+  image_size: 256
+
 
 datasets:
   coco_caption:
     vis_processor:
         train:
           name: "blip_image_train"
-          image_size: 224
+          image_size: 256
     text_processor:
         train:
           name: "blip_caption"
@@ -18,7 +20,7 @@ datasets:
     vis_processor:
         train:
           name: "blip_image_train"
-          image_size: 224
+          image_size: 256
     text_processor:
         train:
           name: "blip_caption"
@@ -26,7 +28,7 @@ datasets:
     vis_processor:
         train:
           name: "blip_image_train"
-          image_size: 224
+          image_size: 256
     text_processor:
         train:
           name: "blip_caption"
@@ -34,7 +36,7 @@ datasets:
     vis_processor:
         train:
           name: "blip_image_train"
-          image_size: 224
+          image_size: 256
     text_processor:
         train:
           name: "blip_caption"
@@ -42,7 +44,7 @@ datasets:
     vis_processor:
         train:
           name: "blip_image_train"
-          image_size: 224
+          image_size: 256
     text_processor:
         train:
           name: "blip_caption"
@@ -65,7 +67,7 @@ run:
   warmup_steps: 3000
 
   seed: 42
-  output_dir: "lavis/output/Pretrain"
+  output_dir: "output/ALBEF/Pretrain"
 
   evaluate: False
   train_splits: ["train"]
