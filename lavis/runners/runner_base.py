@@ -7,7 +7,12 @@ from pathlib import Path
 
 import torch
 import torch.distributed as dist
-from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
+from lavis.common.dist_utils import (
+    get_rank,
+    get_world_size,
+    is_main_process,
+    main_process,
+)
 from lavis.common.registry import registry
 from torch.utils.data import DataLoader
 
@@ -236,9 +241,7 @@ class Runner:
                     self.train_loader.sampler.set_epoch(cur_epoch)
 
                 train_stats = self.train_epoch(cur_epoch)
-
-                if is_main_process():
-                    self.log_stats(split_name="train", stats=train_stats)
+                self.log_stats(split_name="train", stats=train_stats)
 
             # evaluation phase
             if len(self.valid_splits) > 0:
@@ -246,31 +249,30 @@ class Runner:
                     logging.info("Evaluating on {}.".format(split_name))
 
                     val_result = self.evaluation(split_name=split_name)
-                    if val_result is None:
-                        continue
+                    if val_result is not None:
+                        val_log = self.task.after_evaluation(
+                            val_result=val_result,
+                            split_name=split_name,
+                            epoch=cur_epoch,
+                        )
 
-                    val_log = self.task.after_evaluation(
-                        val_result=val_result, split_name=split_name, epoch=cur_epoch
-                    )
+                        if is_main_process():
+                            assert (
+                                "agg_metrics" in val_log
+                            ), "No agg_metrics found in validation log."
 
-                    if is_main_process():
-                        assert (
-                            "agg_metrics" in val_log
-                        ), "agg_metrics must be present in evaluation log if validation set is used."
+                            agg_metrics = val_log["agg_metrics"]
+                            if agg_metrics > best_agg_metric and split_name == "val":
+                                best_epoch, best_agg_metric = cur_epoch, agg_metrics
 
-                        agg_metrics = val_log["agg_metrics"]
-                        if agg_metrics > best_agg_metric and split_name == "val":
-                            best_epoch = cur_epoch
-                            best_agg_metric = agg_metrics
+                                self.save_checkpoint(cur_epoch, is_best=True)
 
-                            self.save_checkpoint(cur_epoch, is_best=True)
-
-                        val_log.update({"best_epoch": best_epoch})
-                        self.log_stats(val_log, split_name)
+                            val_log.update({"best_epoch": best_epoch})
+                            self.log_stats(val_log, split_name)
 
             else:
-                # no validation split is provided.
-                if not self.evaluate_only and is_main_process():
+                # if no validation split is provided, we just save the checkpoint at the end of each epoch.
+                if not self.evaluate_only:
                     self.save_checkpoint(cur_epoch, is_best=False)
 
             if self.evaluate_only:
@@ -327,6 +329,7 @@ class Runner:
 
         return results
 
+    @main_process
     def save_checkpoint(self, cur_epoch, is_best=False):
         save_obj = {
             "model": self.model_without_ddp.state_dict(),
@@ -341,6 +344,7 @@ class Runner:
         logging.info("Saving checkpoint at epoch {} to {}.".format(cur_epoch, save_to))
         torch.save(save_obj, save_to)
 
+    @main_process
     def log_stats(self, stats, split_name):
         if isinstance(stats, dict):
             log_stats = {**{f"{split_name}_{k}": v for k, v in stats.items()}}
