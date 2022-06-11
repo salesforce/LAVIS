@@ -206,20 +206,6 @@ class Runner:
         assert isinstance(train_loader, DataLoader)
         return train_loader
 
-    def unwrap_dist_model(self, model):
-        if self.use_distributed:
-            return model.module
-        else:
-            return model
-
-    def create_eval_model(self):
-        # to handle when training model is different from evaluation model.
-        # e.g. CLIP model when zero-shot evaluation on image classification.
-        eval_model = self.task.create_eval_model(self.model)
-        eval_model = self.unwrap_dist_model(eval_model)
-
-        return eval_model
-
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
 
@@ -255,14 +241,10 @@ class Runner:
                 for split_name in self.valid_splits:
                     logging.info("Evaluating on {}.".format(split_name))
 
-                    val_result = self.eval_epoch(split_name=split_name)
-                    if val_result is not None:
-                        val_log = self.task.after_evaluation(
-                            val_result=val_result,
-                            split_name=split_name,
-                            epoch=cur_epoch,
-                        )
-
+                    val_log = self.eval_epoch(
+                        split_name=split_name, cur_epoch=cur_epoch
+                    )
+                    if val_log is not None:
                         if is_main_process():
                             assert (
                                 "agg_metrics" in val_log
@@ -299,13 +281,7 @@ class Runner:
 
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
-                test_result = self.eval_epoch(split_name=split_name)
-                test_log = self.task.after_evaluation(
-                    val_result=test_result,
-                    split_name=split_name,
-                    epoch=cur_epoch,
-                    result_dir=self.result_dir,
-                )
+                test_log = self.eval_epoch(split_name=split_name, cur_epoch=cur_epoch)
                 test_logs[split_name] = test_log
 
             return test_logs
@@ -324,18 +300,33 @@ class Runner:
             log_freq=self.log_freq,
         )
 
-    @torch.no_grad()
-    def eval_epoch(self, split_name):
-        # TODO In validation, you need to compute loss as well as metrics
-        model = self.create_eval_model()
-        model.eval()
+    def unwrap_dist_model(self, model):
+        if self.use_distributed:
+            return model.module
+        else:
+            return model
 
+    @torch.no_grad()
+    def eval_epoch(self, split_name, cur_epoch):
         data_loader = self.dataloaders.get(split_name, None)
         assert data_loader, "data_loader for split {} is None.".format(split_name)
 
+        # TODO In validation, you need to compute loss as well as metrics
+        model = self.unwrap_dist_model(self.model)
+        model.eval()
+
+        self.task.before_evaluation(
+            model=model,
+            dataset=self.datasets[split_name],
+        )
         results = self.task.evaluation(model, data_loader)
 
-        return results
+        if results is not None:
+            return self.task.after_evaluation(
+                val_result=results,
+                split_name=split_name,
+                epoch=cur_epoch,
+            )
 
     @main_process
     def save_checkpoint(self, cur_epoch, is_best=False):

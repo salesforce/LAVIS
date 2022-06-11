@@ -18,7 +18,7 @@ class MultimodalClassificationTask(BaseTask):
     def build_datasets(self, cfg):
         datasets = super().build_datasets(cfg)
 
-        assert "test" in datasets, "No testing split is present."
+        # assert "test" in datasets, "No testing split is present."
         return datasets
 
     def valid_step(self, model, samples):

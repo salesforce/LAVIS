@@ -7,7 +7,6 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Callable, Optional, Tuple, Union
 
-import lavis.common.utils as utils
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -15,6 +14,8 @@ import time
 from lavis.common.registry import registry
 from lavis.models.base_model import BaseModel
 from torch import nn
+
+from lavis.tasks.multimodal_classification import MultimodalClassificationTask
 
 from .timm_model import TimmModel
 from .utils import freeze_batch_norm_2d
@@ -456,6 +457,9 @@ class CLIP(BaseModel):
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
         self.register_buffer("attn_mask", self.build_attention_mask(), persistent=False)
 
+        self.prompt_templates = openai_imagenet_template
+        self.classifier = None
+
         self.init_parameters()
 
     @property
@@ -548,6 +552,40 @@ class CLIP(BaseModel):
 
         # return image_features, text_features, self.logit_scale.exp()
         return {"loss": loss}
+
+    def predict(self, samples):
+        image = samples["image"]
+        targets = samples["label"]
+
+        image_features = self.encode_image(image)
+        image_features = F.normalize(image_features, dim=-1)
+
+        logits = 100.0 * image_features @ self.classifier
+
+        return {"predictions": logits, "targets": targets}
+
+    def before_evaluation(self, dataset, task_type, **kwargs):
+        if task_type == MultimodalClassificationTask:
+            self.classifier = self.zero_shot_classifier(
+                classnames=dataset.classnames,
+                templates=self.prompt_templates,
+            )
+
+    def zero_shot_classifier(self, classnames, templates):
+        with torch.no_grad():
+            zeroshot_weights = []
+            for classname in classnames:
+                texts = [
+                    template(classname) for template in templates
+                ]  # format with class
+                texts = self.tokenizer(texts).to(self.device)  # tokenize
+
+                class_embeddings = self.encode_text(texts)
+                class_embedding = F.normalize(class_embeddings, dim=-1).mean(dim=0)
+                class_embedding /= class_embedding.norm()
+                zeroshot_weights.append(class_embedding)
+            zeroshot_weights = torch.stack(zeroshot_weights, dim=1).to(self.device)
+        return zeroshot_weights
 
     @classmethod
     def default_config_path(cls, model_type="base"):
@@ -954,21 +992,10 @@ def add_model_config(path):
 Adapted from https://github.com/openai/CLIP. Originally MIT License, Copyright (c) 2021 OpenAI.
 """
 
-# import os
 import warnings
 from typing import List, Union
 
-# from .model import build_model_from_openai_state_dict
 from .pretrained import list_pretrained_tag_models
-
-# import torch
-
-
-# (
-# get_pretrained_url,
-# list_pretrained_tag_models,
-# download_pretrained,
-# )
 
 # __all__ = ["list_openai_models", "load_openai_model"]
 
@@ -1099,3 +1126,87 @@ def load_openai_model(
     # ensure image_size attr available at consistent location for both jit and non-jit
     model.visual.image_size = model.input_resolution.item()
     return model
+
+
+openai_imagenet_template = [
+    lambda c: f"a bad photo of a {c}.",
+    lambda c: f"a photo of many {c}.",
+    lambda c: f"a sculpture of a {c}.",
+    lambda c: f"a photo of the hard to see {c}.",
+    lambda c: f"a low resolution photo of the {c}.",
+    lambda c: f"a rendering of a {c}.",
+    lambda c: f"graffiti of a {c}.",
+    lambda c: f"a bad photo of the {c}.",
+    lambda c: f"a cropped photo of the {c}.",
+    lambda c: f"a tattoo of a {c}.",
+    lambda c: f"the embroidered {c}.",
+    lambda c: f"a photo of a hard to see {c}.",
+    lambda c: f"a bright photo of a {c}.",
+    lambda c: f"a photo of a clean {c}.",
+    lambda c: f"a photo of a dirty {c}.",
+    lambda c: f"a dark photo of the {c}.",
+    lambda c: f"a drawing of a {c}.",
+    lambda c: f"a photo of my {c}.",
+    lambda c: f"the plastic {c}.",
+    lambda c: f"a photo of the cool {c}.",
+    lambda c: f"a close-up photo of a {c}.",
+    lambda c: f"a black and white photo of the {c}.",
+    lambda c: f"a painting of the {c}.",
+    lambda c: f"a painting of a {c}.",
+    lambda c: f"a pixelated photo of the {c}.",
+    lambda c: f"a sculpture of the {c}.",
+    lambda c: f"a bright photo of the {c}.",
+    lambda c: f"a cropped photo of a {c}.",
+    lambda c: f"a plastic {c}.",
+    lambda c: f"a photo of the dirty {c}.",
+    lambda c: f"a jpeg corrupted photo of a {c}.",
+    lambda c: f"a blurry photo of the {c}.",
+    lambda c: f"a photo of the {c}.",
+    lambda c: f"a good photo of the {c}.",
+    lambda c: f"a rendering of the {c}.",
+    lambda c: f"a {c} in a video game.",
+    lambda c: f"a photo of one {c}.",
+    lambda c: f"a doodle of a {c}.",
+    lambda c: f"a close-up photo of the {c}.",
+    lambda c: f"a photo of a {c}.",
+    lambda c: f"the origami {c}.",
+    lambda c: f"the {c} in a video game.",
+    lambda c: f"a sketch of a {c}.",
+    lambda c: f"a doodle of the {c}.",
+    lambda c: f"a origami {c}.",
+    lambda c: f"a low resolution photo of a {c}.",
+    lambda c: f"the toy {c}.",
+    lambda c: f"a rendition of the {c}.",
+    lambda c: f"a photo of the clean {c}.",
+    lambda c: f"a photo of a large {c}.",
+    lambda c: f"a rendition of a {c}.",
+    lambda c: f"a photo of a nice {c}.",
+    lambda c: f"a photo of a weird {c}.",
+    lambda c: f"a blurry photo of a {c}.",
+    lambda c: f"a cartoon {c}.",
+    lambda c: f"art of a {c}.",
+    lambda c: f"a sketch of the {c}.",
+    lambda c: f"a embroidered {c}.",
+    lambda c: f"a pixelated photo of a {c}.",
+    lambda c: f"itap of the {c}.",
+    lambda c: f"a jpeg corrupted photo of the {c}.",
+    lambda c: f"a good photo of a {c}.",
+    lambda c: f"a plushie {c}.",
+    lambda c: f"a photo of the nice {c}.",
+    lambda c: f"a photo of the small {c}.",
+    lambda c: f"a photo of the weird {c}.",
+    lambda c: f"the cartoon {c}.",
+    lambda c: f"art of the {c}.",
+    lambda c: f"a drawing of the {c}.",
+    lambda c: f"a photo of the large {c}.",
+    lambda c: f"a black and white photo of a {c}.",
+    lambda c: f"the plushie {c}.",
+    lambda c: f"a dark photo of a {c}.",
+    lambda c: f"itap of a {c}.",
+    lambda c: f"graffiti of the {c}.",
+    lambda c: f"a toy {c}.",
+    lambda c: f"itap of my {c}.",
+    lambda c: f"a photo of a cool {c}.",
+    lambda c: f"a photo of a small {c}.",
+    lambda c: f"a tattoo of the {c}.",
+]

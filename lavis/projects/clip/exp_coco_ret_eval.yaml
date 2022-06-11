@@ -46,7 +46,7 @@ run:
   world_size: 1
   dist_url: "env://"
   distributed: True
-  use_dist_eval_sampler: False
+  use_dist_eval_sampler: True
 
   # misc
   seed: 42

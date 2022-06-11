@@ -45,6 +45,7 @@ class BaseDatasetBuilder:
             dist.barrier()
 
         # at this point, all the annotations and image/videos should be all downloaded to the specified locations.
+        logging.info("Building datasets...")
         datasets = self.build()  # dataset['train'/'val'/'test']
 
         return datasets

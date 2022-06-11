@@ -48,6 +48,9 @@ class BaseModel(nn.Module):
     def device(self):
         return list(self.parameters())[0].device
 
+    def before_evaluation(self, **kwargs):
+        pass
+
     def show_n_params(self, return_str=True):
         tot = 0
         for p in self.parameters():

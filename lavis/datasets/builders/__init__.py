@@ -11,6 +11,7 @@ from lavis.datasets.builders.sbu_caption_builder import SBUCaptionBuilder
 from lavis.datasets.builders.snli_ve_builder import SNLIVisualEntailmentBuilder
 from lavis.datasets.builders.vg_caption_builder import VGCaptionBuilder
 from lavis.datasets.builders.vg_vqa_builder import VGVQABuilder
+from lavis.datasets.builders.imagenet_builder import ImageNetBuilder
 
 from lavis.common.registry import registry
 
@@ -21,6 +22,7 @@ __all__ = [
     "ConceptualCaption3MBuilder",
     "ConceptualCaption12MBuilder",
     "Flickr30kBuilder",
+    "ImageNetBuilder",
     "SBUCaptionBuilder",
     "SNLIVisualEntailmentBuilder",
     "VGCaptionBuilder",

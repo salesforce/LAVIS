@@ -90,10 +90,10 @@ class VQATask(BaseTask):
 
         return pred_qa_pairs
 
-    def after_evaluation(self, val_result, result_dir, split_name, **kwargs):
+    def after_evaluation(self, val_result, split_name, **kwargs):
         result_file = self.save_result(
             val_result,
-            result_dir,
+            result_dir=registry.get_path("result_dir"),
             filename="vqa_result",
             remove_duplicate="question_id",
         )

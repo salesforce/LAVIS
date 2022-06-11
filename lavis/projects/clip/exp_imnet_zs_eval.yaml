@@ -1,0 +1,34 @@
+model:
+  arch: clip
+
+  model_type: ViT-L-14-336
+
+datasets:
+  imagenet: # name of the dataset builder
+    vis_processor:
+        eval:
+          name: "clip_image_eval"
+          # image_size: 224
+          image_size: 336
+
+run:
+  task: multimodal_classification
+
+  # dataloading
+  num_workers: 4
+  batch_size_train: 32
+  batch_size_eval: 128
+
+  test_splits: ["val"]
+
+  # distribution
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+
+  # misc
+  seed: 42
+  output_dir: "output/clip/zs_imnet"
+
+  evaluate: True
