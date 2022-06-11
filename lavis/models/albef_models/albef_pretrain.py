@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from transformers import BertConfig
@@ -186,8 +187,9 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         )
         with torch.no_grad():
             bs = image.size(0)
-            weights_i2t = F.softmax(sim_i2t[:, :bs], dim=1)
-            weights_t2i = F.softmax(sim_t2i[:, :bs], dim=1)
+
+            weights_i2t = F.softmax(sim_i2t[:, :bs] + 1e-4, dim=1)
+            weights_t2i = F.softmax(sim_t2i[:, :bs] + 1e-4, dim=1)
 
             weights_i2t.fill_diagonal_(0)
             weights_t2i.fill_diagonal_(0)
