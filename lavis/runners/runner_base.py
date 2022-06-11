@@ -63,13 +63,6 @@ class Runner:
         return self._wrapped_model
 
     @property
-    def model_without_ddp(self):
-        if self.use_distributed:
-            return self.model.module
-        else:
-            return self.model
-
-    @property
     def optimizer(self):
         # TODO make optimizer class and configurations
         if self._optimizer is None:
@@ -213,6 +206,20 @@ class Runner:
         assert isinstance(train_loader, DataLoader)
         return train_loader
 
+    def unwrap_dist_model(self, model):
+        if self.use_distributed:
+            return model.module
+        else:
+            return model
+
+    def create_eval_model(self):
+        # to handle when training model is different from evaluation model.
+        # e.g. CLIP model when zero-shot evaluation on image classification.
+        eval_model = self.task.create_eval_model(self.model)
+        eval_model = self.unwrap_dist_model(eval_model)
+
+        return eval_model
+
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
 
@@ -248,7 +255,7 @@ class Runner:
                 for split_name in self.valid_splits:
                     logging.info("Evaluating on {}.".format(split_name))
 
-                    val_result = self.evaluation(split_name=split_name)
+                    val_result = self.eval_epoch(split_name=split_name)
                     if val_result is not None:
                         val_log = self.task.after_evaluation(
                             val_result=val_result,
@@ -287,11 +294,12 @@ class Runner:
         logging.info("Training time {}".format(total_time_str))
 
     def evaluate(self, cur_epoch="best"):
+        # TODO to load best validation checkpoint if provided
         test_logs = dict()
 
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
-                test_result = self.evaluation(split_name=split_name)
+                test_result = self.eval_epoch(split_name=split_name)
                 test_log = self.task.after_evaluation(
                     val_result=test_result,
                     split_name=split_name,
@@ -317,9 +325,9 @@ class Runner:
         )
 
     @torch.no_grad()
-    def evaluation(self, split_name):
+    def eval_epoch(self, split_name):
         # TODO In validation, you need to compute loss as well as metrics
-        model = self.model_without_ddp
+        model = self.create_eval_model()
         model.eval()
 
         data_loader = self.dataloaders.get(split_name, None)
@@ -332,7 +340,7 @@ class Runner:
     @main_process
     def save_checkpoint(self, cur_epoch, is_best=False):
         save_obj = {
-            "model": self.model_without_ddp.state_dict(),
+            "model": self.unwrap_dist_model(self.model).state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "config": self.config.to_dict(),
             "epoch": cur_epoch,
