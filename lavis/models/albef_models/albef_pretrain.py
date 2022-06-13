@@ -188,11 +188,14 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         with torch.no_grad():
             bs = image.size(0)
 
-            weights_i2t = F.softmax(sim_i2t[:, :bs] + 1e-4, dim=1)
-            weights_t2i = F.softmax(sim_t2i[:, :bs] + 1e-4, dim=1)
+            weights_i2t = sim_i2t[:, :bs].clone()
+            weights_t2i = sim_t2i[:, :bs].clone()
 
-            weights_i2t.fill_diagonal_(0)
-            weights_t2i.fill_diagonal_(0)
+            weights_i2t.fill_diagonal_(-np.Inf)
+            weights_t2i.fill_diagonal_(-np.Inf)
+
+            weights_i2t = F.softmax(weights_i2t, dim=1)
+            weights_t2i = F.softmax(weights_t2i, dim=1)
 
         # select a negative image for each text
         image_embeds_neg = []
