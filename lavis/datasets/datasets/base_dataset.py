@@ -7,13 +7,13 @@ from torch.utils.data.dataloader import default_collate
 
 class BaseDataset(Dataset):
     def __init__(
-        self, vis_processor=None, text_processor=None, image_root=None, ann_paths=[]
+        self, vis_processor=None, text_processor=None, vis_root=None, ann_paths=[]
     ):
         """
-        image_root (string): Root directory of images (e.g. coco/images/)
+        vis_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         """
-        self.image_root = image_root
+        self.vis_root = vis_root
 
         self.annotation = []
         for ann_path in ann_paths:

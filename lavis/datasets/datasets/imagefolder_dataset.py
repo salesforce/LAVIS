@@ -7,10 +7,10 @@ from torchvision import datasets
 
 
 class ImageFolderDataset(BaseDataset):
-    def __init__(self, vis_processor, image_root, classnames=[], **kwargs):
-        super().__init__(vis_processor=vis_processor, image_root=image_root)
+    def __init__(self, vis_processor, vis_root, classnames=[], **kwargs):
+        super().__init__(vis_processor=vis_processor, vis_root=vis_root)
 
-        self.inner_dataset = datasets.ImageFolder(image_root)
+        self.inner_dataset = datasets.ImageFolder(vis_root)
 
         self.annotation = [
             {"image": elem[0], "label": elem[1], "image_id": elem[0]}
@@ -26,7 +26,7 @@ class ImageFolderDataset(BaseDataset):
         ann = self.annotation[index]
 
         img_fn = ann["image"]
-        image_path = os.path.join(self.image_root, img_fn)
+        image_path = os.path.join(self.vis_root, img_fn)
         image = Image.open(image_path).convert("RGB")
 
         image = self.vis_processor(image)

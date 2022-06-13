@@ -53,7 +53,7 @@ class ImageNetBuilder(BaseDatasetBuilder):
             dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
             datasets[split] = dataset_cls(
                 vis_processor=vis_processor,
-                image_root=vis_path,
+                vis_root=vis_path,
                 classnames=imagenet_classnames,
             )
 

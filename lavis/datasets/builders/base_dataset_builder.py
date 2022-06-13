@@ -251,7 +251,7 @@ class BaseDatasetBuilder:
                 vis_processor=vis_processor,
                 text_processor=text_processor,
                 ann_paths=ann_paths,
-                image_root=vis_path,
+                vis_root=vis_path,
             )
 
         return datasets

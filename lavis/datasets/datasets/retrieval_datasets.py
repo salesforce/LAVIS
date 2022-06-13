@@ -6,12 +6,12 @@ from lavis.datasets.datasets.base_dataset import BaseDataset
 
 
 class RetrievalDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
+    def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
-        image_root (string): Root directory of images (e.g. coco/images/)
+        vis_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         """
-        super().__init__(vis_processor, text_processor, image_root, ann_paths)
+        super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
         self.img_ids = {}
         n = 0
@@ -25,7 +25,7 @@ class RetrievalDataset(BaseDataset):
 
         ann = self.annotation[index]
 
-        image_path = os.path.join(self.image_root, ann["image"])
+        image_path = os.path.join(self.vis_root, ann["image"])
         image = Image.open(image_path).convert("RGB")
 
         image = self.vis_processor(image)
@@ -40,14 +40,14 @@ class RetrievalDataset(BaseDataset):
 
 
 class RetrievalEvalDataset(BaseDataset):
-    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
+    def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
-        image_root (string): Root directory of images (e.g. coco/images/)
+        vis_root (string): Root directory of images (e.g. coco/images/)
         ann_root (string): directory to store the annotation file
         split (string): val or test
         """
 
-        super().__init__(vis_processor, text_processor, image_root, ann_paths)
+        super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
         self.text = []
         self.image = []
@@ -66,7 +66,7 @@ class RetrievalEvalDataset(BaseDataset):
 
     def __getitem__(self, index):
 
-        image_path = os.path.join(self.image_root, self.annotation[index]["image"])
+        image_path = os.path.join(self.vis_root, self.annotation[index]["image"])
         image = Image.open(image_path).convert("RGB")
 
         image = self.vis_processor(image)

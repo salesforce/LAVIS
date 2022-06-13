@@ -6,13 +6,13 @@ from lavis.datasets.datasets.vqa_datasets import VQADataset
 
 
 class VGVQADataset(VQADataset):
-    def __init__(self, vis_processor, text_processor, image_root, ann_paths):
-        super().__init__(vis_processor, text_processor, image_root, ann_paths)
+    def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
+        super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
         ann = self.annotation[index]
 
-        image_path = os.path.join(self.image_root, ann["image"])
+        image_path = os.path.join(self.vis_root, ann["image"])
         image = Image.open(image_path).convert("RGB")
 
         image = self.vis_processor(image)
