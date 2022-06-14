@@ -208,11 +208,9 @@ class BaseDatasetBuilder:
 
         datasets = dict()
         for split in ann_info.keys():
-            assert split in [
-                "train",
-                "val",
-                "test",
-            ], "Invalid split name {}, must be one of 'train', 'val' and 'test'."
+            if split not in ["train", "val", "test"]:
+                continue
+
             is_train = split == "train"
 
             # processors

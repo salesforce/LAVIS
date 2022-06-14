@@ -12,6 +12,7 @@ from lavis.datasets.builders.snli_ve_builder import SNLIVisualEntailmentBuilder
 from lavis.datasets.builders.vg_caption_builder import VGCaptionBuilder
 from lavis.datasets.builders.vg_vqa_builder import VGVQABuilder
 from lavis.datasets.builders.imagenet_builder import ImageNetBuilder
+from lavis.datasets.builders.video_qa_builder import MSRVTTQABuilder, MSVDQABuilder
 
 from lavis.common.registry import registry
 
@@ -28,6 +29,8 @@ __all__ = [
     "VGCaptionBuilder",
     "VGVQABuilder",
     "NLVRBuilder",
+    "MSRVTTQABuilder",
+    "MSVDQABuilder",
 ]
 
 

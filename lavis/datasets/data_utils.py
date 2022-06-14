@@ -1,14 +1,38 @@
-import torch
-
+import gzip
+import logging
 import os
 import tarfile
-import logging
 import zipfile
-import gzip
 
+import decord
+import numpy as np
+import torch
+from decord import VideoReader
+from lavis.common.registry import registry
+from lavis.datasets.datasets.base_dataset import ConcatDataset
 from tqdm import tqdm
 
-from lavis.datasets.datasets.base_dataset import ConcatDataset
+decord.bridge.set_bridge("torch")
+MAX_INT = registry.get("MAX_INT")
+
+
+def load_video(video_path, n_frms=MAX_INT, height=-1, width=-1, sampling="uniform"):
+    vr = VideoReader(uri=video_path, height=height, width=width)
+
+    vlen = len(vr)
+    start, end = 0, vlen
+
+    n_frms = min(n_frms, vlen)
+
+    if sampling == "uniform":
+        indices = np.arange(start, end, vlen / n_frms).astype(int)
+    else:
+        raise NotImplementedError
+
+    # get_batch -> T, H, W, C
+    frms = vr.get_batch(indices).permute(3, 0, 1, 2).float()  # (C, T, H, W)
+
+    return frms
 
 
 def apply_to_sample(f, sample):
@@ -151,3 +175,30 @@ def extract_archive(from_path, to_path=None, overwrite=False):
         raise NotImplementedError(
             "We currently only support tar.gz, .tgz, .gz and zip achives."
         )
+
+
+def save_frames_grid(img_array, out_path):
+    import torch
+    from PIL import Image
+    from torchvision.utils import make_grid
+
+    if len(img_array.shape) == 3:
+        img_array = img_array.unsqueeze(0)
+    elif len(img_array.shape) == 5:
+        b, t, c, h, w = img_array.shape
+        img_array = img_array.view(-1, c, h, w)
+    elif len(img_array.shape) == 4:
+        pass
+    else:
+        raise NotImplementedError(
+            "Supports only (b,t,c,h,w)-shaped inputs. First two dimensions can be ignored."
+        )
+
+    assert img_array.shape[1] == 3, "Exepcting input shape of (H, W, 3), i.e. RGB-only."
+
+    grid = make_grid(img_array)
+    ndarr = grid.permute(1, 2, 0).to("cpu", torch.uint8).numpy()
+
+    img = Image.fromarray(ndarr)
+
+    img.save(out_path)

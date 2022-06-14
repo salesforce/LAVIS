@@ -1,4 +1,9 @@
 from lavis.processors.base_processor import BaseProcessor
+
+from lavis.processors.alpro_processors import (
+    AlproVideoTrainProcessor,
+    AlproVideoEvalProcessor,
+)
 from lavis.processors.blip_processors import (
     BlipImageTrainProcessor,
     BlipImageEvalProcessor,
@@ -15,6 +20,10 @@ from lavis.processors.clip_processors import ClipImageTrainProcessor
 
 __all__ = [
     "BaseProcessor",
+    # ALPRO
+    "AlproVideoTrainProcessor",
+    "AlproVideoEvalProcessor",
+    # BLIP
     "BlipImageTrainProcessor",
     "BlipImageEvalProcessor",
     "BlipCaptionProcessor",

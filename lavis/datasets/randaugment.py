@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+import torch
+
 
 ## aug functions
 def identity_func(img):
@@ -338,6 +340,49 @@ class RandomAugment(object):
             args = arg_dict[name](level)
             img = func_dict[name](img, *args)
         return img
+
+
+class VideoRandomAugment(object):
+    def __init__(self, N=2, M=10, p=0.0, tensor_in_tensor_out=True, augs=[]):
+        self.N = N
+        self.M = M
+        self.p = p
+        self.tensor_in_tensor_out = tensor_in_tensor_out
+        if augs:
+            self.augs = augs
+        else:
+            self.augs = list(arg_dict.keys())
+
+    def get_random_ops(self):
+        sampled_ops = np.random.choice(self.augs, self.N, replace=False)
+        return [(op, self.M) for op in sampled_ops]
+
+    def __call__(self, frames):
+        assert (
+            frames.shape[-1] == 3
+        ), "Expecting last dimension for 3-channels RGB (b, h, w, c)."
+
+        if self.tensor_in_tensor_out:
+            frames = frames.numpy().astype(np.uint8)
+
+        num_frames = frames.shape[0]
+
+        ops = num_frames * [self.get_random_ops()]
+        apply_or_not = num_frames * [np.random.random(size=self.N) > self.p]
+
+        frames = torch.stack(
+            list(map(self._aug, frames, ops, apply_or_not)), dim=0
+        ).float()
+
+        return frames
+
+    def _aug(self, img, ops, apply_or_not):
+        for i, (name, level) in enumerate(ops):
+            if not apply_or_not[i]:
+                continue
+            args = arg_dict[name](level)
+            img = func_dict[name](img, *args)
+        return torch.from_numpy(img)
 
 
 if __name__ == "__main__":
