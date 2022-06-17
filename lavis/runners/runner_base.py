@@ -16,6 +16,8 @@ from lavis.common.dist_utils import (
 from lavis.common.registry import registry
 from torch.utils.data import DataLoader
 
+from lavis.datasets.datasets.prefetch_loader import PrefetchLoader
+
 
 class Runner:
     def __init__(self, cfg, task, model, datasets, job_id):
@@ -374,6 +376,7 @@ def create_loader(datasets, samplers, batch_size, num_workers, is_trains, collat
             collate_fn=collate_fn,
             drop_last=drop_last,
         )
+        loader = PrefetchLoader(loader)
         loaders.append(loader)
     return loaders
 

@@ -1,4 +1,5 @@
 import os
+import json
 from urllib.parse import urlparse
 
 from lavis.common.registry import registry
@@ -7,7 +8,7 @@ from lavis.common.registry import registry
 def now():
     from datetime import datetime
 
-    return datetime.now().strftime("%Y%m%d%H%M")
+    return datetime.now().strftime("%Y%m%d%H%M")[:-1]
 
 
 def is_url(url_or_filename):
@@ -17,3 +18,8 @@ def is_url(url_or_filename):
 
 def get_cache_path(rel_path):
     return os.path.join(registry.get_path("cache_root"), rel_path)
+
+
+def load_json(filename):
+    with open(filename, "r") as f:
+        return json.load(f)

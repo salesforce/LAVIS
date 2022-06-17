@@ -1,0 +1,40 @@
+model:
+  arch: alpro_qa
+  num_classes: 1500
+
+  timesformer:
+    n_frms: 16
+    image_size: 224
+
+
+datasets:
+  msrvtt_qa: # name of the dataset builder
+    vis_processor:
+        eval:
+          name: "alpro_video_eval"
+          n_frms: 16
+          image_size: 224
+    text_processor:
+        eval:
+          name: "blip_caption"
+
+run:
+  task: video_qa
+  # optimization-specific
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 4
+
+  seed: 42
+  output_dir: "lavis/output/ALPRO/msrvtt_qa"
+
+  evaluate: False
+  train_splits: ["train"]
+  valid_splits: ["val"]
+  test_splits: ["test"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True

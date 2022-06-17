@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 
 import numpy as np
 import torch
@@ -75,4 +76,10 @@ class MultimodalClassificationTask(BaseTask):
         ) as f:
             f.write(json.dumps(log_stats) + "\n")
 
+        logging.info(metrics)
         return metrics
+
+
+@registry.register_task("video_qa")
+class VideoQATask(MultimodalClassificationTask):
+    ID_KEY = "question_id"

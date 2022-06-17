@@ -63,6 +63,9 @@ class BertEmbeddings(nn.Module):
         self.position_embeddings = nn.Embedding(
             config.max_position_embeddings, config.hidden_size
         )
+        self.token_type_embeddings = nn.Embedding(
+            config.type_vocab_size, config.hidden_size
+        )
 
         # self.LayerNorm is not snake-cased to stick with TensorFlow model variable name and be able to load
         # any TensorFlow checkpoint file
@@ -82,6 +85,7 @@ class BertEmbeddings(nn.Module):
     def forward(
         self,
         input_ids=None,
+        token_type_ids=None,
         position_ids=None,
         inputs_embeds=None,
         past_key_values_length=0,
@@ -101,7 +105,12 @@ class BertEmbeddings(nn.Module):
         if inputs_embeds is None:
             inputs_embeds = self.word_embeddings(input_ids)
 
-        embeddings = inputs_embeds
+        if token_type_ids is not None:
+            token_type_embeddings = self.token_type_embeddings(token_type_ids)
+
+            embeddings = inputs_embeds + token_type_embeddings
+        else:
+            embeddings = inputs_embeds
 
         if self.position_embedding_type == "absolute":
             position_embeddings = self.position_embeddings(position_ids)
@@ -387,9 +396,11 @@ class BertLayer(nn.Module):
 
         # compatibility for ALBEF and BLIP
         try:
-            # ALBEF
+            # ALBEF & ALPRO
             fusion_layer = self.config.fusion_layer
-            add_cross_attention = fusion_layer <= layer_num
+            add_cross_attention = (
+                fusion_layer <= layer_num and self.config.add_cross_attention
+            )
 
             self.fusion_layer = fusion_layer
         except AttributeError:
@@ -819,6 +830,7 @@ class BertModel(BertPreTrainedModel):
         self,
         input_ids=None,
         attention_mask=None,
+        token_type_ids=None,
         position_ids=None,
         head_mask=None,
         inputs_embeds=None,
@@ -949,6 +961,7 @@ class BertModel(BertPreTrainedModel):
             embedding_output = self.embeddings(
                 input_ids=input_ids,
                 position_ids=position_ids,
+                token_type_ids=token_type_ids,
                 inputs_embeds=inputs_embeds,
                 past_key_values_length=past_key_values_length,
             )
@@ -1438,6 +1451,7 @@ class XBertEncoder(BertModel, BaseEncoder):
         encoder_hidden_states,
         encoder_attention_mask,
         return_dict=True,
+        mode="multimodal",
     ):
 
         text_output = super().forward(
@@ -1446,15 +1460,19 @@ class XBertEncoder(BertModel, BaseEncoder):
             encoder_hidden_states=encoder_hidden_states,
             encoder_attention_mask=encoder_attention_mask,
             return_dict=return_dict,
+            mode=mode,
         )
 
         return text_output
 
     def forward_text_embeds(self, tokenized_text, **kwargs):
         text = tokenized_text
+        token_type_ids = kwargs.get("token_type_ids", None)
+
         text_output = super().forward(
             text.input_ids,
             attention_mask=text.attention_mask,
+            token_type_ids=token_type_ids,
             return_dict=True,
             mode="text",
         )

@@ -1,12 +1,12 @@
 import torch
-import torchvision.transforms._functional_video as F
 from lavis.common.registry import registry
 from lavis.datasets.data_utils import load_video
-from lavis.datasets.randaugment import VideoRandomAugment
+from lavis.processors import transforms_video
 from lavis.processors.base_processor import BaseProcessor
+from lavis.processors.randaugment import VideoRandomAugment
+from lavis.processors import functional_video as F
 from omegaconf import OmegaConf
 from torchvision import transforms
-from torchvision.transforms import _transforms_video
 
 MAX_INT = registry.get("MAX_INT")
 
@@ -18,7 +18,7 @@ class AlproVideoBaseProcessor(BaseProcessor):
         if std is None:
             std = (0.26862954, 0.26130258, 0.27577711)
 
-        self.normalize = _transforms_video.NormalizeVideo(mean, std)
+        self.normalize = transforms_video.NormalizeVideo(mean, std)
 
         self.n_frms = n_frms
 
@@ -84,15 +84,17 @@ class AlproVideoTrainProcessor(AlproVideoBaseProcessor):
     ):
         super().__init__(mean=mean, std=std, n_frms=n_frms)
 
+        self.image_size = image_size
+
         self.transform = transforms.Compose(
             [
                 # Video size is (C, T, H, W)
-                _transforms_video.RandomResizedCropVideo(
+                transforms_video.RandomResizedCropVideo(
                     image_size,
                     scale=(min_scale, max_scale),
                     interpolation_mode="bicubic",
                 ),
-                _transforms_video.RandomHorizontalFlipVideo(),
+                transforms_video.RandomHorizontalFlipVideo(),
                 ToTHWC(),  # C, T, H, W -> T, H, W, C
                 VideoRandomAugment(
                     2,
@@ -111,7 +113,7 @@ class AlproVideoTrainProcessor(AlproVideoBaseProcessor):
                     ],
                 ),
                 ToUint8(),
-                _transforms_video.ToTensorVideo(),  # T, H, W, C -> C, T, H, W
+                transforms_video.ToTensorVideo(),  # T, H, W, C -> C, T, H, W
                 self.normalize,
             ]
         )
@@ -123,7 +125,12 @@ class AlproVideoTrainProcessor(AlproVideoBaseProcessor):
         Returns:
             torch.tensor: video clip after transforms. Size is (C, T, size, size).
         """
-        clip = load_video(vpath, self.n_frms)
+        clip = load_video(
+            video_path=vpath,
+            n_frms=self.n_frms,
+            height=self.image_size,
+            width=self.image_size,
+        )
 
         return self.transform(clip)
 
@@ -157,27 +164,34 @@ class AlproVideoEvalProcessor(AlproVideoBaseProcessor):
     def __init__(self, image_size=256, mean=None, std=None, n_frms=MAX_INT):
         super().__init__(mean=mean, std=std, n_frms=n_frms)
 
+        self.image_size = image_size
+
         # Input video size is (C, T, H, W)
         self.transform = transforms.Compose(
             [
-                ResizeVideo(
-                    (image_size, image_size), interpolation_mode="bilinear"
-                ),  # C, T, H, W
+                # frames will be resized during decord loading.
                 ToUint8(),  # C, T, H, W
                 ToTHWC(),  # T, H, W, C
-                _transforms_video.ToTensorVideo(),  # C, T, H, W
+                transforms_video.ToTensorVideo(),  # C, T, H, W
                 self.normalize,  # C, T, H, W
             ]
         )
 
-    def __call__(self, item):
+    def __call__(self, vpath):
         """
         Args:
             clip (torch.tensor): Video clip to be cropped. Size is (C, T, H, W)
         Returns:
             torch.tensor: video clip after transforms. Size is (C, T, size, size).
         """
-        return self.transform(item)
+        clip = load_video(
+            video_path=vpath,
+            n_frms=self.n_frms,
+            height=self.image_size,
+            width=self.image_size,
+        )
+
+        return self.transform(clip)
 
     @classmethod
     def build_from_cfg(cls, cfg=None):

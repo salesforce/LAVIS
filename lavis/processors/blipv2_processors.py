@@ -1,15 +1,10 @@
+from lavis.common.registry import registry
+from lavis.processors.base_processor import BaseProcessor
+from lavis.processors.randaugment import RandomAugment
 from omegaconf import OmegaConf
-
+from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
-
-from lavis.common.registry import registry
-from lavis.datasets.randaugment import RandomAugment
-
-from lavis.processors.base_processor import BaseProcessor
-
-
-from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
 
 class BlipV2ImageBaseProcessor(BaseProcessor):

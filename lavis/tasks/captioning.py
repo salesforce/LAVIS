@@ -9,7 +9,6 @@ from lavis.tasks.base_task import BaseTask
 @registry.register_task("captioning")
 class CaptionTask(BaseTask):
     ID_KEY = "image_id"
-    CAP_KEY = "caption"
 
     def __init__(self, num_beams, max_len, min_len, evaluate):
         super().__init__()
@@ -47,7 +46,7 @@ class CaptionTask(BaseTask):
         indices = samples[self.ID_KEY]
         for caption, index in zip(captions, indices):
             # results.append({"image_id": img_id.item(), "caption": caption})
-            results.append({self.ID_KEY: index.item(), self.CAP_KEY: caption})
+            results.append({self.ID_KEY: index.item(), "caption": caption})
 
         return results
 

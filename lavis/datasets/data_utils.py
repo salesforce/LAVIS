@@ -25,7 +25,8 @@ def load_video(video_path, n_frms=MAX_INT, height=-1, width=-1, sampling="unifor
     n_frms = min(n_frms, vlen)
 
     if sampling == "uniform":
-        indices = np.arange(start, end, vlen / n_frms).astype(int)
+        # indices = np.arange(start, end, vlen / n_frms).astype(int)
+        indices = np.arange(start, end, vlen / n_frms, dtype=int)
     else:
         raise NotImplementedError
 

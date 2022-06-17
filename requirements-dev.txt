@@ -1,1 +1,4 @@
 pre-commit
+
+einops
+decord

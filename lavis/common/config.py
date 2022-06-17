@@ -141,3 +141,7 @@ class Config:
 
     def to_dict(self):
         return OmegaConf.to_container(self.config)
+
+
+def node_to_dict(node):
+    return OmegaConf.to_container(node)

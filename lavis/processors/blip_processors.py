@@ -1,13 +1,11 @@
 import re
-from omegaconf import OmegaConf
-
-from torchvision import transforms
-from torchvision.transforms.functional import InterpolationMode
 
 from lavis.common.registry import registry
-from lavis.datasets.randaugment import RandomAugment
-
 from lavis.processors.base_processor import BaseProcessor
+from lavis.processors.randaugment import RandomAugment
+from omegaconf import OmegaConf
+from torchvision import transforms
+from torchvision.transforms.functional import InterpolationMode
 
 
 class BlipImageBaseProcessor(BaseProcessor):
