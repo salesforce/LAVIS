@@ -40,7 +40,7 @@ class AlproQA(BaseModel):
         assert model_type in paths, "Unknown model type {}".format(model_type)
         return paths[model_type]
 
-    def forward(self, samples, is_train=False):
+    def forward(self, samples, is_train=True):
         visual_inputs = samples["video"]
         question = samples["text_input"]
         targets = samples["answers"]
@@ -111,8 +111,17 @@ class AlproQA(BaseModel):
         )
 
         pretrain_path = cfg.get("pretrained")
+        num_patches = (
+            visual_encoder_config["image_size"] // visual_encoder_config["patch_size"]
+        ) ** 2
+        num_frames = visual_encoder_config["n_frms"]
 
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+            model, msg = load_from_pretrained(
+                model=model,
+                url_or_filename=pretrain_path,
+                num_frames=num_frames,
+                num_patches=num_patches,
+            )
 
         return model

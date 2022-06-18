@@ -1,6 +1,7 @@
 import gzip
 import logging
 import os
+import random as rnd
 import tarfile
 import zipfile
 
@@ -25,8 +26,11 @@ def load_video(video_path, n_frms=MAX_INT, height=-1, width=-1, sampling="unifor
     n_frms = min(n_frms, vlen)
 
     if sampling == "uniform":
-        # indices = np.arange(start, end, vlen / n_frms).astype(int)
-        indices = np.arange(start, end, vlen / n_frms, dtype=int)
+        indices = np.arange(start, end, vlen / n_frms).astype(int)
+    elif sampling == "headtail":
+        indices_h = sorted(rnd.sample(range(vlen // 2), n_frms // 2))
+        indices_t = sorted(rnd.sample(range(vlen // 2, vlen), n_frms // 2))
+        indices = indices_h + indices_t
     else:
         raise NotImplementedError
 

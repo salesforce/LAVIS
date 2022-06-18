@@ -13,7 +13,7 @@ def init_tokenizer():
     return BertTokenizer.from_pretrained("bert-base-uncased")
 
 
-def load_from_pretrained(model, url_or_filename):
+def load_from_pretrained(model, url_or_filename, num_frames, num_patches):
     if is_url(url_or_filename):
         cached_file = download_cached_file(
             url_or_filename, check_hash=False, progress=True
@@ -29,24 +29,67 @@ def load_from_pretrained(model, url_or_filename):
     else:
         state_dict = checkpoint
 
-    # for key in list(state_dict.keys()):
-    #     if "visual_encoder.model" in key:
-    #         new_key = key.replace("visual_encoder", "")
-    #         state_dict[new_key] = state_dict[key]
-    #         del state_dict[key]
+    for key in list(state_dict.keys()):
+        if "bert" in key:
+            new_key = key.replace("bert.", "")
+            state_dict[new_key] = state_dict[key]
+            del state_dict[key]
+
+    spatial_embed_key = "visual_encoder.model.pos_embed"
+    temporal_embed_key = "visual_encoder.model.time_embed"
+
+    ## Resizing spatial embeddings in case they don't match
+    if num_patches + 1 != state_dict[spatial_embed_key].size(1):
+        state_dict[spatial_embed_key] = resize_spatial_embedding(
+            state_dict, spatial_embed_key, num_patches
+        )
+    else:
+        logging.info(
+            "The length of spatial position embedding matches. No need to resize."
+        )
 
     ## Resizing time embeddings in case they don't match
-    # num_frames = 16
-    # if "time_embed" in state_dict and num_frames != state_dict["time_embed"].size(1):
-    #     logging.info(
-    #         f"Resizing temporal position embedding from {state_dict['time_embed'].size(1)} to {num_frames}"
-    #     )
-    #     time_embed = state_dict["time_embed"].transpose(1, 2)
-    #     new_time_embed = F.interpolate(time_embed, size=(num_frames), mode="nearest")
-    #     state_dict["time_embed"] = new_time_embed.transpose(1, 2)
+    if temporal_embed_key in state_dict and num_frames != state_dict[
+        temporal_embed_key
+    ].size(1):
+        state_dict[temporal_embed_key] = resize_temporal_embedding(
+            state_dict, temporal_embed_key, num_frames
+        )
+    else:
+        logging.info(
+            "No temporal encoding found. Or the length of temporal position embedding matches. No need to resize."
+        )
 
     msg = model.load_state_dict(state_dict, strict=False)
     logging.info("Missing keys {}".format(msg.missing_keys))
     logging.info("load checkpoint from %s" % url_or_filename)
 
     return model, msg
+
+
+def resize_spatial_embedding(state_dict, key, num_patches):
+    logging.info(
+        f"Resizing spatial position embedding from {state_dict[key].size(1)} to {num_patches + 1}"
+    )
+
+    pos_embed = state_dict[key]
+
+    cls_pos_embed = pos_embed[0, 0, :].unsqueeze(0).unsqueeze(1)
+    other_pos_embed = pos_embed[0, 1:, :].unsqueeze(0).transpose(1, 2)
+
+    new_pos_embed = F.interpolate(other_pos_embed, size=(num_patches), mode="nearest")
+    new_pos_embed = new_pos_embed.transpose(1, 2)
+    new_pos_embed = torch.cat((cls_pos_embed, new_pos_embed), 1)
+
+    return new_pos_embed
+
+
+def resize_temporal_embedding(state_dict, key, num_frames):
+    logging.info(
+        f"Resizing temporal position embedding from {state_dict[key].size(1)} to {num_frames}"
+    )
+
+    time_embed = state_dict[key].transpose(1, 2)
+    new_time_embed = F.interpolate(time_embed, size=(num_frames), mode="nearest")
+
+    return new_time_embed.transpose(1, 2)

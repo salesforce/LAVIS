@@ -1,24 +1,17 @@
 model:
-  arch: alpro_qa
-  num_classes: 1500
-  pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
-
-  timesformer:
-    n_frms: 16
-    image_size: 224
-
+  arch: blip_classification
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  num_classes: 3
 
 datasets:
-  msrvtt_qa: # name of the dataset builder
+  msvd_qa: # name of the dataset builder
     vis_processor:
         train:
           name: "alpro_video_train"
           n_frms: 16
-          image_size: 224
         eval:
           name: "alpro_video_eval"
           n_frms: 16
-          image_size: 224
     text_processor:
         train:
           name: "blip_caption"
@@ -26,19 +19,19 @@ datasets:
           name: "blip_caption"
 
 run:
-  task: video_qa
+  task: multimodal_classification
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
   min_lr: 1e-6
   weight_decay: 0.05
   max_epoch: 10
-  batch_size_train: 16
+  batch_size_train: 12
   batch_size_eval: 64
   num_workers: 4
 
   seed: 42
-  output_dir: "lavis/output/ALPRO/msrvtt_qa"
+  output_dir: "lavis/output/ALPRO/msvd_qa"
 
   evaluate: False
   train_splits: ["train"]

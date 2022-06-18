@@ -130,6 +130,7 @@ class AlproVideoTrainProcessor(AlproVideoBaseProcessor):
             n_frms=self.n_frms,
             height=self.image_size,
             width=self.image_size,
+            sampling="headtail",
         )
 
         return self.transform(clip)

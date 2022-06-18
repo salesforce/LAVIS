@@ -205,7 +205,6 @@ class Runner:
     def train_loader(self):
         train_loader = self.dataloaders["train"]
 
-        assert isinstance(train_loader, DataLoader)
         return train_loader
 
     def setup_output_dir(self):
