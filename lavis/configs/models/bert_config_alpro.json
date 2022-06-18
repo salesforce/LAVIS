@@ -14,6 +14,7 @@
   "num_attention_heads": 12,
   "num_hidden_layers": 12,
   "pad_token_id": 0,
+  "add_type_embeddings": true,
   "type_vocab_size": 2,
   "vocab_size": 30522,
   "encoder_width": 768,
