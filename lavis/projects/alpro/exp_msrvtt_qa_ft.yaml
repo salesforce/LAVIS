@@ -6,6 +6,8 @@ model:
   timesformer:
     n_frms: 16
     image_size: 224
+    use_grad_ckpt: True
+    ckpt_layer: 12
 
 
 datasets:
@@ -29,16 +31,16 @@ run:
   task: video_qa
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 2e-5
+  init_lr: 5e-5
   min_lr: 1e-6
-  weight_decay: 0.05
+  weight_decay: 1e-4
   max_epoch: 10
-  batch_size_train: 16
+  batch_size_train: 12
   batch_size_eval: 64
   num_workers: 4
 
   seed: 42
-  output_dir: "lavis/output/ALPRO/msrvtt_qa"
+  output_dir: "output/ALPRO/msrvtt_qa"
 
   evaluate: False
   train_splits: ["train"]

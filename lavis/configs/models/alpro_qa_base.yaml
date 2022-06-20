@@ -7,7 +7,7 @@ model:
     attn_drop_rate: 0.
     drop_rate: 0.
     drop_path_rate: 0.1
-    use_grad_ckpt: True
+    use_grad_ckpt: False
 
   # bert config
   med_config_path: "lavis/configs/models/bert_config_alpro.json"

@@ -11,13 +11,9 @@ import torch.nn.functional as F
 import torch.utils
 import torch.utils.checkpoint
 from einops import rearrange
+from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
 
-from .helpers import (
-    load_pretrained,
-    load_pretrained_imagenet,
-    load_pretrained_kinetics,
-    CheckpointFunction,
-)
+from .helpers import load_pretrained, load_pretrained_imagenet, load_pretrained_kinetics
 from .vit_utils import (
     IMAGENET_DEFAULT_MEAN,
     IMAGENET_DEFAULT_STD,
@@ -189,6 +185,11 @@ class Block(nn.Module):
         self.layer_num = layer_num
         self.use_grad_checkpointing = use_grad_checkpointing
 
+        if use_grad_checkpointing:
+            self.temporal_attn = checkpoint_wrapper(self.temporal_attn)
+            self.attn = checkpoint_wrapper(self.attn)
+            self.mlp = checkpoint_wrapper(self.mlp)
+
     def forward(self, x, B, T, W):
         num_spatial_tokens = (x.size(1) - 1) // T
         H = num_spatial_tokens // W
@@ -202,15 +203,8 @@ class Block(nn.Module):
             xt = x[:, 1:, :]
             xt = rearrange(xt, "b (h w t) m -> (b h w) t m", b=B, h=H, w=W, t=T)
 
-            if self.use_grad_checkpointing:
-                # temporal_attn_out = torch.utils.checkpoint.checkpoint(self.temporal_attn, self.temporal_norm1(xt))
-                temporal_attn_out = CheckpointFunction.apply(
-                    self.temporal_attn, 1, self.temporal_norm1(xt)
-                )
-            else:
-                temporal_attn_out = self.temporal_attn(self.temporal_norm1(xt))
-                # res_temporal = self.drop_path(
-                #     self.temporal_attn(self.temporal_norm1(xt)))
+            temporal_attn_out = self.temporal_attn(self.temporal_norm1(xt))
+
             res_temporal = self.drop_path(temporal_attn_out)
 
             res_temporal = rearrange(
@@ -227,15 +221,7 @@ class Block(nn.Module):
             xs = rearrange(xs, "b (h w t) m -> (b t) (h w) m", b=B, h=H, w=W, t=T)
             xs = torch.cat((cls_token, xs), 1)
 
-            # [origial]
-            # res_spatial = self.drop_path(self.attn(self.norm1(xs)))
-            if self.use_grad_checkpointing:
-                spatial_attn_out = CheckpointFunction.apply(
-                    self.attn, 1, self.norm1(xs)
-                )
-            else:
-                # spatial_attn_out = torch.utils.checkpoint.checkpoint(self.attn, self.norm1(xs))
-                spatial_attn_out = self.attn(self.norm1(xs))
+            spatial_attn_out = self.attn(self.norm1(xs))
             res_spatial = self.drop_path(spatial_attn_out)
 
             # Taking care of CLS token
@@ -259,13 +245,7 @@ class Block(nn.Module):
             # x = x + self.drop_path(self.mlp(self.norm2(x)))
 
             # MLP
-            # [origial]
-            # x = x_res + self.drop_path(self.mlp(x))
-            if self.use_grad_checkpointing:
-                # mlp_out = torch.utils.checkpoint.checkpoint(self.mlp, x)
-                mlp_out = CheckpointFunction.apply(self.mlp, 1, x)
-            else:
-                mlp_out = self.mlp(x)
+            mlp_out = self.mlp(x)
 
             x = x_res + self.drop_path(mlp_out)
             return x
@@ -320,6 +300,7 @@ class VisionTransformer(nn.Module):
         attention_type="divided_space_time",
         dropout=0.0,
         use_grad_checkpointing=False,
+        ckpt_layer=0,
     ):
         super().__init__()
 
@@ -353,7 +334,9 @@ class VisionTransformer(nn.Module):
             [
                 Block(
                     layer_num=i,
-                    use_grad_checkpointing=use_grad_checkpointing,
+                    use_grad_checkpointing=(
+                        use_grad_checkpointing and i >= self.depth - ckpt_layer
+                    ),
                     dim=embed_dim,
                     num_heads=num_heads,
                     mlp_ratio=mlp_ratio,
@@ -411,6 +394,10 @@ class VisionTransformer(nn.Module):
         self.head = (
             nn.Linear(self.embed_dim, num_classes) if num_classes > 0 else nn.Identity()
         )
+
+    def remove_classifier(self):
+        self.num_classes = 0
+        self.head = None
 
     def forward_features(self, x):
         B = x.shape[0]
@@ -539,6 +526,8 @@ class TimeSformer(nn.Module):
         drop_path_rate=0.1,
         drop_rate=0,
         use_grad_ckpt=False,
+        ckpt_layer=0,
+        remove_classifier=True,
         **kwargs,
     ):
         super(TimeSformer, self).__init__()
@@ -550,6 +539,7 @@ class TimeSformer(nn.Module):
         self.drop_path_rate = drop_path_rate
         self.drop_rate = drop_rate
         self.use_grad_ckpt = use_grad_ckpt
+        self.ckpt_layer = ckpt_layer
 
         self.attention_type = "divided_space_time"
 
@@ -576,8 +566,12 @@ class TimeSformer(nn.Module):
             num_frames=self.num_frames,
             attention_type=self.attention_type,
             use_grad_checkpointing=self.use_grad_ckpt,
+            ckpt_layer=self.ckpt_layer,
             **kwargs,
         )
+
+        if remove_classifier:
+            self.model.remove_classifier()
 
         self.model.default_cfg = default_cfgs[
             "vit_base_patch" + str(self.patch_size) + "_224"

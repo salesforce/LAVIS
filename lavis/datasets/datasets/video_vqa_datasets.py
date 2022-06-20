@@ -28,13 +28,6 @@ class VideoQADataset(MultimodalClassificationDataset):
 
         ann = self.annotation[index]
 
-        # ann = {
-        #     "video": "video7010.mp4",
-        #     "question": "What is the video doing?",
-        #     "answer": "regard",
-        #     "question_id": "000087",
-        # }
-
         vname = ann["video"]
         vpath = os.path.join(self.vis_root, vname)
 

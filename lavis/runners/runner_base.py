@@ -14,9 +14,9 @@ from lavis.common.dist_utils import (
     main_process,
 )
 from lavis.common.registry import registry
-from torch.utils.data import DataLoader
-
 from lavis.datasets.datasets.prefetch_loader import PrefetchLoader
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader
 
 
 class Runner:
@@ -56,7 +56,7 @@ class Runner:
 
             if self.use_distributed:
                 if self._wrapped_model is None:
-                    self._wrapped_model = torch.nn.parallel.DistributedDataParallel(
+                    self._wrapped_model = DDP(
                         self._model, device_ids=[self.config.run_cfg.gpu]
                     )
             else:
