@@ -17,6 +17,7 @@ from lavis.processors.blipv2_processors import (
 )
 from lavis.processors.clip_processors import ClipImageTrainProcessor
 
+from lavis.common.registry import registry
 
 __all__ = [
     "BaseProcessor",
@@ -34,3 +35,14 @@ __all__ = [
     "BlipV2QuestionProcessor",
     "ClipImageTrainProcessor",
 ]
+
+
+def load_processor(name, cfg=None):
+    """
+    Example
+
+    >>> processor = load_processor("alpro_video_train", cfg=None)
+    """
+    processor = registry.get_processor_class(name).build_from_cfg(cfg)
+
+    return processor
