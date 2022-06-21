@@ -37,9 +37,7 @@ class Config:
         assert model is not None, "Missing model configuration file."
 
         model_cls = registry.get_model_class(model.arch)
-        assert (
-            model_cls is not None
-        ), f"No model named '{model.arch}' has been registered"
+        assert model_cls is not None, f"Model '{model.arch}' has not been registered."
 
         model_type = kwargs.get("model.model_type", None)
         if not model_type:

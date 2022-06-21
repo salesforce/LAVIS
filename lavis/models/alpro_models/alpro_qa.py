@@ -1,4 +1,3 @@
-from lib2to3.pgen2 import token
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -34,7 +33,7 @@ class AlproQA(BaseModel):
     @classmethod
     def default_config_path(cls, model_type="base"):
         paths = {
-            "base": "lavis/configs/models/alpro_qa_base.yaml",
+            "base": "lavis/configs/models/alpro_qa.yaml",
         }
 
         assert model_type in paths, "Unknown model type {}".format(model_type)
@@ -64,14 +63,14 @@ class AlproQA(BaseModel):
 
         # forward visual
         # timeSformer asks for (b, c, t, h, w) as input.
-        image_embeds = self.visual_encoder.forward_features(visual_inputs)
-        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+        video_embeds = self.visual_encoder.forward_features(visual_inputs)
+        video_atts = torch.ones(video_embeds.size()[:-1], dtype=torch.long).to(
             self.device
         )
 
         # forward cross-encoder
-        attention_mask = torch.cat([text.attention_mask, image_atts], dim=1)
-        embedding_output = torch.cat([text_embeds, image_embeds], dim=1)
+        attention_mask = torch.cat([text.attention_mask, video_atts], dim=1)
+        embedding_output = torch.cat([text_embeds, video_embeds], dim=1)
 
         output = super(type(self.text_encoder), self.text_encoder).forward(
             encoder_embeds=embedding_output,

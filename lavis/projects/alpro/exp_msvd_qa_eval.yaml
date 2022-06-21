@@ -1,22 +1,16 @@
 model:
   arch: alpro_qa
-  num_classes: 1500
-  pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
+  num_classes: 2423
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msvd_qa.pth"
 
   timesformer:
     n_frms: 16
     image_size: 224
-    use_grad_ckpt: True
-    ckpt_layer: 12
 
 
 datasets:
-  msrvtt_qa: # name of the dataset builder
+  msvd_qa: # name of the dataset builder
     vis_processor:
-        train:
-          name: "alpro_video_train"
-          n_frms: 16
-          image_size: 224
         eval:
           name: "alpro_video_eval"
           n_frms: 16
@@ -30,21 +24,14 @@ datasets:
 run:
   task: video_qa
   # optimization-specific
-  lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 5e-5
-  min_lr: 1e-6
-  weight_decay: 1e-4
-  max_epoch: 10
   batch_size_train: 24
   batch_size_eval: 64
   num_workers: 4
 
   seed: 42
-  output_dir: "output/ALPRO/msrvtt_qa"
+  output_dir: "output/ALPRO/msvd_qa"
 
-  evaluate: False
-  train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  evaluate: True
   test_splits: ["test"]
 
   # distribution-specific

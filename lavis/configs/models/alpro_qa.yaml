@@ -1,6 +1,5 @@
 model:
   arch: alpro_qa
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/alpro_msrvtt_qa.pt"
 
   timesformer:
     patch_size: 16
