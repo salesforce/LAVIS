@@ -1,15 +1,48 @@
-from warnings import warn
 from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
 from lavis.datasets.datasets.retrieval_datasets import (
     RetrievalDataset,
     RetrievalEvalDataset,
+    VideoRetrievalDataset,
+    VideoRetrievalEvalDataset,
 )
 
 from lavis.common.registry import registry
 
-warn(
-    "This is a deprecated module. Please use lavis.datasets.builders.retrieval_builder instead."
-)
+
+@registry.register_builder("msrvtt_retrieval")
+class MSRVTTRetrievalBuilder(BaseDatasetBuilder):
+    train_dataset_cls = VideoRetrievalDataset
+    eval_dataset_cls = VideoRetrievalEvalDataset
+
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+
+    @classmethod
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/msrvtt/defaults_ret.yaml"}
+
+        return paths[type]
+
+    def _download_vis(self):
+        pass
+
+
+@registry.register_builder("didemo_retrieval")
+class DiDeMoRetrievalBuilder(BaseDatasetBuilder):
+    train_dataset_cls = VideoRetrievalDataset
+    eval_dataset_cls = VideoRetrievalEvalDataset
+
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+
+    @classmethod
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/didemo/defaults_ret.yaml"}
+
+        return paths[type]
+
+    def _download_vis(self):
+        pass
 
 
 @registry.register_builder("coco_retrieval")
