@@ -20,3 +20,5 @@ datasets:
             storage: msvd/annotations/qa_ans2label.json
       videos:
         storage: /export/share/dongxuli/data/msvd_qa/videos
+
+      instance_id_key: question_id

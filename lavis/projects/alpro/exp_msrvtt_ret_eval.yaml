@@ -1,0 +1,49 @@
+model:
+  arch: alpro_retrieval
+  pretrained: "/export/home/workspace/ALPRO/output/downstreams/msrvtt_ret/public/ckpt/model_step_best.pt"
+
+  timesformer:
+    n_frms: 8
+    image_size: 224
+
+
+datasets:
+  msrvtt_retrieval: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "alpro_video_train"
+          n_frms: 8
+          image_size: 224
+        eval:
+          name: "alpro_video_eval"
+          n_frms: 8
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+
+run:
+  task: retrieval
+  # optimization-specific
+  batch_size_train: 24
+  batch_size_eval: 64
+  num_workers: 4
+
+  # k_test: 256
+  k_test: 1000
+
+  seed: 42
+  output_dir: "output/ALPRO/msrvtt_retrieval"
+
+  evaluate: True
+  valid_splits: ["val"]
+  test_splits: ["test"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  use_dist_eval_sampler: False

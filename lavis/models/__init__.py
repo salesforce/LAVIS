@@ -8,13 +8,13 @@ from lavis.models.albef_models.albef_pretrain import AlbefPretrain
 from lavis.models.albef_models.albef_retrieval import AlbefRetrieval
 from lavis.models.albef_models.albef_vqa import AlbefVQA
 from lavis.models.alpro_models.alpro_qa import AlproQA
+from lavis.models.alpro_models.alpro_retrieval import AlproRetrieval
 from lavis.models.blip_models.blip import BlipBase, BlipITM
 from lavis.models.blip_models.blip_caption import BlipCaption
 from lavis.models.blip_models.blip_classification import BlipClassification
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
 from lavis.models.blip_models.blip_retrieval import BlipRetrieval
 from lavis.models.blip_models.blip_vqa import BlipVQA
-from lavis.models.blipv2_models.model_t0 import BLIPv2_T0
 from lavis.models.med import XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 from lavis.models.clip_models.model import CLIP
@@ -37,6 +37,7 @@ __all__ = [
     "AlbefPretrain",
     "AlbefRetrieval",
     "AlproQA",
+    "AlproRetrieval",
     "BaseModel",
     "BlipBase",
     "BlipCaption",
@@ -45,7 +46,6 @@ __all__ = [
     "BlipPretrain",
     "BlipRetrieval",
     "BlipVQA",
-    "BLIPv2_T0",
     "CLIP",
     "VisionTransformerEncoder",
     "XBertLMHeadDecoder",

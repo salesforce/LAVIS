@@ -24,7 +24,7 @@ datasets:
           name: "blip_caption"
 
 run:
-  task: retrieval_for_blip
+  task: retrieval
   # optimizer
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5

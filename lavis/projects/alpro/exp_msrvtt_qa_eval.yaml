@@ -1,7 +1,7 @@
 model:
   arch: alpro_qa
-  pretrained: "/export/home/workspace/LAVIS/lavis/output/ALPRO/msrvtt_qa/20220619073/checkpoint_best.pth"
   num_classes: 1500
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_qa.pth"
 
   timesformer:
     n_frms: 16
@@ -30,7 +30,6 @@ run:
   output_dir: "output/ALPRO/msrvtt_qa"
 
   evaluate: False
-  train_splits: ["train"]
   valid_splits: ["val"]
   test_splits: ["test"]
 
