@@ -21,11 +21,9 @@ class BaseDatasetBuilder:
 
         if cfg is None:
             # help to create datasets from default config.
-            cfg = OmegaConf.load(self.default_config_path()).datasets
-            self.config = cfg[list(cfg.keys())[0]]
+            self.config = load_dataset_config(self.default_config_path())
         elif isinstance(cfg, str):
-            cfg = OmegaConf.load(cfg).datasets
-            self.config = cfg[list(cfg.keys())[0]]
+            self.config = load_dataset_config(cfg)
         else:
             self.config = cfg
 
@@ -243,6 +241,9 @@ class BaseDatasetBuilder:
             if not os.path.isabs(vis_path):
                 vis_path = os.path.join(registry.get_path("cache_root"), vis_path)
 
+            if not os.path.exists(vis_path):
+                raise ValueError("storage path {} does not exist.".format(vis_path))
+
             # create datasets
             dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
             datasets[split] = dataset_cls(
@@ -253,3 +254,10 @@ class BaseDatasetBuilder:
             )
 
         return datasets
+
+
+def load_dataset_config(cfg_path):
+    cfg = OmegaConf.load(cfg_path).datasets
+    cfg = cfg[list(cfg.keys())[0]]
+
+    return cfg

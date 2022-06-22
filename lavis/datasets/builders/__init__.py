@@ -1,3 +1,4 @@
+from lavis.datasets.builders.base_dataset_builder import load_dataset_config
 from lavis.datasets.builders.coco_cap_builder import COCOCapBuilder
 from lavis.datasets.builders.coco_vqa_builder import COCOVQABuilder
 from lavis.datasets.builders.conceptual_caption_builder import (
@@ -40,7 +41,7 @@ __all__ = [
 ]
 
 
-def load_dataset(name, cfg=None):
+def load_dataset(name, cfg_path=None, vis_path=None, data_type=None):
     """
     Example
 
@@ -49,7 +50,29 @@ def load_dataset(name, cfg=None):
     >>> print([len(dataset[split]) for split in splits])
 
     """
-    builder = registry.get_builder_class(name)(cfg)
-    dataset = builder.build_datasets()
+    if cfg_path is None:
+        cfg = None
+    else:
+        cfg = load_dataset_config(cfg_path)
 
+    builder = registry.get_builder_class(name)(cfg)
+
+    if vis_path is not None:
+        if data_type is None:
+            # use default data type in the config
+            data_type = builder.config.data_type
+
+        assert (
+            data_type in builder.config.build_info
+        ), f"Invalid data_type {data_type} for {name}."
+
+        builder.config.build_info.get(data_type).storage = vis_path
+
+    dataset = builder.build_datasets()
     return dataset
+
+
+def get_dataset_names():
+    datasets = registry.mapping["builder_name_mapping"]
+
+    return list(datasets.keys())
