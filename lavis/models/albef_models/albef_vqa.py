@@ -83,7 +83,7 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         ).to(self.device)
         samples.update({"tokenized_text": questions})
 
-        image_embeds = self.visual_encoder(samples["image"])
+        image_embeds = self.visual_encoder.forward_features(samples["image"])
         multimodal_embeds = self.text_encoder(
             tokenized_text=samples["tokenized_text"], visual_embeds=image_embeds
         )

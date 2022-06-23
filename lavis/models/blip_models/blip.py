@@ -67,7 +67,7 @@ class BlipBase(BaseModel):
 
         if mode == "image":
             # return image features
-            image_embeds = self.visual_encoder(image)
+            image_embeds = self.visual_encoder.forward_features(image)
             if normalized:
                 image_embeds = self.vision_proj(image_embeds)
             return image_embeds
@@ -88,7 +88,7 @@ class BlipBase(BaseModel):
 
         elif mode == "multimodal":
             # return multimodel features
-            image_embeds = self.visual_encoder(image)
+            image_embeds = self.visual_encoder.forward_features(image)
             image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
                 self.device
             )
@@ -169,7 +169,7 @@ class BlipITM(BaseModel):
 
     def forward(self, image, caption, match_head="itm"):
 
-        image_embeds = self.visual_encoder(image)
+        image_embeds = self.visual_encoder.forward_features(image)
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
         )

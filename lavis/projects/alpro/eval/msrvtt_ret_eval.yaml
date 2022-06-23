@@ -1,6 +1,6 @@
 model:
   arch: alpro_retrieval
-  pretrained: "/export/home/workspace/ALPRO/output/downstreams/msrvtt_ret/public/ckpt/model_step_best.pt"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_retrieval.pt"
 
   timesformer:
     n_frms: 8
@@ -10,17 +10,11 @@ model:
 datasets:
   msrvtt_retrieval: # name of the dataset builder
     vis_processor:
-        train:
-          name: "alpro_video_train"
-          n_frms: 8
-          image_size: 224
         eval:
           name: "alpro_video_eval"
           n_frms: 8
           image_size: 224
     text_processor:
-        train:
-          name: "blip_caption"
         eval:
           name: "blip_caption"
 
@@ -38,7 +32,6 @@ run:
   output_dir: "output/ALPRO/msrvtt_retrieval"
 
   evaluate: True
-  valid_splits: ["val"]
   test_splits: ["test"]
 
   # distribution-specific

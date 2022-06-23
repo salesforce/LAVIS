@@ -114,7 +114,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         with torch.no_grad():
             self.temp.clamp_(0.001, 0.5)
 
-        image_embeds = self.visual_encoder(image)
+        image_embeds = self.visual_encoder.forward_features(image)
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
         )
@@ -128,7 +128,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
             return_tensors="pt",
         ).to(image.device)
 
-        text_output = self.text_encoder.forward_text_embeds(text)
+        text_output = self.text_encoder.forward_features(text)
         text_feat = F.normalize(
             self.text_proj(text_output.last_hidden_state[:, 0, :]), dim=-1
         )
@@ -144,7 +144,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
 
-            text_output_m = self.text_encoder_m.forward_text_embeds(text)
+            text_output_m = self.text_encoder_m.forward_features(text)
             text_feat_m = F.normalize(
                 self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
             )

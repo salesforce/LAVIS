@@ -1,7 +1,7 @@
 model:
   arch: alpro_qa
-  num_classes: 1500
-  pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
+  num_classes: 2423
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
 
   timesformer:
     n_frms: 16
@@ -11,7 +11,7 @@ model:
 
 
 datasets:
-  msrvtt_qa: # name of the dataset builder
+  msvd_qa: # name of the dataset builder
     vis_processor:
         train:
           name: "alpro_video_train"
@@ -40,11 +40,11 @@ run:
   num_workers: 4
 
   seed: 42
-  output_dir: "output/ALPRO/msrvtt_qa"
+  output_dir: "output/ALPRO/msvd_qa"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
   test_splits: ["test"]
 
   # distribution-specific

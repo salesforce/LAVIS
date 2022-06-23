@@ -102,7 +102,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         with torch.no_grad():
             self.temp.clamp_(0.001, 0.5)
 
-        image_embeds = self.visual_encoder(image)
+        image_embeds = self.visual_encoder.forward_features(image)
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             self.device
         )

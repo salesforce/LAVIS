@@ -1,6 +1,6 @@
 model:
   arch: alpro_retrieval
-  pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
 
   timesformer:
     n_frms: 8
@@ -43,7 +43,7 @@ run:
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
   test_splits: ["test"]
 
   # distribution-specific

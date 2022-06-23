@@ -1467,7 +1467,7 @@ class XBertEncoder(BertModel, BaseEncoder):
 
         return text_output
 
-    def forward_text_embeds(self, tokenized_text, **kwargs):
+    def forward_features(self, tokenized_text, **kwargs):
         text = tokenized_text
         token_type_ids = kwargs.get("token_type_ids", None)
 

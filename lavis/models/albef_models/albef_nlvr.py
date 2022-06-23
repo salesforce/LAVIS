@@ -90,7 +90,7 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
         image1 = samples["image1"]
         images = torch.cat([image0, image1], dim=0)
 
-        image_embeds = self.visual_encoder(images)
+        image_embeds = self.visual_encoder.forward_features(images)
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             self.device
         )

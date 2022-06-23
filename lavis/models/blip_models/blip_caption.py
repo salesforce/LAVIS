@@ -33,7 +33,7 @@ class BlipCaption(BaseModel):
         return paths[model_type]
 
     def forward_encoder(self, samples):
-        image_embeds = self.visual_encoder(samples["image"])
+        image_embeds = self.visual_encoder.forward_features(samples["image"])
         return image_embeds
 
     def forward_decoder(self, samples, image_embeds):

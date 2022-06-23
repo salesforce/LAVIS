@@ -85,7 +85,7 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
 
         targets = samples["label"]
 
-        image_embeds = self.visual_encoder(samples["image"])
+        image_embeds = self.visual_encoder.forward_features(samples["image"])
         multimodal_embeds = self.text_encoder(samples["tokenized_text"], image_embeds)
 
         prediction = self.cls_head(multimodal_embeds.last_hidden_state[:, 0, :])
