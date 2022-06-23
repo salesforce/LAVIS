@@ -1,9 +1,5 @@
 model:
   arch: albef_retrieval
-  # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
-  # pretrained: "/export/home/workspace/LAVIS/lavis/lavis/output/Pretrain/202206051344/checkpoint_19.pth"
-  # pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/Retrieval_COCO/202205301655/checkpoint_best.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/mscoco.pth"
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_coco_retrieval_lavis.pt"
 
   queue_size: 65536
@@ -42,6 +38,6 @@ run:
 
   # misc
   seed: 42
-  output_dir: "lavis/output/ALBEF/Retrieval_COCO"
+  output_dir: "output/ALBEF/Retrieval_COCO"
 
   evaluate: True

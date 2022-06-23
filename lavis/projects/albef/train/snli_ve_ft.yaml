@@ -5,15 +5,15 @@ model:
 
 datasets:
   snli_ve: # name of the dataset builder
-    vis_processor: 
-        train: 
+    vis_processor:
+        train:
           name: "blip_image_train"
         eval:
           name: "blip_image_eval"
     text_processor:
-        train: 
+        train:
           name: "blip_caption"
-        eval: 
+        eval:
           name: "blip_caption"
 
 run:
@@ -28,17 +28,16 @@ run:
   batch_size_eval: 64
   num_workers: 4
 
-  seed: 42 
-  output_dir: "lavis/output/ALBEF/SNLI_VE"
+  seed: 42
+  output_dir: "output/ALBEF/SNLI_VE"
 
   evaluate: False
   train_splits: ["train"]
   valid_splits: ["val"]
-  test_splits: ["test"] 
+  test_splits: ["test"]
 
   # distribution-specific
   device: "cuda"
   world_size: 1
   dist_url: "env://"
   distributed: True
-  
