@@ -241,7 +241,7 @@ class AlproRetrieval(BaseModel):
                     text_input.input_ids.shape, dtype=torch.long, device=self.device
                 ),
             )
-            text_feats.append(text_output.last_hidden_state)
+            text_feats.append(text_output.last_hidden_state.cpu())
             text_embed = F.normalize(
                 self.text_proj(text_output.last_hidden_state[:, 0, :])
             )
@@ -296,7 +296,7 @@ class AlproRetrieval(BaseModel):
 
             attention_mask = torch.cat([text_atts[topk_idx], video_atts_repeat], dim=1)
             embedding_output = torch.cat(
-                [text_feats[topk_idx], video_feats_repeat], dim=1
+                [text_feats[topk_idx].to(self.device), video_feats_repeat], dim=1
             )
 
             output = super(type(self.text_encoder), self.text_encoder).forward(
@@ -325,8 +325,10 @@ class AlproRetrieval(BaseModel):
 
             topk_sim, topk_idx = sims.topk(k=k_test, dim=0)
 
-            text_feats_repeat = text_feats[start + i].repeat(k_test, 1, 1)
-            text_atts_repeat = text_atts[start + i].repeat(k_test, 1)
+            text_feats_repeat = (
+                text_feats[start + i].repeat(k_test, 1, 1).to(self.device)
+            )
+            text_atts_repeat = text_atts[start + i].repeat(k_test, 1).to(self.device)
 
             video_atts = torch.ones(
                 video_feats[topk_idx].size()[:-1], dtype=torch.long
@@ -371,9 +373,12 @@ class AlproRetrieval(BaseModel):
         # text encoder
         text_encoder = XBertEncoder.build_from_cfg(cfg)
 
+        max_txt_len = cfg.get("max_txt_len", 35)
+
         model = cls(
             visual_encoder=visual_encoder,
             text_encoder=text_encoder,
+            max_txt_len=max_txt_len,
         )
 
         pretrain_path = cfg.get("pretrained")
