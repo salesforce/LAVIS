@@ -14,7 +14,7 @@ class VQADataset(BaseDataset):
 
         for sample in samples:
             image_list.append(sample["image"])
-            question_list.append(sample["question"])
+            question_list.append(sample["text_input"])
 
             weight_list.extend(sample["weights"])
 
