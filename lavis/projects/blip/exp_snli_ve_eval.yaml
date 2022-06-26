@@ -1,6 +1,6 @@
 model:
-  arch: albef_classification
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  arch: blip_classification
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
   num_classes: 3
 
 datasets:
@@ -17,8 +17,7 @@ datasets:
           name: "blip_caption"
 
 run:
-  # task: multimodal_classification
-  task: visual_entailment
+  task: multimodal_classification
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
@@ -30,7 +29,7 @@ run:
   num_workers: 4
 
   seed: 42
-  output_dir: "output/ALBEF/SNLI_VE"
+  output_dir: "lavis/output/SNLI_VE"
 
   evaluate: False
   train_splits: ["train"]

@@ -5,6 +5,7 @@ from lavis.tasks.image_text_pretrain import ImageTextPretrainTask
 from lavis.tasks.multimodal_classification import (
     MultimodalClassificationTask,
     VideoQATask,
+    VisualEntailmentTask,
 )
 from lavis.tasks.retrieval import RetrievalTask
 from lavis.tasks.vqa import VQATask
@@ -27,5 +28,6 @@ __all__ = [
     "VQATask",
     "MultimodalClassificationTask",
     "VideoQATask",
+    "VisualEntailmentTask",
     "ImageTextPretrainTask",
 ]

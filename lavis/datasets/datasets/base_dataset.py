@@ -32,11 +32,11 @@ class BaseDataset(Dataset):
         self.vis_processor = vis_processor
         self.text_processor = text_processor
 
-    def add_image_ids(self):
+    def add_unique_ids(self, key="image_id"):
         cnt = 0
 
         for ann in self.annotation:
-            ann["image_id"] = cnt
+            ann[key] = cnt
 
             cnt += 1
 

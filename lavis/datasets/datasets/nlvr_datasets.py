@@ -12,7 +12,7 @@ class NLVRDataset(MultimodalClassificationDataset):
 
         self.class_labels = self._build_class_labels()
 
-        self.add_image_ids()
+        self.add_unique_ids()
 
     def _build_class_labels(self):
         return {"False": 0, "True": 1}

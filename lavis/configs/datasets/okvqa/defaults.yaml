@@ -22,12 +22,3 @@ datasets:
               - okvqa/annotations/answer_list.json
       images:
           storage: coco/images/
-        # train:
-        #   # url:
-        #   #     - http://images.cocodataset.org/zips/train2014.zip
-        #   #     - http://images.cocodataset.org/zips/val2014.zip
-        #   storage: coco/images/
-        # test:
-        #   # url:
-        #   #     - http://images.cocodataset.org/zips/test2015.zip
-        #   storage: coco/images/
