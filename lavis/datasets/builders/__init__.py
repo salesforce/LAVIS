@@ -1,6 +1,6 @@
 from lavis.datasets.builders.base_dataset_builder import load_dataset_config
 from lavis.datasets.builders.coco_cap_builder import COCOCapBuilder
-from lavis.datasets.builders.coco_vqa_builder import COCOVQABuilder
+from lavis.datasets.builders.coco_vqa_builder import COCOVQABuilder, OKVQABuilder
 from lavis.datasets.builders.conceptual_caption_builder import (
     ConceptualCaption12MBuilder,
     ConceptualCaption3MBuilder,
@@ -31,6 +31,7 @@ __all__ = [
     "Flickr30kBuilder",
     "ImageNetBuilder",
     "MSRVTTRetrievalBuilder",
+    "OKVQABuilder",
     "SBUCaptionBuilder",
     "SNLIVisualEntailmentBuilder",
     "VGCaptionBuilder",

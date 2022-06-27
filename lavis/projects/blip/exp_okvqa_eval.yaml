@@ -4,8 +4,7 @@ model:
   image_size: 480
 
 datasets:
-  coco_vqa: # name of the dataset builder
-    type: eval
+  ok_vqa: # name of the dataset builder
     vis_processor:
         eval:
           name: "blip_image_eval"
@@ -18,7 +17,7 @@ run:
   task: vqa
   # optimization-specific
   batch_size_train: 16
-  batch_size_eval: 64
+  batch_size_eval: 16
   num_workers: 4
 
   # inference-specific
@@ -31,8 +30,8 @@ run:
   seed: 42
   output_dir: "output/BLIP/VQA"
 
-  evaluate: False
-  test_splits: ["val"]
+  evaluate: True
+  test_splits: ["test"]
 
   # distribution-specific
   device: "cuda"

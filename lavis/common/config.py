@@ -75,8 +75,10 @@ class Config:
 
         for dataset_name in datasets:
             builder_cls = registry.get_builder_class(dataset_name)
-            dataset_config_path = datasets[dataset_name].get(
-                "config_path", builder_cls.default_config_path()
+
+            dataset_config_type = datasets[dataset_name].get("type", "default")
+            dataset_config_path = builder_cls.default_config_path(
+                type=dataset_config_type
             )
 
             # hiararchy override, customized config > default config

@@ -47,7 +47,12 @@ class COCOVQAEvalDataset(VQAEvalDataset):
         self.vis_root = vis_root
 
         self.annotation = json.load(open(ann_paths[0]))
-        self.answer_list = json.load(open(ann_paths[1]))
+
+        answer_list_path = ann_paths[1]
+        if os.path.exists(answer_list_path):
+            self.answer_list = json.load(open(answer_list_path))
+        else:
+            self.answer_list = None
 
         try:
             self.coco_fmt_qust_file = ann_paths[2]
@@ -58,6 +63,8 @@ class COCOVQAEvalDataset(VQAEvalDataset):
 
         self.vis_processor = vis_processor
         self.text_processor = text_processor
+
+        super()._add_instance_ids()
 
     def __getitem__(self, index):
         ann = self.annotation[index]

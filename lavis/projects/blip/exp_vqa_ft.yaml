@@ -5,25 +5,25 @@ model:
 
 datasets:
   coco_vqa: # name of the dataset builder
-    vis_processor: 
-        train: 
+    vis_processor:
+        train:
           name: "blip_image_train"
           image_size: 480
         eval:
           name: "blip_image_eval"
           image_size: 480
     text_processor:
-        train: 
+        train:
           name: "blip_question"
-        eval: 
+        eval:
           name: "blip_question"
   vg_vqa: # name of the dataset builder
-    vis_processor: 
-        train: 
+    vis_processor:
+        train:
           name: "blip_image_train"
           image_size: 480
     text_processor:
-        train: 
+        train:
           name: "blip_question"
 
 run:
@@ -43,18 +43,17 @@ run:
   min_len: 1
   num_beams: 3
   num_ans_candidates: 128
-  inference_method: "rank" 
+  inference_method: "rank"
 
-  seed: 42 
-  output_dir: "lavis/output/VQA"
+  seed: 42
+  output_dir: "output/BLIP/VQA"
 
   evaluate: False
   train_splits: ["train"]
-  test_splits: ["test"] 
+  test_splits: ["test"]
 
   # distribution-specific
   device: "cuda"
   world_size: 1
   dist_url: "env://"
   distributed: True
-  

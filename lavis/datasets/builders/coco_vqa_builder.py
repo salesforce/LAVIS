@@ -30,3 +30,17 @@ class COCOVQABuilder(BaseDatasetBuilder):
         }
 
         return paths[type]
+
+
+@registry.register_builder("ok_vqa")
+class OKVQABuilder(COCOVQABuilder):
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+
+    @classmethod
+    def default_config_path(cls, type="default"):
+        paths = {
+            "default": "lavis/configs/datasets/okvqa/defaults.yaml",
+        }
+
+        return paths[type]

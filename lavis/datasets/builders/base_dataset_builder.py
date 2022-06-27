@@ -25,6 +25,7 @@ class BaseDatasetBuilder:
         elif isinstance(cfg, str):
             self.config = load_dataset_config(cfg)
         else:
+            # when called from task.build_dataset()
             self.config = cfg
 
         self.data_type = self.config.data_type

@@ -1,5 +1,5 @@
 datasets:
-  coco_vqa:
+  ok_vqa:
     # data_dir: ${env.data_dir}/datasets
     data_type: images # [images|videos|features]
 
@@ -8,17 +8,25 @@ datasets:
       annotations:
         train:
           url:
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_train.json
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_val.json
+              # TODO make this order insensitive
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_train.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/OpenEnded_mscoco_train2014_questions.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/mscoco_train2014_annotations.json
           storage:
-              - okvqa/annotations/vqa_train.json
-              - okvqa/annotations/vqa_val.json
+              - okvqa/annotations/okvqa_train.json
+              # - okvqa/annotations/OpenEnded_mscoco_train2014_questions.json
+              # - okvqa/annotations/mscoco_train2014_annotations.json
         test:
           url:
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_test.json
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/answer_list.json
+              # TODO make this order insensitive
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_val_eval.json
+              - /export/home/workspace/OKVQA/anthony/okvqa_answer_list.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/OpenEnded_mscoco_val2014_questions.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/mscoco_val2014_annotations.json
           storage:
-              - okvqa/annotations/vqa_test.json
+              - okvqa/annotations/vqa_val_eval.json
               - okvqa/annotations/answer_list.json
+              - okvqa/annotations/OpenEnded_mscoco_val2014_questions.json
+              - okvqa/annotations/mscoco_val2014_annotations.json
       images:
           storage: coco/images/
