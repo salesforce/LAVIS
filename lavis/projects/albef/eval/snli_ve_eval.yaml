@@ -13,8 +13,7 @@ datasets:
           name: "blip_caption"
 
 run:
-  # task: multimodal_classification
-  task: visual_entailment
+  task: multimodal_classification
   # optimization-specific
   batch_size_train: 32
   batch_size_eval: 64

@@ -51,9 +51,15 @@ class CaptionEvalDataset(BaseDataset):
 
     def __getitem__(self, index):
 
-        image_path = os.path.join(self.vis_root, self.annotation[index]["image"])
+        ann = self.annotation[index]
+
+        image_path = os.path.join(self.vis_root, ann["image"])
         image = Image.open(image_path).convert("RGB")
 
         image = self.vis_processor(image)
 
-        return {"image": image, "image_id": self.annotation[index]["image_id"]}
+        return {
+            "image": image,
+            "image_id": ann["image_id"],
+            "instance_id": ann["instance_id"],
+        }

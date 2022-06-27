@@ -11,8 +11,6 @@ from lavis.tasks.base_task import BaseTask
 
 @registry.register_task("multimodal_classification")
 class MultimodalClassificationTask(BaseTask):
-    ID_KEY = "image_id"
-
     def __init__(self):
         super().__init__()
 
@@ -33,14 +31,18 @@ class MultimodalClassificationTask(BaseTask):
         predictions = predictions.max(1)[1].cpu().numpy()
         targets = targets.cpu().numpy()
 
-        indices = samples[self.ID_KEY]
+        indices = samples[self.inst_id_key]
 
         for pred, tgt, index in zip(predictions, targets, indices):
             if isinstance(index, torch.Tensor):
                 index = index.item()
 
             results.append(
-                {self.ID_KEY: index, "prediction": pred.item(), "target": tgt.item()}
+                {
+                    self.inst_id_key: index,
+                    "prediction": pred.item(),
+                    "target": tgt.item(),
+                }
             )
 
         return results
@@ -50,7 +52,7 @@ class MultimodalClassificationTask(BaseTask):
             result=val_result,
             result_dir=registry.get_path("result_dir"),
             filename="{}_epoch{}".format(split_name, epoch),
-            remove_duplicate=self.ID_KEY,
+            remove_duplicate=self.inst_id_key,
         )
 
         metrics = self._report_metrics(
@@ -80,11 +82,11 @@ class MultimodalClassificationTask(BaseTask):
         return metrics
 
 
-@registry.register_task("video_qa")
-class VideoQATask(MultimodalClassificationTask):
-    ID_KEY = "question_id"
+# @registry.register_task("video_qa")
+# class VideoQATask(MultimodalClassificationTask):
+#     ID_KEY = "question_id"
 
 
-@registry.register_task("visual_entailment")
-class VisualEntailmentTask(MultimodalClassificationTask):
-    ID_KEY = "instance_id"
+# @registry.register_task("visual_entailment")
+# class VisualEntailmentTask(MultimodalClassificationTask):
+#     ID_KEY = "instance_id"

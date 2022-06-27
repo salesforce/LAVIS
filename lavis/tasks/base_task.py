@@ -12,6 +12,8 @@ class BaseTask:
     def __init__(self, **kwargs):
         super().__init__()
 
+        self.inst_id_key = "instance_id"
+
     @classmethod
     def setup_task(cls, **kwargs):
         return cls()

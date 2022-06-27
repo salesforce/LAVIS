@@ -12,8 +12,6 @@ class SNLIVisualEntialmentDataset(MultimodalClassificationDataset):
 
         self.class_labels = self._build_class_labels()
 
-        self.add_unique_ids(key="instance_id")
-
     def _build_class_labels(self):
         return {"contradiction": 0, "neutral": 1, "entailment": 2}
 

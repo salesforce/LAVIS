@@ -22,6 +22,8 @@ class BaseDataset(Dataset):
         self.vis_processor = vis_processor
         self.text_processor = text_processor
 
+        self._add_instance_ids()
+
     def __len__(self):
         return len(self.annotation)
 
@@ -32,13 +34,9 @@ class BaseDataset(Dataset):
         self.vis_processor = vis_processor
         self.text_processor = text_processor
 
-    def add_unique_ids(self, key="image_id"):
-        cnt = 0
-
-        for ann in self.annotation:
-            ann[key] = cnt
-
-            cnt += 1
+    def _add_instance_ids(self, key="instance_id"):
+        for idx, ann in enumerate(self.annotation):
+            ann[key] = idx
 
 
 class ConcatDataset(ConcatDataset):

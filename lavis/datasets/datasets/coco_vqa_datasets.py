@@ -68,6 +68,9 @@ class COCOVQAEvalDataset(VQAEvalDataset):
         image = self.vis_processor(image)
         question = self.text_processor(ann["question"])
 
-        question_id = ann["question_id"]
-
-        return {"image": image, "text_input": question, "question_id": question_id}
+        return {
+            "image": image,
+            "text_input": question,
+            "question_id": ann["question_id"],
+            "instance_id": ann["instance_id"],
+        }

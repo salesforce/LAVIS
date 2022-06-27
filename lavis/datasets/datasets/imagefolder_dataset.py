@@ -31,6 +31,9 @@ class ImageFolderDataset(BaseDataset):
 
         image = self.vis_processor(image)
 
-        img_id = ann["image_id"]
-
-        return {"image": image, "label": ann["label"], "image_id": img_id}
+        return {
+            "image": image,
+            "label": ann["label"],
+            "image_id": ann["image_id"],
+            "instance_id": ann["instance_id"],
+        }

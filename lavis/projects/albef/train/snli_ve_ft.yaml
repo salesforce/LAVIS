@@ -17,8 +17,7 @@ datasets:
           name: "blip_caption"
 
 run:
-  # task: multimodal_classification
-  task: visual_entailment
+  task: multimodal_classification
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5

@@ -2,21 +2,19 @@ model:
   arch: albef_nlvr
   # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
   # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/pretrain_model_nlvr.pth"
-  pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/NLVR/202206061046/checkpoint_best.pth"
+  # pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/NLVR/202206061046/checkpoint_best.pth"
+  # pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/NLVR/202206060813/checkpoint_best.pth"
+  # pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/NLVR/202206060639/checkpoint_best.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_nlvr_lavis.pt"
   num_classes: 2
 
 datasets:
   nlvr: # name of the dataset builder
     vis_processor:
-        train:
-          name: "blip_image_train"
-          image_size: 384
         eval:
           name: "blip_image_eval"
           image_size: 384
     text_processor:
-        train:
-          name: "blip_caption"
         eval:
           name: "blip_caption"
 
@@ -31,9 +29,7 @@ run:
   output_dir: "output/ALBEF/NLVR"
 
   evaluate: True
-  train_splits: ["train"]
-  valid_splits: ["val"]
-  test_splits: ["test"]
+  test_splits: ["val", "test"]
 
   # distribution-specific
   device: "cuda"

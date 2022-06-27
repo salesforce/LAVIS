@@ -1,0 +1,46 @@
+model:
+  arch: alpro_retrieval
+  # pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
+  pretrained: "/export/home/workspace/ALPRO/output/downstreams/didemo_ret/public/ckpt/model_step_best.pt"
+  max_txt_len: 50
+
+  timesformer:
+    n_frms: 8
+    image_size: 224
+
+
+datasets:
+  didemo_retrieval: # name of the dataset builder
+    vis_processor:
+        eval:
+          name: "alpro_video_eval"
+          n_frms: 8
+          image_size: 224
+    text_processor:
+        eval:
+          name: "blip_caption"
+
+run:
+  task: retrieval
+  # optimization-specific
+  batch_size_train: 8
+  batch_size_eval: 64
+  num_workers: 4
+
+  # k_test: 256
+  k_test: 1000
+
+  seed: 42
+  output_dir: "output/ALPRO/didemo_retrieval"
+
+  evaluate: False
+  train_splits: ["train"]
+  valid_splits: ["val", "test"]
+  test_splits: ["test"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  use_dist_eval_sampler: False

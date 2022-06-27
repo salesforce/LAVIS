@@ -1,25 +1,23 @@
 model:
-  arch: alpro_qa
-  num_classes: 1500
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
+  arch: alpro_retrieval
+  pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
+  max_txt_len: 50
 
   timesformer:
-    n_frms: 16
+    n_frms: 8
     image_size: 224
-    use_grad_ckpt: True
-    ckpt_layer: 12
 
 
 datasets:
-  msrvtt_qa: # name of the dataset builder
+  didemo_retrieval: # name of the dataset builder
     vis_processor:
         train:
           name: "alpro_video_train"
-          n_frms: 16
+          n_frms: 8
           image_size: 224
         eval:
           name: "alpro_video_eval"
-          n_frms: 16
+          n_frms: 8
           image_size: 224
     text_processor:
         train:
@@ -28,23 +26,26 @@ datasets:
           name: "blip_caption"
 
 run:
-  task: multimodal_classification
+  task: retrieval
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 5e-5
+  init_lr: 4e-5
   min_lr: 1e-6
   weight_decay: 1e-4
-  max_epoch: 10
-  batch_size_train: 24
-  batch_size_eval: 64
+  max_epoch: 5
+  batch_size_train: 12
+  batch_size_eval: 32
   num_workers: 4
 
+  # k_test: 256
+  k_test: 1000
+
   seed: 42
-  output_dir: "output/ALPRO/msrvtt_qa"
+  output_dir: "output/ALPRO/didemo_retrieval"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val"]
+  valid_splits: ["val", "test"]
   test_splits: ["test"]
 
   # distribution-specific
@@ -52,3 +53,4 @@ run:
   world_size: 1
   dist_url: "env://"
   distributed: True
+  use_dist_eval_sampler: False

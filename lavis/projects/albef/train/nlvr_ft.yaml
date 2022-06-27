@@ -1,7 +1,6 @@
 model:
   arch: albef_nlvr
-  # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/pretrain_model_nlvr.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_nlvr_pretrain.pt"
   num_classes: 2
 
 datasets:
@@ -24,9 +23,8 @@ run:
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
-  min_lr: 5e-6 # 82.53
-  # min_lr: 1e-5 # 82.47
-  weight_decay: 0.04
+  min_lr: 1e-6
+  weight_decay: 0.05
   max_epoch: 10
   batch_size_train: 16
   batch_size_eval: 64

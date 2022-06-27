@@ -39,4 +39,5 @@ class VideoQADataset(MultimodalClassificationDataset):
             "text_input": question,
             "answers": self._get_answer_label(ann["answer"]),
             "question_id": ann["question_id"],
+            "instance_id": ann["instance_id"],
         }
