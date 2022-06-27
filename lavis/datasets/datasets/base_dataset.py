@@ -36,7 +36,7 @@ class BaseDataset(Dataset):
 
     def _add_instance_ids(self, key="instance_id"):
         for idx, ann in enumerate(self.annotation):
-            ann[key] = idx
+            ann[key] = str(idx)
 
 
 class ConcatDataset(ConcatDataset):

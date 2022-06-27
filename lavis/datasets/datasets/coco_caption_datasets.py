@@ -29,6 +29,6 @@ class COCOCapEvalDataset(CaptionEvalDataset):
 
         return {
             "image": image,
-            "image_id": int(img_id),
+            "image_id": img_id,
             "instance_id": ann["instance_id"],
         }

@@ -43,7 +43,7 @@ class CaptionTask(BaseTask):
 
         img_ids = samples["image_id"]
         for caption, img_id in zip(captions, img_ids):
-            results.append({"caption": caption, "image_id": img_id})
+            results.append({"caption": caption, "image_id": int(img_id)})
 
         return results
 
@@ -65,9 +65,7 @@ class CaptionTask(BaseTask):
     def _report_metrics(self, eval_result_file, split_name):
 
         # TODO better way to define this
-        coco_gt_root = "annotation/coco_gt"
-
-        # coco_val = utils.coco_caption_eval(self.config['coco_gt_root'], val_result_file, 'val')
+        coco_gt_root = os.path.join(registry.get_path("cache_root"), "coco_gt")
         coco_val = coco_caption_eval(coco_gt_root, eval_result_file, split_name)
 
         agg_metrics = coco_val.eval["CIDEr"] + coco_val.eval["Bleu_4"]
