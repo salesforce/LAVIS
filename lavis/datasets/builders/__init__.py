@@ -1,6 +1,5 @@
 from lavis.datasets.builders.base_dataset_builder import load_dataset_config
 from lavis.datasets.builders.coco_cap_builder import COCOCapBuilder
-from lavis.datasets.builders.coco_vqa_builder import COCOVQABuilder, OKVQABuilder
 from lavis.datasets.builders.conceptual_caption_builder import (
     ConceptualCaption12MBuilder,
     ConceptualCaption3MBuilder,
@@ -10,9 +9,13 @@ from lavis.datasets.builders.nlvr_builder import NLVRBuilder
 from lavis.datasets.builders.sbu_caption_builder import SBUCaptionBuilder
 from lavis.datasets.builders.snli_ve_builder import SNLIVisualEntailmentBuilder
 from lavis.datasets.builders.vg_caption_builder import VGCaptionBuilder
-from lavis.datasets.builders.vg_vqa_builder import VGVQABuilder
 from lavis.datasets.builders.imagenet_builder import ImageNetBuilder
 from lavis.datasets.builders.video_qa_builder import MSRVTTQABuilder, MSVDQABuilder
+from lavis.datasets.builders.vqa_builder import (
+    COCOVQABuilder,
+    OKVQABuilder,
+    VGVQABuilder,
+)
 from lavis.datasets.builders.retrieval_builder import (
     MSRVTTRetrievalBuilder,
     DiDeMoRetrievalBuilder,
