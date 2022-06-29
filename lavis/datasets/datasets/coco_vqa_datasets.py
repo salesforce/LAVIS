@@ -64,7 +64,7 @@ class COCOVQAEvalDataset(VQAEvalDataset):
         self.vis_processor = vis_processor
         self.text_processor = text_processor
 
-        super()._add_instance_ids()
+        self._add_instance_ids()
 
     def __getitem__(self, index):
         ann = self.annotation[index]

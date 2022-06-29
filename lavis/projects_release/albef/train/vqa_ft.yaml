@@ -39,7 +39,7 @@ run:
   weight_decay: 0.02
   max_epoch: 8
   batch_size_train: 32
-  batch_size_eval: 64
+  batch_size_eval: 32
   num_workers: 4
 
   # inference-specific

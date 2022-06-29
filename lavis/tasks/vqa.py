@@ -1,4 +1,6 @@
 import logging
+import json
+import os
 
 import lavis.common.dist_utils as dist_utils
 from lavis.common.registry import registry
@@ -94,7 +96,7 @@ class VQATask(BaseTask):
         result_file = self.save_result(
             val_result,
             result_dir=registry.get_path("result_dir"),
-            filename="vqa_result",
+            filename=f"{split_name}_vqa_result",
             remove_duplicate="question_id",
         )
 
@@ -133,3 +135,70 @@ class VQATask(BaseTask):
                 metrics["ansType"] = vqa_scorer.accuracy["perAnswerType"][ans_type]
 
         return metrics
+
+
+@registry.register_task("aok_vqa")
+class AOKVQATask(VQATask):
+    def valid_step(self, model, samples):
+        answers = model.predict_answers(
+            samples=samples,
+            answer_list=self.answer_list,
+            inference_method=self.inference_method,
+            num_beams=self.num_beams,
+            max_len=self.max_len,
+            min_len=self.min_len,
+            num_ans_candidates=self.num_ans_candidates,
+        )
+
+        pred_qa_pairs = []
+
+        question_id = samples["question_id"]
+        gt_answers = samples["direct_answers"]
+
+        for pred_answer, ques_id, gt_answer in zip(answers, question_id, gt_answers):
+            pred_qa_pairs.append(
+                {"question_id": ques_id, "pred_ans": pred_answer, "gt_ans": gt_answer}
+            )
+
+        return pred_qa_pairs
+
+    @dist_utils.main_process
+    def _report_metrics(self, result_file, split):
+        """
+        Implementing accuracy computation for AOKVQA, see
+        https://github.com/allenai/aokvqa/blob/main/evaluation/eval_predictions.py#L45 for details.
+        """
+        # TODO add evaluation for multi-choice
+
+        results = json.load(open(result_file, "r"))
+        acc = []
+
+        for res in results:
+            if res["gt_ans"] is None:
+                # prepare test results for leaderboard evaluation
+                self._save_result_leaderboard(results)
+                return
+
+            pred = res["pred_ans"]
+            gt_ans = res["gt_ans"]
+
+            num_match = sum([pred == gt for gt in gt_ans])
+            vqa_acc = min(1.0, num_match / 3.0)
+
+            acc.append(vqa_acc)
+
+        accuracy = sum(acc) / len(acc) * 100
+        metrics = {"agg_metrics": accuracy, "acc": accuracy}
+
+        with open(
+            os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a"
+        ) as f:
+            f.write(json.dumps(metrics) + "\n")
+
+        logging.info(metrics)
+
+        return metrics
+
+    @classmethod
+    def _save_result_leaderboard(results):
+        pass

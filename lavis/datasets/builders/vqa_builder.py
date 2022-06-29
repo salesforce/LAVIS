@@ -1,6 +1,7 @@
 from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
 
 from lavis.common.registry import registry
+from lavis.datasets.datasets.aok_vqa_datasets import AOKVQADataset, AOKVQAEvalDataset
 from lavis.datasets.datasets.coco_vqa_datasets import COCOVQADataset, COCOVQAEvalDataset
 from lavis.datasets.datasets.vg_vqa_datasets import VGVQADataset
 
@@ -68,3 +69,21 @@ class OKVQABuilder(COCOVQABuilder):
         }
 
         return paths[type]
+
+
+@registry.register_builder("aok_vqa")
+class AOKVQABuilder(BaseDatasetBuilder):
+    train_dataset_cls = AOKVQADataset
+    eval_dataset_cls = AOKVQAEvalDataset
+
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+
+    @classmethod
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/aokvqa/defaults.yaml"}
+
+        return paths[type]
+
+    def _download_vis(self):
+        pass

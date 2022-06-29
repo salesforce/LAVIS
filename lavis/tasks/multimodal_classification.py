@@ -80,13 +80,3 @@ class MultimodalClassificationTask(BaseTask):
 
         logging.info(metrics)
         return metrics
-
-
-# @registry.register_task("video_qa")
-# class VideoQATask(MultimodalClassificationTask):
-#     ID_KEY = "question_id"
-
-
-# @registry.register_task("visual_entailment")
-# class VisualEntailmentTask(MultimodalClassificationTask):
-#     ID_KEY = "instance_id"

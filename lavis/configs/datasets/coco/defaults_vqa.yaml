@@ -8,8 +8,8 @@ datasets:
       annotations:
         train:
           url:
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_train.json
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_val.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_train.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_val.json
           storage:
               - coco/annotations/vqa_train.json
               - coco/annotations/vqa_val.json
@@ -27,8 +27,8 @@ datasets:
               - coco/annotations/v2_mscoco_val2014_annotations.json
         test:
           url:
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/vqa_test.json
-              - https://storage.googleapis.com/sfr-vision-language-research/datasets/answer_list.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_test.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/answer_list.json
           storage:
               - coco/annotations/vqa_test.json
               - coco/annotations/answer_list.json

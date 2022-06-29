@@ -4,7 +4,7 @@ model:
   image_size: 480
 
 datasets:
-  ok_vqa: # name of the dataset builder
+  aok_vqa: # name of the dataset builder
     vis_processor:
         eval:
           name: "blip_image_eval"
@@ -14,7 +14,7 @@ datasets:
           name: "blip_question"
 
 run:
-  task: vqa
+  task: aok_vqa
   # optimization-specific
   batch_size_train: 16
   batch_size_eval: 16
@@ -28,10 +28,10 @@ run:
   inference_method: "rank"
 
   seed: 42
-  output_dir: "output/BLIP/OKVQA"
+  output_dir: "output/BLIP/AOKVQA"
 
   evaluate: True
-  test_splits: ["test"]
+  test_splits: ["val", "test"]
 
   # distribution-specific
   device: "cuda"

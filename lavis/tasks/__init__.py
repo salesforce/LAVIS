@@ -4,11 +4,9 @@ from lavis.tasks.captioning import CaptionTask
 from lavis.tasks.image_text_pretrain import ImageTextPretrainTask
 from lavis.tasks.multimodal_classification import (
     MultimodalClassificationTask,
-    # VideoQATask,
-    # VisualEntailmentTask,
 )
 from lavis.tasks.retrieval import RetrievalTask
-from lavis.tasks.vqa import VQATask
+from lavis.tasks.vqa import VQATask, AOKVQATask
 
 
 def setup_task(cfg):
@@ -23,6 +21,7 @@ def setup_task(cfg):
 
 __all__ = [
     "BaseTask",
+    "AOKVQATask",
     "RetrievalTask",
     "CaptionTask",
     "VQATask",
