@@ -8,20 +8,20 @@ datasets:
       annotations:
         train:
           url:
-              - /export/home/workspace/OKVQA/aokvqa/coco_fmt/aokvqa_v1p0_train.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_train.json
           storage:
               - aokvqa/annotations/aokvqa_v1p0_train.json
         val:
           url:
-              - /export/home/workspace/OKVQA/aokvqa/coco_fmt/aokvqa_v1p0_val.json
-              - /export/home/workspace/OKVQA/aokvqa/coco_fmt/large_vocab_train_lavis.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_val.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
           storage:
               - aokvqa/annotations/aokvqa_v1p0_val.json
               - aokvqa/annotations/large_vocab_train_lavis.json
         test:
           url:
-              - /export/home/workspace/OKVQA/aokvqa/coco_fmt/aokvqa_v1p0_test.json
-              - /export/home/workspace/OKVQA/aokvqa/coco_fmt/large_vocab_train_lavis.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_test.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
           storage:
               - aokvqa/annotations/aokvqa_v1p0_test.json
               - aokvqa/annotations/large_vocab_train_lavis.json
