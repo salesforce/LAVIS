@@ -66,3 +66,21 @@ class COCORetrievalBuilder(BaseDatasetBuilder):
         paths = {"default": "lavis/configs/datasets/coco/defaults_ret.yaml"}
 
         return paths[type]
+
+
+@registry.register_builder("flickr30k")
+class Flickr30kBuilder(BaseDatasetBuilder):
+    train_dataset_cls = RetrievalDataset
+    eval_dataset_cls = RetrievalEvalDataset
+
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+
+    @classmethod
+    def default_config_path(cls, type="default"):
+        paths = {"default": "lavis/configs/datasets/flickr30k/defaults.yaml"}
+
+        return paths[type]
+
+    def _download_vis(self):
+        pass

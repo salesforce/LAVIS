@@ -4,7 +4,6 @@ from lavis.datasets.builders.conceptual_caption_builder import (
     ConceptualCaption12MBuilder,
     ConceptualCaption3MBuilder,
 )
-from lavis.datasets.builders.flickr30k_builder import Flickr30kBuilder
 from lavis.datasets.builders.nlvr_builder import NLVRBuilder
 from lavis.datasets.builders.sbu_caption_builder import SBUCaptionBuilder
 from lavis.datasets.builders.snli_ve_builder import SNLIVisualEntailmentBuilder
@@ -20,6 +19,7 @@ from lavis.datasets.builders.retrieval_builder import (
     MSRVTTRetrievalBuilder,
     DiDeMoRetrievalBuilder,
     COCORetrievalBuilder,
+    Flickr30kBuilder,
 )
 
 from lavis.common.registry import registry
