@@ -174,7 +174,7 @@ class Runner:
         valid_splits = self.config.run_cfg.get("valid_splits", [])
 
         if len(valid_splits) == 0:
-            logging.warning("No validation splits found.")
+            logging.info("No validation splits found.")
 
         return valid_splits
 
