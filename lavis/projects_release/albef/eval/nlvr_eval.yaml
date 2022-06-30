@@ -1,0 +1,33 @@
+model:
+  arch: albef_nlvr
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_nlvr_lavis.pt"
+  num_classes: 2
+
+datasets:
+  nlvr: # name of the dataset builder
+    vis_processor:
+        eval:
+          name: "blip_image_eval"
+          image_size: 384
+    text_processor:
+        eval:
+          name: "blip_caption"
+
+run:
+  task: multimodal_classification
+
+  batch_size_train: 16
+  batch_size_eval: 64
+  num_workers: 4
+
+  seed: 42
+  output_dir: "output/ALBEF/NLVR"
+
+  evaluate: True
+  test_splits: ["val", "test"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True

@@ -1,15 +1,17 @@
 model:
-  arch: blip_classification
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  num_classes: 3
+  arch: albef_nlvr
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_nlvr_pretrain.pt"
+  num_classes: 2
 
 datasets:
-  snli_ve: # name of the dataset builder
+  nlvr: # name of the dataset builder
     vis_processor:
         train:
           name: "blip_image_train"
+          image_size: 384
         eval:
           name: "blip_image_eval"
+          image_size: 384
     text_processor:
         train:
           name: "blip_caption"
@@ -21,15 +23,15 @@ run:
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
-  min_lr: 0
+  min_lr: 1e-6
   weight_decay: 0.05
   max_epoch: 10
-  batch_size_train: 32
+  batch_size_train: 16
   batch_size_eval: 64
   num_workers: 4
 
   seed: 42
-  output_dir: "output/BLIP/SNLI_VE"
+  output_dir: "output/ALBEF/NLVR"
 
   evaluate: False
   train_splits: ["train"]
