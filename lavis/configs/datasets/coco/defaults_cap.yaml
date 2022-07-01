@@ -2,34 +2,21 @@ datasets:
   coco_caption: # name of the dataset builder
     # data_dir: ${env.data_dir}/datasets
     data_type: images # [images|videos|features]
-    
+
     build_info:
       # Be careful not to append minus sign (-) before split to avoid itemizing
       annotations:
-        train: 
+        train:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
           md5: aa31ac474cf6250ebb81d18348a07ed8
           storage: coco/annotations/coco_karpathy_train.json
-        val: 
+        val:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
-          md5: b273847456ef5580e33713b1f7de52a0 
+          md5: b273847456ef5580e33713b1f7de52a0
           storage:  coco/annotations/coco_karpathy_val.json
-        test: 
+        test:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
           md5: 3ff34b0ef2db02d01c37399f6a2a6cd1
           storage: coco/annotations/coco_karpathy_test.json
       images:
         storage: coco/images/
-        # storage: 
-        # train: 
-        #   # url: http://images.cocodataset.org/zips/train2014.zip
-        #   # relative path with basename
-        #   # can't be directory name
-        #   # md5: 0da8c0bd3d6becc4dcb32757491aca88
-        # val: 
-        #   # url: http://images.cocodataset.org/zips/val2014.zip
-        #   storage: coco/images/
-        #   # md5: a3d79f5ed8d289b7a7554ce06a5782b3 
-        # test: 
-        #   # url: http://images.cocodataset.org/zips/test2014.zip
-        #   storage: coco/images/

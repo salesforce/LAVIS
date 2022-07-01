@@ -7,13 +7,13 @@ datasets:
       # Be careful not to append minus sign (-) before split to avoid itemizing
       annotations:
         train:
-          url: /export/share/dongxuli/data/lavis/nlvr/annotation/nlvr_train.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/nlvr/nlvr_train.json
           storage: nlvr/annotations/train.json
         val:
-          url: /export/share/dongxuli/data/lavis/nlvr/annotation/nlvr_dev.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/nlvr/nlvr_dev.json
           storage: nlvr/annotations/dev.json
         test:
-          url: /export/share/dongxuli/data/lavis/nlvr/annotation/nlvr_test.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/nlvr/nlvr_dev.json
           storage: nlvr/annotations/test.json
       images:
           storage: /export/share/datasets/vision/NLVR2/

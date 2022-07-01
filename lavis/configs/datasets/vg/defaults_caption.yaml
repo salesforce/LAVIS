@@ -7,12 +7,7 @@ datasets:
       # Be careful not to append minus sign (-) before split to avoid itemizing
       annotations:
         train:
-          url: /export/share/dongxuli/data/lavis/visual_genome/annotation/vg_caption.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/visual_genome/vg_caption.json
           storage: vg/annotations/vg_caption.json
       images:
-        # url:
-        #     - [
-        #       https://cs.stanford.edu/people/rak248/VG_100K_2/images.zip,
-        #       https://cs.stanford.edu/people/rak248/VG_100K_2/images2.zip
-        #       ]
         storage: vg/images/

@@ -14,16 +14,20 @@ datasets:
         val:
           url:
               - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_val.json
-              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
+              - /export/home/workspace/OKVQA/aokvqa/specialized_vocab_train.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
           storage:
               - aokvqa/annotations/aokvqa_v1p0_val.json
-              - aokvqa/annotations/large_vocab_train_lavis.json
+              - aokvqa/annotations/specialized_vocab_train_lavis.json
+              # - aokvqa/annotations/large_vocab_train_lavis.json
         test:
           url:
               - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_test.json
-              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
+              - /export/home/workspace/OKVQA/aokvqa/specialized_vocab_train.json
           storage:
               - aokvqa/annotations/aokvqa_v1p0_test.json
-              - aokvqa/annotations/large_vocab_train_lavis.json
+              - aokvqa/annotations/specialized_vocab_train_lavis.json
+              # - aokvqa/annotations/large_vocab_train_lavis.json
       images:
           storage: coco/images/
