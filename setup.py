@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
-from setuptools import setup, find_namespace_packages
+from setuptools import find_packages, setup, find_namespace_packages
 
 
 setup(
@@ -16,17 +16,16 @@ setup(
     long_description_content_type="text/markdown",
     keywords="LAVIS - An Extensible Library of Language-Vision Models and Datasets",
     # url="https://github.com/salesforce/omnixai",
-    # license="3-Clause BSD",
+    license="3-Clause BSD",
     packages=find_namespace_packages(include="lavis.*"),
-    # package_dir={"lavis": "omnixai"},
     install_requires=[
         "omegaconf>=2.1.2",
         "opencv-python>=4.5.5",
         "pycocoevalcap",
         "pycocotools",
         "timm==0.4.12",
-        "torch==1.10.0+cu113",
-        "torchvision==0.11.1+cu113",
+        "torch==1.10.0",
+        "torchvision==0.11.1",
         "fairscale==0.4.4",
         "transformers==4.15.0",
         "einops==0.4.1",
@@ -36,6 +35,7 @@ setup(
         "packaging",
         "ipython",
     ],
-    python_requires=">=3.8.0",
+    python_requires=">=3.7.0",
+    include_package_data=True,
     zip_safe=False,
 )

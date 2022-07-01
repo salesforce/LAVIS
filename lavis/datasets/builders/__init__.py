@@ -76,7 +76,7 @@ def load_dataset(name, cfg_path=None, vis_path=None, data_type=None):
     return dataset
 
 
-def get_dataset_names():
+def list_dataset():
     datasets = registry.mapping["builder_name_mapping"]
 
     return list(datasets.keys())
