@@ -19,6 +19,8 @@ class ImageFolderDataset(BaseDataset):
 
         self.classnames = classnames
 
+        self._add_instance_ids()
+
     def __len__(self):
         return len(self.inner_dataset)
 
