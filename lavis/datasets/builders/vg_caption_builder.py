@@ -7,6 +7,7 @@ from lavis.common.registry import registry
 @registry.register_builder("vg_caption")
 class VGCaptionBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
+    type2path = {"default": "configs/datasets/vg/defaults_caption.yaml"}
 
     vis_urls = {
         "images": {
@@ -19,9 +20,3 @@ class VGCaptionBuilder(BaseDatasetBuilder):
 
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/vg/defaults_caption.yaml"}
-
-        return paths[type]

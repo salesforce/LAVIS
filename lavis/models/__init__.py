@@ -20,6 +20,28 @@ from lavis.models.vit import VisionTransformerEncoder
 from lavis.models.clip_models.model import CLIP
 
 
+def list_models():
+    return {
+        k: list(v.type2path.keys())
+        for k, v in registry.mapping["model_name_mapping"].items()
+    }
+
+
+def get_model_config(model_name, model_type="base"):
+    import json
+
+    from omegaconf import OmegaConf
+
+    config_path = registry.get_model_class(model_name).type2path[model_type]
+
+    config = OmegaConf.load(config_path)
+    config = OmegaConf.to_container(config)
+
+    print(json.dumps(config, indent=4, sort_keys=True))
+
+    return config
+
+
 def load_model(name, model_type="base", is_eval=False):
     model = registry.get_model_class(name).build_default_model(model_type=model_type)
 

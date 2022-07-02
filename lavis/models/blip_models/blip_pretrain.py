@@ -16,6 +16,11 @@ from torch import nn
 
 @registry.register_model("blip_pretrain")
 class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
+    type2path = {
+        "base": "configs/models/blip_pretrain_base.yaml",
+        # "large": "configs/models/blip_pretrain_large.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -87,16 +92,6 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
 
         self.alpha = alpha
         self.max_txt_len = max_txt_len
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/blip_pretrain_base.yaml",
-            "large": "lavis/configs/models/blip_pretrain_large.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
@@ -283,9 +278,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         momentum = cfg.get("momentum", 0.995)
         alpha = cfg.get("alpha", 0.4)
         max_txt_len = cfg.get("max_txt_len", 30)
-        queue_size = cfg.get("queue_size", None)
-
-        assert queue_size, "queue_size must be specified."
+        queue_size = cfg.get("queue_size", 0)
 
         model = cls(
             image_encoder=image_encoder,

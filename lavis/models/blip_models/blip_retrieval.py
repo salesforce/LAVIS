@@ -19,6 +19,11 @@ from torch import nn
 
 @registry.register_model("blip_retrieval")
 class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+    type2path = {
+        "base": "configs/models/blip_retrieval_base.yaml",
+        # "large": "configs/models/blip_retrieval_large.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -80,16 +85,6 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         self.max_txt_len = max_txt_len
 
         self.negative_all_rank = negative_all_rank
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/blip_retrieval_base.yaml",
-            "large": "lavis/configs/models/blip_retrieval_large.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
@@ -308,10 +303,8 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         alpha = cfg.get("alpha", 0.4)
         negative_all_rank = cfg.get("negative_all_rank", False)
 
-        queue_size = cfg.get("queue_size", None)
+        queue_size = cfg.get("queue_size", 0)
         max_txt_len = cfg.get("max_txt_len", 35)
-
-        assert queue_size, "queue_size must be specified."
 
         model = cls(
             image_encoder=image_encoder,

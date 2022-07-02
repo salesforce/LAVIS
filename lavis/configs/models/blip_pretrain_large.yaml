@@ -9,7 +9,7 @@
 #   image_size: 224
 
 #   # bert config
-#   med_config_path: "lavis/configs/models/med_large_config.json"
+#   med_config_path: "configs/models/med_large_config.json"
 
 #   # generation configs
 #   prompt: "a picture of "

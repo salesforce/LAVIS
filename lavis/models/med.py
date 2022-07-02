@@ -45,6 +45,7 @@ from transformers.modeling_utils import (
 )
 from transformers.utils import logging
 from transformers.models.bert.configuration_bert import BertConfig
+from lavis.common.utils import get_abs_path
 
 from lavis.models.base_model import BaseEncoder
 
@@ -1304,7 +1305,7 @@ class XBertLMHeadDecoder(BertLMHeadModel):
     @classmethod
     def build_from_cfg(cls, cfg, from_pretrained=False):
 
-        med_config_path = cfg.get("med_config_path")
+        med_config_path = get_abs_path(cfg.get("med_config_path"))
         med_config = BertConfig.from_json_file(med_config_path)
 
         if from_pretrained:
@@ -1420,7 +1421,7 @@ class XBertEncoder(BertModel, BaseEncoder):
     @classmethod
     def build_from_cfg(cls, cfg, from_pretrained=False):
 
-        med_config_path = cfg.get("med_config_path")
+        med_config_path = get_abs_path(cfg.get("med_config_path"))
         med_config = BertConfig.from_json_file(med_config_path)
 
         if from_pretrained:

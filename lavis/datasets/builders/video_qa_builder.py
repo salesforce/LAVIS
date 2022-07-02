@@ -31,13 +31,9 @@ class VideoQABuilder(BaseDatasetBuilder):
 
 @registry.register_builder("msrvtt_qa")
 class MSRVTTQABuilder(VideoQABuilder):
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/msrvtt/defaults_qa.yaml",
-        }
-
-        return paths[type]
+    type2path = {
+        "default": "configs/datasets/msrvtt/defaults_qa.yaml",
+    }
 
     def _download_vis(self):
         pass
@@ -45,13 +41,9 @@ class MSRVTTQABuilder(VideoQABuilder):
 
 @registry.register_builder("msvd_qa")
 class MSVDQABuilder(VideoQABuilder):
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/msvd/defaults_qa.yaml",
-        }
-
-        return paths[type]
+    type2path = {
+        "default": "configs/datasets/msvd/defaults_qa.yaml",
+    }
 
     def _download_vis(self):
         pass

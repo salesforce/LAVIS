@@ -11,7 +11,7 @@ from transformers import BertConfig
 class BlipBase(BaseModel):
     def __init__(
         self,
-        med_config="lavis/configs/models/med_config.json",
+        med_config="configs/models/med_config.json",
         image_size=224,
         vit="base",
         vit_grad_ckpt=False,
@@ -107,7 +107,7 @@ class BlipBase(BaseModel):
 class BlipITM(BaseModel):
     def __init__(
         self,
-        med_config="lavis/configs/models/med_config.json",
+        med_config="configs/models/med_config.json",
         image_size=384,
         vit="base",
         vit_grad_ckpt=False,

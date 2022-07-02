@@ -12,6 +12,10 @@ class COCOCapBuilder(BaseDatasetBuilder):
     train_dataset_cls = COCOCapDataset
     eval_dataset_cls = COCOCapEvalDataset
 
+    type2path = {
+        "default": "configs/datasets/coco/defaults_cap.yaml",
+    }
+
     vis_urls = {
         "images": {
             "train": "http://images.cocodataset.org/zips/train2014.zip",  # md5: 0da8c0bd3d6becc4dcb32757491aca88
@@ -22,11 +26,3 @@ class COCOCapBuilder(BaseDatasetBuilder):
 
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/coco/defaults_cap.yaml",
-        }
-
-        return paths[type]

@@ -20,6 +20,10 @@ from torch import nn
 
 @registry.register_model("alpro_retrieval")
 class AlproRetrieval(BaseModel):
+    type2path = {
+        "base": "configs/models/alpro_retrieval.yaml",
+    }
+
     def __init__(
         self,
         visual_encoder,
@@ -48,15 +52,6 @@ class AlproRetrieval(BaseModel):
         self.itm_head = nn.Linear(text_width, 2)
 
         self.max_txt_len = max_txt_len
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/alpro_retrieval.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def forward(self, samples):
         with torch.no_grad():

@@ -9,14 +9,10 @@ class NLVRBuilder(BaseDatasetBuilder):
     train_dataset_cls = NLVRDataset
     eval_dataset_cls = NLVRDataset
 
+    type2path = {"default": "configs/datasets/nlvr/defaults.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/nlvr/defaults.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass

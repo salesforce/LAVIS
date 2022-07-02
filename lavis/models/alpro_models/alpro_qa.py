@@ -11,6 +11,10 @@ from lavis.models.timesformer.vit import TimeSformer
 
 @registry.register_model("alpro_qa")
 class AlproQA(BaseModel):
+    type2path = {
+        "base": "configs/models/alpro_qa.yaml",
+    }
+
     def __init__(
         self, visual_encoder, text_encoder, hidden_size, num_classes, max_txt_len=40
     ):
@@ -29,15 +33,6 @@ class AlproQA(BaseModel):
         )
 
         self.max_txt_len = max_txt_len
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/alpro_qa.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def forward(self, samples, is_train=True):
         visual_inputs = samples["video"]

@@ -7,6 +7,7 @@ from torch import nn
 from transformers import BertConfig
 
 from lavis.common.registry import registry
+from lavis.common.utils import get_abs_path
 from lavis.models.med import BertModel
 from lavis.models.vit import VisionTransformerEncoder
 from lavis.models.base_model import BaseModel, MomentumDistilationMixin
@@ -15,6 +16,10 @@ from lavis.models.albef_models import init_tokenizer, load_from_pretrained
 
 @registry.register_model("albef_nlvr")
 class AlbefNLVR(BaseModel, MomentumDistilationMixin):
+    type2path = {
+        "base": "configs/models/albef_nlvr_base.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -61,15 +66,6 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
             ]
 
             self.copy_params()
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/albef_nlvr_base.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
@@ -176,7 +172,7 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
         image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
 
         # text encoder + multimodal encoder
-        bert_config = BertConfig.from_json_file(cfg["med_config_path"])
+        bert_config = BertConfig.from_json_file(get_abs_path(cfg["med_config_path"]))
         bert_config.num_hidden_layers = 18
 
         text_encoder = BertModel.from_pretrained(

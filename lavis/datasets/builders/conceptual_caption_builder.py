@@ -8,16 +8,10 @@ from lavis.datasets.datasets.image_text_pair_datasets import ImageTextPairDatase
 class ConceptualCaption3MBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
+    type2path = {"default": "configs/datasets/conceptual_caption/defaults_3m.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/conceptual_caption/defaults_3m.yaml"
-        }
-
-        return paths[type]
 
     def _download_vis(self):
         pass
@@ -27,16 +21,10 @@ class ConceptualCaption3MBuilder(BaseDatasetBuilder):
 class ConceptualCaption12MBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
+    type2path = {"default": "configs/datasets/conceptual_caption/defaults_12m.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/conceptual_caption/defaults_12m.yaml"
-        }
-
-        return paths[type]
 
     def _download_vis(self):
         pass

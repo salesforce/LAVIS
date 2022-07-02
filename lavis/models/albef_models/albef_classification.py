@@ -15,6 +15,10 @@ from lavis.models.albef_models import init_tokenizer, load_from_pretrained
 
 @registry.register_model("albef_classification")
 class AlbefClassification(BaseModel, MomentumDistilationMixin):
+    type2path = {
+        "base": "configs/models/albef_ve_base.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -57,15 +61,6 @@ class AlbefClassification(BaseModel, MomentumDistilationMixin):
             ]
 
             self.copy_params()
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/albef_ve_base.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)

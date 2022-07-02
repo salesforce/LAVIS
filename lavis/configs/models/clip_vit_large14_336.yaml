@@ -1,7 +1,7 @@
 model:
   arch: clip
 
-  model_type: ViT-L-16
+  model_type: ViT-L-14-336
 #   ['RN50',
 #  'RN50-quickgelu',
 #  'RN50x4',

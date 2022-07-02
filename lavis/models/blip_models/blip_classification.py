@@ -15,6 +15,11 @@ from torch import nn
 
 @registry.register_model("blip_classification")
 class BlipClassification(BaseModel, MomentumDistilationMixin):
+    type2path = {
+        "base": "configs/models/blip_classification_base.yaml",
+        # "large": "configs/models/blip_pretrain_large.yaml"
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -58,16 +63,6 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
             self.copy_params()
 
         self.max_txt_len = max_txt_len
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/blip_ve_base.yaml",
-            # "large": "lavis/configs/models/blip_pretrain_large.yaml"
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)

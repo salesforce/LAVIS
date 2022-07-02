@@ -5,7 +5,7 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
-from lavis.common.utils import is_url
+from lavis.common.utils import get_abs_path, is_url
 from lavis.models.albef_models import init_tokenizer
 from lavis.models.base_model import BaseModel, MomentumDistilationMixin, tile
 from lavis.models.med import BertConfig, BertLMHeadModel, XBertEncoder
@@ -15,6 +15,10 @@ from timm.models.hub import download_cached_file
 
 @registry.register_model("albef_vqa")
 class AlbefVQA(BaseModel, MomentumDistilationMixin):
+    type2path = {
+        "base": "configs/models/albef_vqa_base.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -52,16 +56,6 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
             ]
 
             self.copy_params()
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/albef_vqa_base.yaml",
-            # "large": "lavis/configs/models/blip_pretrain_large.yaml"
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
@@ -254,7 +248,7 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
 
         text_encoder = XBertEncoder.build_from_cfg(cfg)
 
-        config_decoder = BertConfig.from_json_file(cfg["med_config_path"])
+        config_decoder = BertConfig.from_json_file(get_abs_path(cfg["med_config_path"]))
         config_decoder.fusion_layer = 0
         config_decoder.num_hidden_layers = 6
         text_decoder = BertLMHeadModel.from_pretrained(

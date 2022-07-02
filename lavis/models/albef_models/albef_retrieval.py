@@ -20,6 +20,10 @@ from torch import nn
 
 @registry.register_model("albef_retrieval")
 class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+    type2path = {
+        "base": "configs/models/albef_retrieval_base.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -78,15 +82,6 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         self.alpha = alpha
         self.max_txt_len = max_txt_len
         self.use_distill = use_distill
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/albef_retrieval_base.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
@@ -263,10 +258,8 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         alpha = cfg.get("alpha", 0.4)
         temp = cfg.get("temp", 0.07)
         max_txt_len = cfg.get("max_txt_len", 30)
-        queue_size = cfg.get("queue_size", None)
+        queue_size = cfg.get("queue_size", 0)
         use_distill = cfg.get("use_distill", True)
-
-        assert queue_size, "queue_size must be specified."
 
         model = cls(
             image_encoder=image_encoder,

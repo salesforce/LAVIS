@@ -20,6 +20,10 @@ def get_cache_path(rel_path):
     return os.path.join(registry.get_path("cache_root"), rel_path)
 
 
+def get_abs_path(rel_path):
+    return os.path.join(registry.get_path("library_root"), rel_path)
+
+
 def load_json(filename):
     with open(filename, "r") as f:
         return json.load(f)

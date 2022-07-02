@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from lavis.common.utils import get_abs_path
+
 
 class BaseModel(nn.Module):
     """Base class for models."""
@@ -47,6 +49,11 @@ class BaseModel(nn.Module):
     @property
     def device(self):
         return list(self.parameters())[0].device
+
+    @classmethod
+    def default_config_path(cls, model_type="base"):
+        assert model_type in cls.type2path, "Unknown model type {}".format(model_type)
+        return get_abs_path(cls.type2path[model_type])
 
     def before_evaluation(self, **kwargs):
         pass

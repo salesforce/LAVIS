@@ -9,6 +9,11 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_caption")
 class BlipCaption(BaseModel):
+    type2path = {
+        "base": "configs/models/blip_caption_base.yaml",
+        "large": "configs/models/blip_caption_large.yaml",
+    }
+
     def __init__(self, image_encoder, text_decoder, prompt=None, max_txt_len=40):
         super().__init__()
 
@@ -21,16 +26,6 @@ class BlipCaption(BaseModel):
         self.prompt_length = len(self.tokenizer(self.prompt).input_ids) - 1
 
         self.max_txt_len = max_txt_len
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/blip_caption_base.yaml",
-            "large": "lavis/configs/models/blip_caption_large.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def forward_encoder(self, samples):
         image_embeds = self.visual_encoder.forward_features(samples["image"])

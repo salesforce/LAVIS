@@ -12,6 +12,7 @@ import torch
 import torch.nn.functional as F
 import time
 from lavis.common.registry import registry
+from lavis.common.utils import get_abs_path
 from lavis.models.base_model import BaseModel
 from torch import nn
 
@@ -380,6 +381,14 @@ class CLIPTextCfg:
 
 @registry.register_model("clip")
 class CLIP(BaseModel):
+    type2path = {
+        "ViT-B-32": "configs/models/clip_vit_base32.yaml",
+        "ViT-B-16": "configs/models/clip_vit_base16.yaml",
+        "ViT-L-14": "configs/models/clip_vit_large14.yaml",
+        "ViT-L-14-336": "configs/models/clip_vit_large14_336.yaml",
+        "RN50": "configs/models/clip_resnet50.yaml",
+    }
+
     def __init__(
         self,
         embed_dim: int,
@@ -591,20 +600,12 @@ class CLIP(BaseModel):
     def default_config_path(cls, model_type="base"):
         model_type = "ViT-B-32" if model_type == "base" else model_type
 
-        paths = {
-            "ViT-B-32": "lavis/configs/models/clip_vit_base32.yaml",
-            "ViT-B-16": "lavis/configs/models/clip_vit_base16.yaml",
-            "ViT-L-14": "lavis/configs/models/clip_vit_large14.yaml",
-            "ViT-L-14-336": "lavis/configs/models/clip_vit_large14_336.yaml",
-            "RN50": "lavis/configs/models/clip_resnet50.yaml",
-        }
-
         assert (
-            model_type in paths
+            model_type in cls.type2path
         ), "Unknown model type {}. \n Available types: {}".format(
-            model_type, paths.keys()
+            model_type, cls.type2path.keys()
         )
-        return paths[model_type]
+        return get_abs_path(cls.type2path[model_type])
 
     @classmethod
     def _build_from_cfg(cls, cfg=None):

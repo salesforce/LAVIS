@@ -8,14 +8,10 @@ from lavis.datasets.datasets.image_text_pair_datasets import ImageTextPairDatase
 class SBUCaptionBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
+    type2path = {"default": "configs/datasets/sbu_caption/defaults.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/sbu_caption/defaults.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass

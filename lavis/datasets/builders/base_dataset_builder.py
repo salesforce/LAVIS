@@ -76,8 +76,8 @@ class BaseDatasetBuilder:
         )
 
     @classmethod
-    def default_config_path(cls):
-        return None
+    def default_config_path(cls, type="default"):
+        return utils.get_abs_path(cls.type2path[type])
 
     def _download_data(self):
         self._download_ann()
@@ -189,7 +189,9 @@ class BaseDatasetBuilder:
                     # extracting
                     archive_path = os.path.join(dl_cache_dir, os.path.basename(url))
                     extract_archive(
-                        from_path=archive_path, to_path=storage_path, overwrite=False
+                        from_path=archive_path,
+                        to_path=storage_path,
+                        overwrite=False,
                     )
 
     def build(self):

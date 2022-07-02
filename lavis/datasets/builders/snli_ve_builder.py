@@ -9,14 +9,10 @@ class SNLIVisualEntailmentBuilder(BaseDatasetBuilder):
     train_dataset_cls = SNLIVisualEntialmentDataset
     eval_dataset_cls = SNLIVisualEntialmentDataset
 
+    type2path = {"default": "configs/datasets/snli_ve/defaults.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/snli_ve/defaults.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass

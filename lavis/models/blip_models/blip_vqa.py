@@ -9,6 +9,11 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_vqa")
 class BlipVQA(BaseModel):
+    type2path = {
+        "base": "configs/models/blip_vqa_base.yaml",
+        # "large": "configs/models/blip_vqa_large.yaml"
+    }
+
     def __init__(self, image_encoder, text_encoder, text_decoder, max_txt_len=35):
         super().__init__()
         self.tokenizer = init_tokenizer()
@@ -19,16 +24,6 @@ class BlipVQA(BaseModel):
         self.text_decoder = text_decoder
 
         self.max_txt_len = max_txt_len
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/blip_vqa_base.yaml",
-            # "large": "lavis/configs/models/blip_vqa_large.yaml"
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def forward(self, samples):
         multimodal_embeds = self.forward_encoder(samples)

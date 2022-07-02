@@ -11,6 +11,11 @@ class COCOVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = COCOVQADataset
     eval_dataset_cls = COCOVQAEvalDataset
 
+    type2path = {
+        "default": "configs/datasets/coco/defaults_vqa.yaml",
+        "eval": "configs/datasets/coco/eval_vqa.yaml",
+    }
+
     vis_urls = {
         "images": {
             "train": [
@@ -24,19 +29,11 @@ class COCOVQABuilder(BaseDatasetBuilder):
     def __init__(self, cfg=None):
         super().__init__(cfg)
 
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/coco/defaults_vqa.yaml",
-            "eval": "lavis/configs/datasets/coco/eval_vqa.yaml",
-        }
-
-        return paths[type]
-
 
 @registry.register_builder("vg_vqa")
 class VGVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = VGVQADataset
+    type2path = {"default": "configs/datasets/vg/defaults_vqa.yaml"}
 
     vis_urls = {
         "images": {
@@ -50,25 +47,18 @@ class VGVQABuilder(BaseDatasetBuilder):
     def __init__(self, cfg=None):
         super().__init__(cfg)
 
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/vg/defaults_vqa.yaml"}
-
-        return paths[type]
-
 
 @registry.register_builder("ok_vqa")
 class OKVQABuilder(COCOVQABuilder):
+    type2path = {
+        "default": "configs/datasets/okvqa/defaults.yaml",
+    }
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
 
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {
-            "default": "lavis/configs/datasets/okvqa/defaults.yaml",
-        }
-
-        return paths[type]
+    def _download_vis(self):
+        pass
 
 
 @registry.register_builder("aok_vqa")
@@ -76,14 +66,10 @@ class AOKVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = AOKVQADataset
     eval_dataset_cls = AOKVQAEvalDataset
 
+    type2path = {"default": "configs/datasets/aokvqa/defaults.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/aokvqa/defaults.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass

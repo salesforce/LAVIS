@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from transformers import BertConfig
 from lavis.common.registry import registry
+from lavis.common.utils import get_abs_path
 from lavis.models.albef_models import init_tokenizer
 from lavis.models.base_model import (
     BaseModel,
@@ -18,6 +19,10 @@ from torch import nn
 
 @registry.register_model("albef_pretrain")
 class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+    type2path = {
+        "base": "configs/models/albef_pretrain_base.yaml",
+    }
+
     def __init__(
         self,
         image_encoder,
@@ -39,6 +44,8 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         text_width = text_encoder.config.hidden_size
         vision_width = image_encoder.vision_width
+
+        self.embed_dim = embed_dim
 
         self.vision_proj = nn.Linear(vision_width, embed_dim)
         self.text_proj = nn.Linear(text_width, embed_dim)
@@ -76,15 +83,6 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         self.max_txt_len = max_txt_len
 
         self.mlm_probability = mlm_mask_prob
-
-    @classmethod
-    def default_config_path(cls, model_type="base"):
-        paths = {
-            "base": "lavis/configs/models/albef_pretrain_base.yaml",
-        }
-
-        assert model_type in paths, "Unknown model type {}".format(model_type)
-        return paths[model_type]
 
     def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
@@ -331,7 +329,9 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         image_encoder = VisionTransformerEncoder.build_from_cfg(
             cfg, from_pretrained=True
         )
-        config_text_encoder = BertConfig.from_json_file(cfg["med_config_path"])
+        config_text_encoder = BertConfig.from_json_file(
+            get_abs_path(cfg["med_config_path"])
+        )
         config_text_encoder.fusion_layer = 6
         text_encoder = BertForMaskedLM.from_pretrained(
             "bert-base-uncased", config=config_text_encoder
@@ -343,9 +343,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         mlm_mask_prob = cfg.get("mlm_mask_prob", 0.15)
         temp = cfg.get("temp", 0.07)
         max_txt_len = cfg.get("max_txt_len", 30)
-        queue_size = cfg.get("queue_size", None)
-
-        assert queue_size, "queue_size must be specified."
+        queue_size = cfg.get("queue_size", 0)
 
         return cls(
             image_encoder=image_encoder,

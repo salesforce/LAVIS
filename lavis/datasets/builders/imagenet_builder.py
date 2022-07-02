@@ -10,14 +10,10 @@ class ImageNetBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageFolderDataset
     eval_dataset_cls = ImageFolderDataset
 
+    type2path = {"default": "configs/datasets/imagenet/defaults.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/imagenet/defaults.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass

@@ -14,14 +14,10 @@ class MSRVTTRetrievalBuilder(BaseDatasetBuilder):
     train_dataset_cls = VideoRetrievalDataset
     eval_dataset_cls = VideoRetrievalEvalDataset
 
+    type2path = {"default": "configs/datasets/msrvtt/defaults_ret.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/msrvtt/defaults_ret.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass
@@ -32,14 +28,10 @@ class DiDeMoRetrievalBuilder(BaseDatasetBuilder):
     train_dataset_cls = VideoRetrievalDataset
     eval_dataset_cls = VideoRetrievalEvalDataset
 
+    type2path = {"default": "configs/datasets/didemo/defaults_ret.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/didemo/defaults_ret.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass
@@ -49,6 +41,8 @@ class DiDeMoRetrievalBuilder(BaseDatasetBuilder):
 class COCORetrievalBuilder(BaseDatasetBuilder):
     train_dataset_cls = RetrievalDataset
     eval_dataset_cls = RetrievalEvalDataset
+
+    type2path = {"default": "configs/datasets/coco/defaults_ret.yaml"}
 
     vis_urls = {
         "images": {
@@ -61,26 +55,16 @@ class COCORetrievalBuilder(BaseDatasetBuilder):
     def __init__(self, cfg=None):
         super().__init__(cfg)
 
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/coco/defaults_ret.yaml"}
-
-        return paths[type]
-
 
 @registry.register_builder("flickr30k")
 class Flickr30kBuilder(BaseDatasetBuilder):
     train_dataset_cls = RetrievalDataset
     eval_dataset_cls = RetrievalEvalDataset
 
+    type2path = {"default": "configs/datasets/flickr30k/defaults.yaml"}
+
     def __init__(self, cfg=None):
         super().__init__(cfg)
-
-    @classmethod
-    def default_config_path(cls, type="default"):
-        paths = {"default": "lavis/configs/datasets/flickr30k/defaults.yaml"}
-
-        return paths[type]
 
     def _download_vis(self):
         pass

@@ -12,10 +12,10 @@ model:
   image_size: 384
 
   # bert config
-  med_config_path: "lavis/configs/models/med_config.json"
+  med_config_path: "configs/models/med_config.json"
 
   # generation configs
-  # max_length: 20  
+  # max_length: 20
   # min_length: 5
   # num_beams: 3
   prompt: "a picture of "

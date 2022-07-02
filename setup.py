@@ -4,7 +4,17 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 #
-from setuptools import find_packages, setup, find_namespace_packages
+from setuptools import setup, find_namespace_packages
+import platform
+
+DEPENDENCY_LINKS = []
+if platform.system() == "Windows":
+    DEPENDENCY_LINKS.append("https://download.pytorch.org/whl/torch_stable.html")
+
+
+def fetch_requirements(filename):
+    with open(filename) as f:
+        return [ln.strip() for ln in f.read().split("\n")]
 
 
 setup(
@@ -18,24 +28,9 @@ setup(
     # url="https://github.com/salesforce/omnixai",
     license="3-Clause BSD",
     packages=find_namespace_packages(include="lavis.*"),
-    install_requires=[
-        "omegaconf>=2.1.2",
-        "opencv-python>=4.5.5",
-        "pycocoevalcap",
-        "pycocotools",
-        "timm==0.4.12",
-        "torch==1.10.0",
-        "torchvision==0.11.1",
-        "fairscale==0.4.4",
-        "transformers==4.15.0",
-        "einops==0.4.1",
-        "decord>=0.6.0",
-        "tqdm",
-        "wheel",
-        "packaging",
-        "ipython",
-    ],
+    install_requires=fetch_requirements("requirements-dev.txt"),
     python_requires=">=3.7.0",
     include_package_data=True,
+    dependency_links=DEPENDENCY_LINKS,
     zip_safe=False,
 )
