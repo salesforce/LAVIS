@@ -1,6 +1,7 @@
 model:
   arch: albef_classification
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_snli_ve_lavis.pt"
+  num_classes: 3
 
   use_distill: True
   momentum: 0.995

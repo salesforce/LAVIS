@@ -1,10 +1,6 @@
 model:
   arch: albef_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_coco_retrieval_lavis.pt"
-
-  queue_size: 65536
-
-  negative_all_rank: True
+  model_type: coco
 
 datasets:
   coco_retrieval: # name of the dataset builder

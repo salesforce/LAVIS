@@ -1,7 +1,6 @@
 model:
   arch: albef_nlvr
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_nlvr_pretrain.pt"
-  num_classes: 2
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
 
 datasets:
   nlvr: # name of the dataset builder
