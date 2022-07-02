@@ -21,8 +21,9 @@ from torch import nn
 @registry.register_model("albef_retrieval")
 class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     type2path = {
-        "coco": "configs/models/albef_retrieval_coco_base.yaml",
-        "flickr": "configs/models/albef_retrieval_flickr_base.yaml",
+        "base": "configs/models/albef_retrieval.yaml",
+        "coco": "configs/models/albef_retrieval_coco.yaml",
+        "flickr": "configs/models/albef_retrieval_flickr.yaml",
     }
 
     def __init__(

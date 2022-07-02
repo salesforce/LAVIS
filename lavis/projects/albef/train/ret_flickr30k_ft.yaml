@@ -1,10 +1,6 @@
 model:
   arch: albef_retrieval
-
-  model_type: flickr
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
-
-  alpha: 0.4
+  model_type: base
 
 datasets:
   flickr30k: # name of the dataset builder

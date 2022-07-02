@@ -16,7 +16,8 @@ from lavis.models.albef_models import init_tokenizer, load_from_pretrained
 @registry.register_model("albef_classification")
 class AlbefClassification(BaseModel, MomentumDistilationMixin):
     type2path = {
-        "ve": "configs/models/albef_ve_base.yaml",
+        "base": "configs/models/albef_classification.yaml",
+        "ve": "configs/models/albef_classification_ve.yaml",
     }
 
     def __init__(

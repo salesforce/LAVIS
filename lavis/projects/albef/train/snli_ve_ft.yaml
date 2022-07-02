@@ -1,8 +1,6 @@
 model:
   arch: albef_classification
-  model_type: ve
-
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  model_type: base
 
 datasets:
   snli_ve: # name of the dataset builder
