@@ -25,10 +25,7 @@ class BaseModel(nn.Module):
     def build(cls, cfg=None, model_type="base"):
         if not cfg:
             # useful when building model without provided configuration file
-            from lavis.common.config import Config
-
-            default_config = OmegaConf.load(cls.default_config_path(model_type))
-            cfg = Config.build_model_config(default_config).model
+            cfg = OmegaConf.load(cls.default_config_path(model_type)).model
 
         return cls._build_from_cfg(cfg)
 

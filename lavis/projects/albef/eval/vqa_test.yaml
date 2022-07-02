@@ -1,7 +1,7 @@
 model:
   arch: albef_vqa
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_vqav2_lavis.pt"
-  init_decoder_as_encoder: False # set to True if initialized from pre-trained weights
+  model_type: vqav2
+
   image_size: 384
 
 

@@ -16,7 +16,7 @@ from timm.models.hub import download_cached_file
 @registry.register_model("albef_vqa")
 class AlbefVQA(BaseModel, MomentumDistilationMixin):
     type2path = {
-        "base": "configs/models/albef_vqa_base.yaml",
+        "vqav2": "configs/models/albef_vqav2_base.yaml",
     }
 
     def __init__(

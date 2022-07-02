@@ -1,5 +1,7 @@
 model:
   arch: albef_vqa
+
+  model_type: vqav2
   pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
   init_decoder_as_encoder: True # set to True if initialized from pre-trained weights
   # pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/vqa.pth"
