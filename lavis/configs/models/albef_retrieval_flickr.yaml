@@ -1,6 +1,7 @@
 model:
   arch: albef_retrieval
-  # pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/Retrieval_Flickr30k/20220630134/checkpoint_best.pth"
+  # pretrained: "/export/home/workspace/LAVIS/lavis/output/ALBEF/Retrieval_Flickr30k/20220702130/checkpoint_best.pth"
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
 
   queue_size: 65536
 

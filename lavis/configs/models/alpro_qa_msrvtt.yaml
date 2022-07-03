@@ -1,0 +1,17 @@
+model:
+  arch: alpro_qa
+  num_classes: 1500
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_qa.pth"
+
+  timesformer:
+    n_frms: 16
+    image_size: 224
+
+    patch_size: 16
+    attn_drop_rate: 0.
+    drop_rate: 0.
+    drop_path_rate: 0.1
+    use_grad_ckpt: False
+
+  # bert config
+  med_config_path: "configs/models/bert_config_alpro.json"

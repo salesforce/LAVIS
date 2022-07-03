@@ -1,6 +1,6 @@
 model:
   arch: blip_caption
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth"
 
   vit_type: "large"
   vit_grad_ckpt: True

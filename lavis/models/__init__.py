@@ -20,11 +20,27 @@ from lavis.models.vit import VisionTransformerEncoder
 from lavis.models.clip_models.model import CLIP
 
 
-def list_models():
-    return {
-        k: list(v.type2path.keys())
-        for k, v in registry.mapping["model_name_mapping"].items()
-    }
+__all__ = [
+    "load_model",
+    "AlbefClassification",
+    "AlbefNLVR",
+    "AlbefVQA",
+    "AlbefPretrain",
+    "AlbefRetrieval",
+    "AlproQA",
+    "AlproRetrieval",
+    "BaseModel",
+    "BlipBase",
+    "BlipCaption",
+    "BlipClassification",
+    "BlipITM",
+    "BlipPretrain",
+    "BlipRetrieval",
+    "BlipVQA",
+    "CLIP",
+    "VisionTransformerEncoder",
+    "XBertLMHeadDecoder",
+]
 
 
 def get_model_config(model_name, model_type="base"):
@@ -51,24 +67,30 @@ def load_model(name, model_type="base", is_eval=False):
     return model
 
 
-__all__ = [
-    "load_model",
-    "AlbefClassification",
-    "AlbefNLVR",
-    "AlbefVQA",
-    "AlbefPretrain",
-    "AlbefRetrieval",
-    "AlproQA",
-    "AlproRetrieval",
-    "BaseModel",
-    "BlipBase",
-    "BlipCaption",
-    "BlipClassification",
-    "BlipITM",
-    "BlipPretrain",
-    "BlipRetrieval",
-    "BlipVQA",
-    "CLIP",
-    "VisionTransformerEncoder",
-    "XBertLMHeadDecoder",
-]
+class ModelZoo:
+    def __init__(self) -> None:
+        self.model_zoo = {
+            k: list(v.type2path.keys())
+            for k, v in registry.mapping["model_name_mapping"].items()
+        }
+
+    def __repr__(self) -> str:
+        return (
+            "=" * 50
+            + "\n"
+            + f"{'Architectures':<30} {'Types'}\n"
+            + "=" * 50
+            + "\n"
+            + "\n".join(
+                [
+                    f"{name:<30} {', '.join(types)}"
+                    for name, types in self.model_zoo.items()
+                ]
+            )
+        )
+
+    def __iter__(self):
+        return iter(self.model_zoo.items())
+
+
+model_zoo = ModelZoo()

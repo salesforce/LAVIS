@@ -1,4 +1,5 @@
 from copy import deepcopy
+import warnings
 
 import torch
 import torch.nn.functional as F
@@ -41,11 +42,17 @@ class AlbefClassification(BaseModel, MomentumDistilationMixin):
         self.text_encoder = text_encoder
 
         hidden_size = text_encoder.config.hidden_size
-        self.cls_head = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, num_classes),
-        )
+
+        if num_classes > 0:
+            self.cls_head = nn.Sequential(
+                nn.Linear(hidden_size, hidden_size),
+                nn.ReLU(),
+                nn.Linear(hidden_size, num_classes),
+            )
+        else:
+            warnings.warn(
+                f"Found num_classes=0, initializing {type(self)} without classifier."
+            )
 
         if self.use_distill:
             self.visual_encoder_m = deepcopy(self.visual_encoder)

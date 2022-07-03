@@ -1,11 +1,6 @@
 model:
   arch: alpro_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_retrieval.pt"
-
-  timesformer:
-    n_frms: 8
-    image_size: 224
-
+  model_type: msrvtt
 
 datasets:
   msrvtt_retrieval: # name of the dataset builder

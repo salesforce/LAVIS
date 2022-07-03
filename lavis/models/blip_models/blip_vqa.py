@@ -11,6 +11,7 @@ from lavis.models.vit import VisionTransformerEncoder
 class BlipVQA(BaseModel):
     type2path = {
         "base": "configs/models/blip_vqa_base.yaml",
+        "vqav2": "configs/models/blip_vqav2.yaml",
         # "large": "configs/models/blip_vqa_large.yaml"
     }
 

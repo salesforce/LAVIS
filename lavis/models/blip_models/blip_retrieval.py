@@ -21,7 +21,8 @@ from torch import nn
 class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     type2path = {
         "base": "configs/models/blip_retrieval_base.yaml",
-        # "large": "configs/models/blip_retrieval_large.yaml",
+        "coco": "configs/models/blip_retrieval_coco.yaml",
+        "flickr": "configs/models/blip_retrieval_flickr.yaml",
     }
 
     def __init__(

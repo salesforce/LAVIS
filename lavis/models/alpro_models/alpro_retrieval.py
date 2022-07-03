@@ -22,6 +22,8 @@ from torch import nn
 class AlproRetrieval(BaseModel):
     type2path = {
         "base": "configs/models/alpro_retrieval.yaml",
+        "msrvtt": "configs/models/alpro_retrieval_msrvtt.yaml",
+        "didemo": "configs/models/alpro_retrieval_didemo.yaml",
     }
 
     def __init__(

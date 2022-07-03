@@ -1,0 +1,21 @@
+model:
+  arch: blip_retrieval
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_flickr.pth"
+  pretrained: "/export/home/workspace/LAVIS/lavis/output/Retrieval_Flickr30k/20220703140/checkpoint_best.pth"
+
+  queue_size: 57600
+  alpha: 0.4
+
+  negative_all_rank: False
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: True
+  vit_ckpt_layer: 4
+
+  image_size: 384
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"
+
+  embed_dim: 256

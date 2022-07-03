@@ -1,12 +1,6 @@
 model:
   arch: alpro_qa
-  num_classes: 1500
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_qa.pth"
-
-  timesformer:
-    n_frms: 16
-    image_size: 224
-
+  model_type: msrvtt
 
 datasets:
   msrvtt_qa: # name of the dataset builder

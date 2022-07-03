@@ -1,0 +1,15 @@
+model:
+  arch: alpro_retrieval
+
+  timesformer:
+    n_frms: 8
+    image_size: 224
+
+    patch_size: 16
+    attn_drop_rate: 0.
+    drop_rate: 0.
+    drop_path_rate: 0.1
+    use_grad_ckpt: False
+
+  # bert config
+  med_config_path: "configs/models/bert_config_alpro.json"

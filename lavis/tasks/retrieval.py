@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 
 import numpy as np
 import torch
@@ -91,4 +93,8 @@ class RetrievalTask(BaseTask):
             "r_mean": r_mean,
             "agg_metrics": agg_metrics,
         }
+        with open(
+            os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a"
+        ) as f:
+            f.write(json.dumps(eval_result) + "\n")
         return eval_result

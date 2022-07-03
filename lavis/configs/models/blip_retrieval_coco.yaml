@@ -1,0 +1,19 @@
+model:
+  arch: blip_retrieval
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP/blip_coco_retrieval.pth"
+
+  queue_size: 57600
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: True
+  vit_ckpt_layer: 4
+
+  image_size: 384
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"
+
+  embed_dim: 256

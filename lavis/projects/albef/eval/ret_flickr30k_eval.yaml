@@ -34,6 +34,6 @@ run:
 
   # misc
   seed: 42
-  output_dir: "output/ALBEF/Retrieval_COCO"
+  output_dir: "output/ALBEF/Retrieval_Flickr30k"
 
   evaluate: True

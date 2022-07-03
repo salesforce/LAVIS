@@ -1,0 +1,56 @@
+model:
+  arch: blip_retrieval
+  model_type: base
+
+  queue_size: 57600
+  alpha: 0.4
+
+  negative_all_rank: True
+
+datasets:
+  coco_retrieval: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 384
+        eval:
+          name: "blip_image_eval"
+          image_size: 384
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+
+run:
+  task: retrieval
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 2e-5
+  min_lr: 0
+  weight_decay: 0.05
+  max_epoch: 6
+
+  # dataloading
+  num_workers: 4
+  batch_size_train: 32
+  batch_size_eval: 128
+
+  train_splits: ["train"]
+  valid_splits: ["val", "test"]
+
+  # distribution
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  use_dist_eval_sampler: False
+
+  # model specific
+  k_test: 256
+
+  # misc
+  seed: 42
+  output_dir: "output/Retrieval_COCO"
+
+  evaluate: False

@@ -1,5 +1,8 @@
 model:
   arch: blip_retrieval
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+
+  alpha: 0.4
 
   # vit encoder
   vit_type: "base"
@@ -12,8 +15,3 @@ model:
   med_config_path: "configs/models/med_config.json"
 
   embed_dim: 256
-
-  # generation configs
-  prompt: "a picture of "
-
-  # size of vit model; base or large

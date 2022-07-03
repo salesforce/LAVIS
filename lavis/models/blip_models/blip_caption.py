@@ -11,7 +11,9 @@ from lavis.models.vit import VisionTransformerEncoder
 class BlipCaption(BaseModel):
     type2path = {
         "base": "configs/models/blip_caption_base.yaml",
+        "base_coco": "configs/models/blip_caption_base_coco.yaml",
         "large": "configs/models/blip_caption_large.yaml",
+        "large_coco": "configs/models/blip_caption_large_coco.yaml",
     }
 
     def __init__(self, image_encoder, text_decoder, prompt=None, max_txt_len=40):

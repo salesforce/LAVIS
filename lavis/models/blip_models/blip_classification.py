@@ -17,7 +17,6 @@ from torch import nn
 class BlipClassification(BaseModel, MomentumDistilationMixin):
     type2path = {
         "base": "configs/models/blip_classification_base.yaml",
-        # "large": "configs/models/blip_pretrain_large.yaml"
     }
 
     def __init__(

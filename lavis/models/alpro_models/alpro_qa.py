@@ -1,3 +1,4 @@
+from warnings import warn
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -13,6 +14,8 @@ from lavis.models.timesformer.vit import TimeSformer
 class AlproQA(BaseModel):
     type2path = {
         "base": "configs/models/alpro_qa.yaml",
+        "msrvtt": "configs/models/alpro_qa_msrvtt.yaml",
+        "msvd": "configs/models/alpro_qa_msvd.yaml",
     }
 
     def __init__(
@@ -26,11 +29,14 @@ class AlproQA(BaseModel):
 
         self.text_encoder = text_encoder
 
-        self.classifier = nn.Sequential(
-            nn.Linear(hidden_size, hidden_size * 2),
-            nn.ReLU(True),
-            nn.Linear(hidden_size * 2, num_classes),
-        )
+        if num_classes > 0:
+            self.classifier = nn.Sequential(
+                nn.Linear(hidden_size, hidden_size * 2),
+                nn.ReLU(True),
+                nn.Linear(hidden_size * 2, num_classes),
+            )
+        else:
+            warn(f"num_classes is 0. Initialized {type(self)} without classifier.")
 
         self.max_txt_len = max_txt_len
 

@@ -1,12 +1,6 @@
 model:
   arch: blip_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
-
-  queue_size: 57600
-  alpha: 0.4
-
-  negative_all_rank: True
+  model_type: coco
 
 datasets:
   coco_retrieval: # name of the dataset builder
@@ -25,12 +19,6 @@ datasets:
 
 run:
   task: retrieval
-  # optimizer
-  lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 2e-5
-  min_lr: 0
-  weight_decay: 0.05
-  max_epoch: 6
 
   # dataloading
   num_workers: 4
@@ -38,7 +26,8 @@ run:
   batch_size_eval: 128
 
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
+  test_splits: ["test"]
 
   # distribution
   device: "cuda"
@@ -54,4 +43,4 @@ run:
   seed: 42
   output_dir: "lavis/output/Retrieval_COCO"
 
-  evaluate: False
+  evaluate: True
