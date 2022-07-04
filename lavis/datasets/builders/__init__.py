@@ -1,14 +1,21 @@
 from lavis.datasets.builders.base_dataset_builder import load_dataset_config
-from lavis.datasets.builders.coco_cap_builder import COCOCapBuilder
-from lavis.datasets.builders.conceptual_caption_builder import (
+from lavis.datasets.builders.caption_builder import (
+    COCOCapBuilder,
+    MSRVTTCapBuilder,
+    MSVDCapBuilder,
+    VATEXCapBuilder,
+)
+from lavis.datasets.builders.image_text_pair_builder import (
     ConceptualCaption12MBuilder,
     ConceptualCaption3MBuilder,
+    VGCaptionBuilder,
+    SBUCaptionBuilder,
 )
-from lavis.datasets.builders.nlvr_builder import NLVRBuilder
-from lavis.datasets.builders.sbu_caption_builder import SBUCaptionBuilder
-from lavis.datasets.builders.snli_ve_builder import SNLIVisualEntailmentBuilder
-from lavis.datasets.builders.vg_caption_builder import VGCaptionBuilder
-from lavis.datasets.builders.imagenet_builder import ImageNetBuilder
+from lavis.datasets.builders.classification_builder import (
+    NLVRBuilder,
+    SNLIVisualEntailmentBuilder,
+)
+from lavis.datasets.builders.imagefolder_builder import ImageNetBuilder
 from lavis.datasets.builders.video_qa_builder import MSRVTTQABuilder, MSVDQABuilder
 from lavis.datasets.builders.vqa_builder import (
     COCOVQABuilder,
@@ -28,20 +35,23 @@ __all__ = [
     "COCOCapBuilder",
     "COCORetrievalBuilder",
     "COCOVQABuilder",
-    "ConceptualCaption3MBuilder",
     "ConceptualCaption12MBuilder",
+    "ConceptualCaption3MBuilder",
     "DiDeMoRetrievalBuilder",
     "Flickr30kBuilder",
     "ImageNetBuilder",
+    "MSRVTTCapBuilder",
+    "MSRVTTQABuilder",
     "MSRVTTRetrievalBuilder",
+    "MSVDCapBuilder",
+    "MSVDQABuilder",
+    "NLVRBuilder",
     "OKVQABuilder",
     "SBUCaptionBuilder",
     "SNLIVisualEntailmentBuilder",
+    "VATEXCapBuilder",
     "VGCaptionBuilder",
     "VGVQABuilder",
-    "NLVRBuilder",
-    "MSRVTTQABuilder",
-    "MSVDQABuilder",
 ]
 
 
@@ -79,5 +89,5 @@ def load_dataset(name, cfg_path=None, vis_path=None, data_type=None):
 def list_datasets():
     return {
         k: list(v.type2path.keys())
-        for k, v in registry.mapping["builder_name_mapping"].items()
+        for k, v in sorted(registry.mapping["builder_name_mapping"].items())
     }
