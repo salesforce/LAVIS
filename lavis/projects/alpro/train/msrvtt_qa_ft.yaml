@@ -1,11 +1,10 @@
 model:
   arch: alpro_qa
+
+  model_type: base
   num_classes: 1500
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
 
   timesformer:
-    n_frms: 16
-    image_size: 224
     use_grad_ckpt: True
     ckpt_layer: 12
 

@@ -1,7 +1,11 @@
 model:
   arch: alpro_retrieval
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
 
   timesformer:
+    n_frms: 8
+    image_size: 224
+
     patch_size: 16
     attn_drop_rate: 0.
     drop_rate: 0.
