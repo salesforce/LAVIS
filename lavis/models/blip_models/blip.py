@@ -1,9 +1,10 @@
 import torch
 import torch.nn.functional as F
+from lavis.common.utils import get_abs_path
 from lavis.models.base_model import BaseModel
 from lavis.models.blip_models import init_tokenizer, load_from_pretrained
 from lavis.models.med import BertModel
-from lavis.models.vit import VisionTransformer
+from lavis.models.vit import VisionTransformer, VisionTransformerEncoder
 from torch import nn
 from transformers import BertConfig
 
@@ -28,7 +29,7 @@ class BlipBase(BaseModel):
 
         if vit == "base":
             vision_width = 768
-            self.visual_encoder = VisionTransformer(
+            self.visual_encoder = VisionTransformerEncoder(
                 img_size=image_size,
                 patch_size=16,
                 embed_dim=vision_width,
@@ -42,7 +43,7 @@ class BlipBase(BaseModel):
             raise NotImplementedError("")
 
         self.tokenizer = init_tokenizer()
-        med_config = BertConfig.from_json_file(med_config)
+        med_config = BertConfig.from_json_file(get_abs_path(med_config))
         med_config.encoder_width = vision_width
         self.text_encoder = BertModel(config=med_config, add_pooling_layer=False)
 
@@ -124,10 +125,10 @@ class BlipITM(BaseModel):
         """
         super().__init__()
 
-        med_config = BertConfig.from_json_file(med_config)
+        med_config = BertConfig.from_json_file(get_abs_path(med_config))
         if vit == "base":
             vision_width = 768
-            self.visual_encoder = VisionTransformer(
+            self.visual_encoder = VisionTransformerEncoder(
                 img_size=image_size,
                 patch_size=16,
                 embed_dim=vision_width,
@@ -140,7 +141,7 @@ class BlipITM(BaseModel):
             med_config.encoder_width = vision_width
         elif vit == "large":
             vision_width = 1024
-            self.visual_encoder = VisionTransformer(
+            self.visual_encoder = VisionTransformerEncoder(
                 img_size=image_size,
                 patch_size=16,
                 embed_dim=vision_width,

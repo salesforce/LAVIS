@@ -58,13 +58,13 @@ def get_model_config(model_name, model_type="base"):
     return config
 
 
-def load_model(name, model_type="base", is_eval=False):
+def load_model(name, model_type="base", is_eval=False, device="cpu"):
     model = registry.get_model_class(name).build_default_model(model_type=model_type)
 
     if is_eval:
         model.eval()
 
-    return model
+    return model.to(device)
 
 
 class ModelZoo:

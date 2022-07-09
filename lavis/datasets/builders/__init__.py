@@ -69,7 +69,14 @@ def load_dataset(name, cfg_path=None, vis_path=None, data_type=None):
     else:
         cfg = load_dataset_config(cfg_path)
 
-    builder = registry.get_builder_class(name)(cfg)
+    try:
+        builder = registry.get_builder_class(name)(cfg)
+    except TypeError:
+        print(
+            f"Dataset {name} not found. Available datasets:\n"
+            + ", ".join([str(k) for k in dataset_zoo.get_names()])
+        )
+        exit(1)
 
     if vis_path is not None:
         if data_type is None:
@@ -86,8 +93,15 @@ def load_dataset(name, cfg_path=None, vis_path=None, data_type=None):
     return dataset
 
 
-def list_datasets():
-    return {
-        k: list(v.type2path.keys())
-        for k, v in sorted(registry.mapping["builder_name_mapping"].items())
-    }
+class DatasetZoo:
+    def __init__(self) -> None:
+        self.dataset_zoo = {
+            k: list(v.type2path.keys())
+            for k, v in sorted(registry.mapping["builder_name_mapping"].items())
+        }
+
+    def get_names(self):
+        return list(self.dataset_zoo.keys())
+
+
+dataset_zoo = DatasetZoo()
