@@ -20,7 +20,7 @@ from torch import nn
 
 @registry.register_model("alpro_retrieval")
 class AlproRetrieval(BaseModel):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/alpro_retrieval.yaml",
         "msrvtt": "configs/models/alpro_retrieval_msrvtt.yaml",
         "didemo": "configs/models/alpro_retrieval_didemo.yaml",
@@ -362,13 +362,13 @@ class AlproRetrieval(BaseModel):
         return score_matrix_v2t.cpu().numpy(), score_matrix_t2v.cpu().numpy()
 
     @classmethod
-    def _build_from_cfg(cls, cfg):
+    def from_config(cls, cfg):
         # vision encoder
         visual_encoder_config = node_to_dict(cfg.timesformer)
         visual_encoder = TimeSformer(**visual_encoder_config)
 
         # text encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
 
         max_txt_len = cfg.get("max_txt_len", 35)
 

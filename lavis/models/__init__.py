@@ -48,7 +48,7 @@ def get_model_config(model_name, model_type="base"):
 
     from omegaconf import OmegaConf
 
-    config_path = registry.get_model_class(model_name).type2path[model_type]
+    config_path = registry.get_model_class(model_name).PRETRAINED_MODEL_DICT[model_type]
 
     config = OmegaConf.load(config_path)
     config = OmegaConf.to_container(config)
@@ -59,7 +59,7 @@ def get_model_config(model_name, model_type="base"):
 
 
 def load_model(name, model_type="base", is_eval=False, device="cpu"):
-    model = registry.get_model_class(name).build_default_model(model_type=model_type)
+    model = registry.get_model_class(name).from_pretrained(model_type=model_type)
 
     if is_eval:
         model.eval()
@@ -70,7 +70,7 @@ def load_model(name, model_type="base", is_eval=False, device="cpu"):
 class ModelZoo:
     def __init__(self) -> None:
         self.model_zoo = {
-            k: list(v.type2path.keys())
+            k: list(v.PRETRAINED_MODEL_DICT.keys())
             for k, v in registry.mapping["model_name_mapping"].items()
         }
 

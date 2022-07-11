@@ -22,7 +22,7 @@ class BaseTask:
         model_config = cfg.model_cfg
 
         model_cls = registry.get_model_class(model_config.arch)
-        return model_cls.build(model_config)
+        return model_cls.from_config(model_config)
 
     def build_datasets(self, cfg):
         """

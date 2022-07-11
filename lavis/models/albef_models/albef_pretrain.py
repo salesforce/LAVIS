@@ -19,7 +19,7 @@ from torch import nn
 
 @registry.register_model("albef_pretrain")
 class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_pretrain_base.yaml",
     }
 
@@ -325,10 +325,8 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
             return input_ids
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(
-            cfg, from_pretrained=True
-        )
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg, from_pretrained=True)
         config_text_encoder = BertConfig.from_json_file(
             get_abs_path(cfg["med_config_path"])
         )

@@ -381,7 +381,7 @@ class CLIPTextCfg:
 
 @registry.register_model("clip")
 class CLIP(BaseModel):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "ViT-B-32": "configs/models/clip_vit_base32.yaml",
         "ViT-B-16": "configs/models/clip_vit_base16.yaml",
         "ViT-L-14": "configs/models/clip_vit_large14.yaml",
@@ -601,14 +601,14 @@ class CLIP(BaseModel):
         model_type = "ViT-B-32" if model_type == "base" else model_type
 
         assert (
-            model_type in cls.type2path
+            model_type in cls.PRETRAINED_MODEL_DICT
         ), "Unknown model type {}. \n Available types: {}".format(
-            model_type, cls.type2path.keys()
+            model_type, cls.PRETRAINED_MODEL_DICT.keys()
         )
-        return get_abs_path(cls.type2path[model_type])
+        return get_abs_path(cls.PRETRAINED_MODEL_DICT[model_type])
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         model_name = cfg.model_type
         pretrained = cfg.pretrained
 

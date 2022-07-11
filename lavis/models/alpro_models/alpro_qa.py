@@ -12,7 +12,7 @@ from lavis.models.timesformer.vit import TimeSformer
 
 @registry.register_model("alpro_qa")
 class AlproQA(BaseModel):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/alpro_qa.yaml",
         "msrvtt": "configs/models/alpro_qa_msrvtt.yaml",
         "msvd": "configs/models/alpro_qa_msvd.yaml",
@@ -92,13 +92,13 @@ class AlproQA(BaseModel):
         return output
 
     @classmethod
-    def _build_from_cfg(cls, cfg):
+    def from_config(cls, cfg):
         # vision encoder
         visual_encoder_config = node_to_dict(cfg.timesformer)
         visual_encoder = TimeSformer(**visual_encoder_config)
 
         # text encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
 
         num_classes = cfg.get("num_classes", -1)
         hidden_size = cfg.get("hidden_size", 768)

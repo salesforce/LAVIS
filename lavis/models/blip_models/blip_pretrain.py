@@ -16,7 +16,7 @@ from torch import nn
 
 @registry.register_model("blip_pretrain")
 class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_pretrain_base.yaml",
         # "large": "configs/models/blip_pretrain_large.yaml",
     }
@@ -266,13 +266,11 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         }
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         # set from_pretrained=True to load weights for 'bert-base-uncased'
-        image_encoder = VisionTransformerEncoder.build_from_cfg(
-            cfg, from_pretrained=True
-        )
-        text_encoder = XBertEncoder.build_from_cfg(cfg, from_pretrained=True)
-        text_decoder = XBertLMHeadDecoder.build_from_cfg(cfg, from_pretrained=True)
+        image_encoder = VisionTransformerEncoder.from_config(cfg, from_pretrained=True)
+        text_encoder = XBertEncoder.from_config(cfg, from_pretrained=True)
+        text_decoder = XBertLMHeadDecoder.from_config(cfg, from_pretrained=True)
 
         embed_dim = cfg.get("embed_dim", 256)
         momentum = cfg.get("momentum", 0.995)

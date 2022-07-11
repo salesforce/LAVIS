@@ -16,7 +16,7 @@ from lavis.models.albef_models import init_tokenizer, load_from_pretrained
 
 @registry.register_model("albef_nlvr")
 class AlbefNLVR(BaseModel, MomentumDistilationMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_nlvr_base.yaml",
     }
 
@@ -168,8 +168,8 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
         return output
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
 
         # text encoder + multimodal encoder
         bert_config = BertConfig.from_json_file(get_abs_path(cfg["med_config_path"]))

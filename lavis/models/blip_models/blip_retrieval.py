@@ -19,7 +19,7 @@ from torch import nn
 
 @registry.register_model("blip_retrieval")
 class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_retrieval_base.yaml",
         "coco": "configs/models/blip_retrieval_coco.yaml",
         "flickr": "configs/models/blip_retrieval_flickr.yaml",
@@ -294,10 +294,10 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         self.queue_ptr = torch.zeros(1, dtype=torch.long)
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         # set from_pretrained=True to load weights for 'bert-base-uncased'
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
 
         embed_dim = cfg.get("embed_dim", 256)
         momentum = cfg.get("momentum", 0.995)

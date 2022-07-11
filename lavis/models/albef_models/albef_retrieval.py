@@ -20,7 +20,7 @@ from torch import nn
 
 @registry.register_model("albef_retrieval")
 class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_retrieval.yaml",
         "coco": "configs/models/albef_retrieval_coco.yaml",
         "flickr": "configs/models/albef_retrieval_flickr.yaml",
@@ -249,11 +249,9 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         }
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(
-            cfg, from_pretrained=False
-        )
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg, from_pretrained=False)
+        text_encoder = XBertEncoder.from_config(cfg)
 
         embed_dim = cfg.get("embed_dim", 256)
         momentum = cfg.get("momentum", 0.995)

@@ -15,7 +15,7 @@ from timm.models.hub import download_cached_file
 
 @registry.register_model("albef_vqa")
 class AlbefVQA(BaseModel, MomentumDistilationMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_vqa.yaml",
         "vqav2": "configs/models/albef_vqav2.yaml",
     }
@@ -244,10 +244,10 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         return answers
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
 
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
 
         config_decoder = BertConfig.from_json_file(get_abs_path(cfg["med_config_path"]))
         config_decoder.fusion_layer = 0

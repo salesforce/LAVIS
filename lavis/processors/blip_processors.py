@@ -30,7 +30,7 @@ class BlipCaptionProcessor(BaseProcessor):
         return caption
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
@@ -70,7 +70,7 @@ class BlipQuestionProcessor(BaseProcessor):
         return self.pre_question(question)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
@@ -135,7 +135,7 @@ class BlipImageTrainProcessor(BlipImageBaseProcessor):
         return self.transform(item)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
@@ -175,7 +175,7 @@ class BlipImageEvalProcessor(BlipImageBaseProcessor):
         return self.transform(item)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 

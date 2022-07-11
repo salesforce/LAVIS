@@ -15,7 +15,7 @@ from torch import nn
 
 @registry.register_model("blip_classification")
 class BlipClassification(BaseModel, MomentumDistilationMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_classification_base.yaml",
     }
 
@@ -122,11 +122,11 @@ class BlipClassification(BaseModel, MomentumDistilationMixin):
         return output
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
 
         # text encoder + multimodal encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
         use_distill = cfg.get("use_distill", True)
         momentum = cfg.get("momentum", 0.995)
         num_classes = cfg.get("num_classes", -1)

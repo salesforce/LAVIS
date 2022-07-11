@@ -16,7 +16,7 @@ from lavis.models.albef_models import init_tokenizer, load_from_pretrained
 
 @registry.register_model("albef_classification")
 class AlbefClassification(BaseModel, MomentumDistilationMixin):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_classification.yaml",
         "ve": "configs/models/albef_classification_ve.yaml",
     }
@@ -129,11 +129,11 @@ class AlbefClassification(BaseModel, MomentumDistilationMixin):
         return output
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
 
         # text encoder + multimodal encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
 
         alpha = cfg.get("alpha", 0.4)
         momentum = cfg.get("momentum", 0.995)

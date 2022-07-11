@@ -10,10 +10,10 @@ class BaseProcessor:
         return self.transform(item)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         return cls()
 
     def build(self, **kwargs):
         cfg = OmegaConf.create(kwargs)
 
-        return self.build_from_cfg(cfg)
+        return self.from_config(cfg)

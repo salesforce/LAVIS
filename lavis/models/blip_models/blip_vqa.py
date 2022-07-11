@@ -9,7 +9,7 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_vqa")
 class BlipVQA(BaseModel):
-    type2path = {
+    PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_vqa_base.yaml",
         "vqav2": "configs/models/blip_vqav2.yaml",
         # "large": "configs/models/blip_vqa_large.yaml"
@@ -230,12 +230,12 @@ class BlipVQA(BaseModel):
         return answers
 
     @classmethod
-    def _build_from_cfg(cls, cfg=None):
-        image_encoder = VisionTransformerEncoder.build_from_cfg(cfg)
+    def from_config(cls, cfg=None):
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
 
         # text encoder + multimodal encoder
-        text_encoder = XBertEncoder.build_from_cfg(cfg)
-        text_decoder = XBertLMHeadDecoder.build_from_cfg(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
+        text_decoder = XBertLMHeadDecoder.from_config(cfg)
 
         max_txt_len = cfg.get("max_txt_len", 35)
 

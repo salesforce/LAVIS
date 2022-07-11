@@ -22,26 +22,16 @@ class BaseModel(nn.Module):
         raise NotImplementedError
 
     @classmethod
-    def build(cls, cfg=None, model_type="base"):
+    def _from_config(cls, cfg=None, model_type="base"):
         if not cfg:
             # useful when building model without provided configuration file
             cfg = OmegaConf.load(cls.default_config_path(model_type)).model
 
-        return cls._build_from_cfg(cfg)
+        return cls.from_config(cfg)
 
     @classmethod
-    def build_default_model(cls, model_type="base"):
-        return cls.build(cfg=None, model_type=model_type)
-
-    @classmethod
-    def build_from_cfg(cls, cfg):
-        """
-        A factory method to create instance from cfg.
-
-        This is to ensure the definition of __init__() is not coupled to the cfg.
-        Namely, even without cfg file, one should be able to recreate the instance.
-        """
-        raise NotImplementedError
+    def from_pretrained(cls, model_type="base"):
+        return cls._from_config(cfg=None, model_type=model_type)
 
     @property
     def device(self):
@@ -49,8 +39,10 @@ class BaseModel(nn.Module):
 
     @classmethod
     def default_config_path(cls, model_type="base"):
-        assert model_type in cls.type2path, "Unknown model type {}".format(model_type)
-        return get_abs_path(cls.type2path[model_type])
+        assert model_type in cls.PRETRAINED_MODEL_DICT, "Unknown model type {}".format(
+            model_type
+        )
+        return get_abs_path(cls.PRETRAINED_MODEL_DICT[model_type])
 
     def before_evaluation(self, **kwargs):
         pass

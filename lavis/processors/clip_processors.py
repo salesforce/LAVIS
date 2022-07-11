@@ -31,7 +31,7 @@ class ClipImageTrainProcessor(BlipImageBaseProcessor):
         )
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
@@ -69,7 +69,7 @@ class ClipImageEvalProcessor(BlipImageBaseProcessor):
         )
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 

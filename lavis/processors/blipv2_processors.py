@@ -29,7 +29,7 @@ class BlipV2ImageBaseProcessor(BaseProcessor):
 #         return caption
 
 #     @classmethod
-#     def build_from_cfg(cls, cfg=None):
+#     def from_config(cls, cfg=None):
 #         if cfg is None:
 #             cfg = OmegaConf.create()
 
@@ -69,7 +69,7 @@ class BlipV2QuestionProcessor(BaseProcessor):
         return self.pre_question(question)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
@@ -134,7 +134,7 @@ class BlipV2ImageTrainProcessor(BlipV2ImageBaseProcessor):
         return self.transform(item)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
@@ -174,7 +174,7 @@ class BlipV2ImageEvalProcessor(BlipV2ImageBaseProcessor):
         return self.transform(item)
 
     @classmethod
-    def build_from_cfg(cls, cfg=None):
+    def from_config(cls, cfg=None):
         if cfg is None:
             cfg = OmegaConf.create()
 
