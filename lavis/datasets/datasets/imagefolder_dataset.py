@@ -1,8 +1,8 @@
 import os
+from collections import OrderedDict
 
-from PIL import Image
 from lavis.datasets.datasets.base_dataset import BaseDataset
-
+from PIL import Image
 from torchvision import datasets
 
 
@@ -39,3 +39,14 @@ class ImageFolderDataset(BaseDataset):
             "image_id": ann["image_id"],
             "instance_id": ann["instance_id"],
         }
+
+    def displ_item(self, index):
+        sample, ann = self.__getitem__(index), self.annotation[index]
+
+        return OrderedDict(
+            {
+                "file": ann["image"],
+                "label": self.classnames[ann["label"]],
+                "image": sample["image"],
+            }
+        )

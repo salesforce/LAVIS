@@ -1,5 +1,6 @@
 datasets:
   coco_caption: # name of the dataset builder
+    dataset_card: dataset_card/coco_caption.md
     # data_dir: ${env.data_dir}/datasets
     data_type: images # [images|videos|features]
 

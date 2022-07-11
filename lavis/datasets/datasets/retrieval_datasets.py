@@ -1,11 +1,25 @@
 import os
-
-from PIL import Image
+from collections import OrderedDict
 
 from lavis.datasets.datasets.base_dataset import BaseDataset
+from PIL import Image
 
 
-class RetrievalDataset(BaseDataset):
+class __DisplMixin:
+    def displ_item(self, index):
+        sample, ann = self.__getitem__(index), self.annotation[index]
+        visual_key = "image" if "image" in ann else "video"
+
+        return OrderedDict(
+            {
+                "file": ann[visual_key],
+                "caption": ann["caption"],
+                visual_key: sample[visual_key],
+            }
+        )
+
+
+class RetrievalDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of images (e.g. coco/images/)
@@ -39,7 +53,7 @@ class RetrievalDataset(BaseDataset):
         }
 
 
-class RetrievalEvalDataset(BaseDataset):
+class RetrievalEvalDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of images (e.g. coco/images/)
@@ -74,7 +88,7 @@ class RetrievalEvalDataset(BaseDataset):
         return {"image": image, "index": index}
 
 
-class VideoRetrievalDataset(BaseDataset):
+class VideoRetrievalDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of videos.
@@ -107,7 +121,7 @@ class VideoRetrievalDataset(BaseDataset):
         }
 
 
-class VideoRetrievalEvalDataset(BaseDataset):
+class VideoRetrievalEvalDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of videos.

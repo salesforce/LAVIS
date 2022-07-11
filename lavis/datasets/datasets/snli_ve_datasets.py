@@ -1,12 +1,27 @@
 import os
+from collections import OrderedDict
 
-from PIL import Image
 from lavis.datasets.datasets.multimodal_classification_datasets import (
     MultimodalClassificationDataset,
 )
+from PIL import Image
 
 
-class SNLIVisualEntialmentDataset(MultimodalClassificationDataset):
+class __DisplMixin:
+    def displ_item(self, index):
+        sample, ann = self.__getitem__(index), self.annotation[index]
+
+        return OrderedDict(
+            {
+                "file": os.path.basename(ann["image"]),
+                "sentence": ann["sentence"],
+                "label": ann["label"],
+                "image": sample["image"],
+            }
+        )
+
+
+class SNLIVisualEntialmentDataset(MultimodalClassificationDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 

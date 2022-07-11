@@ -5,8 +5,25 @@ from PIL import Image
 
 from lavis.datasets.datasets.vqa_datasets import VQADataset, VQAEvalDataset
 
+from collections import OrderedDict
 
-class COCOVQADataset(VQADataset):
+
+class __DisplMixin:
+    def displ_item(self, index):
+        sample, ann = self.__getitem__(index), self.annotation[index]
+
+        return OrderedDict(
+            {
+                "file": ann["image"],
+                "question": ann["question"],
+                "question_id": ann["question_id"],
+                "answers": "; ".join(ann["answer"]),
+                "image": sample["image"],
+            }
+        )
+
+
+class COCOVQADataset(VQADataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
@@ -37,7 +54,7 @@ class COCOVQADataset(VQADataset):
         }
 
 
-class COCOVQAEvalDataset(VQAEvalDataset):
+class COCOVQAEvalDataset(VQAEvalDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of images (e.g. coco/images/)

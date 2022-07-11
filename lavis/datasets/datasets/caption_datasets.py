@@ -1,12 +1,25 @@
 import os
-import json
+from collections import OrderedDict
 
 from PIL import Image
 
 from lavis.datasets.datasets.base_dataset import BaseDataset
 
 
-class CaptionDataset(BaseDataset):
+class __DisplMixin:
+    def displ_item(self, index):
+        sample, ann = self.__getitem__(index), self.annotation[index]
+
+        return OrderedDict(
+            {
+                "file": ann["image"],
+                "caption": ann["caption"],
+                "image": sample["image"],
+            }
+        )
+
+
+class CaptionDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of images (e.g. coco/images/)
@@ -40,7 +53,7 @@ class CaptionDataset(BaseDataset):
         }
 
 
-class CaptionEvalDataset(BaseDataset):
+class CaptionEvalDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of images (e.g. coco/images/)

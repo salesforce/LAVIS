@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from functools import reduce
+import os
 from tkinter import N
 import streamlit as st
 import streamlit.components.v1 as components
@@ -166,8 +167,6 @@ def show_samples(dataset, offset=0, is_next=False):
 
 
 def show_dataset_card():
-    repo_dir = registry.get_path("repo_root")
-
     builder = registry.get_builder_class(dataset_name)
     cfg_path = builder.default_config_path()
     config = load_dataset_config(cfg_path)
@@ -176,13 +175,17 @@ def show_dataset_card():
     if data_card is None:
         st.warning(f"No dataset card found for {dataset_name}.")
     else:
+        img_path = data_card.replace("md", "png")
+        img = resize_img_w(Image.open(img_path), new_w=672)
+        st.image(img)
+
         st.markdown(open(data_card).read())
 
 
 if __name__ == "__main__":
     st.set_page_config(
         page_title="LAVIS Dataset Explorer",
-        layout="wide",
+        # layout="wide",
         initial_sidebar_state="expanded",
     )
 

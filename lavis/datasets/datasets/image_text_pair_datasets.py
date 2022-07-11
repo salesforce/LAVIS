@@ -1,10 +1,24 @@
 import os
+from collections import OrderedDict
 
 from lavis.datasets.datasets.base_dataset import BaseDataset
 from PIL import Image
 
 
-class ImageTextPairDataset(BaseDataset):
+class __DisplMixin:
+    def displ_item(self, index):
+        sample, ann = self.__getitem__(index), self.annotation[index]
+
+        return OrderedDict(
+            {
+                "file": os.path.basename(ann["image"]),
+                "caption": ann["caption"],
+                "image": sample["image"],
+            }
+        )
+
+
+class ImageTextPairDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
         vis_root (string): Root directory of images (e.g. coco/images/)

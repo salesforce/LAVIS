@@ -1,12 +1,25 @@
 import json
 import os
+from collections import OrderedDict
 
 from lavis.datasets.datasets.multimodal_classification_datasets import (
     MultimodalClassificationDataset,
 )
 
 
-class VideoQADataset(MultimodalClassificationDataset):
+class __DisplMixin:
+    def displ_item(self, index):
+        ann = self.annotation[index]
+
+        vname = ann["video"]
+        vpath = os.path.join(self.vis_root, vname)
+
+        return OrderedDict(
+            {"file": vpath, "question": ann["question"], "answer": ann["answer"]}
+        )
+
+
+class VideoQADataset(MultimodalClassificationDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
