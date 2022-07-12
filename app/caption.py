@@ -41,8 +41,6 @@ def app():
 
     cap_button = st.button("Generate")
 
-    st.write(device)
-
     # ==== event ====
     vis_processor = load_processor("blip_image_eval").build(image_size=384)
 

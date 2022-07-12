@@ -64,7 +64,10 @@ class BlipBase(BaseModel):
             "text",
             "multimodal",
         ], "mode parameter must be image, text, or multimodal"
-        text = self.tokenizer(caption, return_tensors="pt").to(self.device)
+
+        text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
+            self.device
+        )
 
         if mode == "image":
             # return image features
@@ -81,7 +84,7 @@ class BlipBase(BaseModel):
                 return_dict=True,
                 mode="text",
             )
-            text_embeds = text_output.last_hidden_state
+            text_embeds = text_output.last_hidden_state[:, 0, :]
             if normalized:
                 text_embeds = self.text_proj(text_embeds)
             # return text_output.last_hidden_state

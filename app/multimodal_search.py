@@ -86,7 +86,7 @@ def app():
     with torch.no_grad():
         text_feature = feature_extractor(
             torch.zeros(0), user_question, mode="text", normalized=True
-        )[0, 0]
+        )[0]
 
         path2feat, paths, all_img_feats = load_feat()
         all_img_feats.to(device)
