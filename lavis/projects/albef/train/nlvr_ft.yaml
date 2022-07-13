@@ -1,6 +1,6 @@
 model:
   arch: albef_nlvr
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/pretrain_model_nlvr.pth"
 
 datasets:
   nlvr: # name of the dataset builder
