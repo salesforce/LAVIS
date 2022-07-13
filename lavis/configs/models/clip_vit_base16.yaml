@@ -4,3 +4,9 @@ model:
   model_type: ViT-B-16
 
   pretrained: openai
+
+preprocess:
+  vis_processor:
+      eval:
+        name: "clip_image_eval"
+        image_size: 224

@@ -39,3 +39,9 @@ model:
   # "laion400m_e31"
   # "laion400m_e32"
   # "laion400m_avg"
+
+preprocess:
+  vis_processor:
+      eval:
+        name: "clip_image_eval"
+        image_size: 336

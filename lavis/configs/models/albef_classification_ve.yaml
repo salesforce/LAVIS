@@ -17,3 +17,15 @@ model:
 
   # bert config
   med_config_path: "configs/models/med_config_albef.json"
+
+preprocess:
+  vis_processor:
+      train:
+        name: "blip_image_train"
+      eval:
+        name: "blip_image_eval"
+  text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"

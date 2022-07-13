@@ -22,3 +22,17 @@ model:
   use_distill: True
 
   max_txt_len: 30
+
+preprocess:
+  vis_processor:
+      train:
+        name: "blip_image_train"
+        image_size: 384
+      eval:
+        name: "blip_image_eval"
+        image_size: 384
+  text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"

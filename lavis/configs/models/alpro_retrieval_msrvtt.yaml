@@ -14,3 +14,19 @@ model:
 
   # bert config
   med_config_path: "configs/models/bert_config_alpro.json"
+
+preprocess:
+  vis_processor:
+      train:
+        name: "alpro_video_train"
+        n_frms: 8
+        image_size: 224
+      eval:
+        name: "alpro_video_eval"
+        n_frms: 8
+        image_size: 224
+  text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"

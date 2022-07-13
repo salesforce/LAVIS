@@ -13,3 +13,13 @@ model:
 
   # bert config
   med_config_path: "configs/models/bert_config_alpro.json"
+
+preprocess:
+  vis_processor:
+      eval:
+        name: "alpro_video_eval"
+        n_frms: 8
+        image_size: 224
+  text_processor:
+      eval:
+        name: "blip_caption"

@@ -19,3 +19,17 @@ model:
   med_config_path: "configs/models/med_config.json"
 
   embed_dim: 256
+
+preprocess:
+  vis_processor:
+      train:
+        name: "blip_image_train"
+        image_size: 384
+      eval:
+        name: "blip_image_eval"
+        image_size: 384
+  text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"
