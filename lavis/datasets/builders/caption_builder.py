@@ -2,6 +2,7 @@ from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
 from lavis.datasets.datasets.coco_caption_datasets import (
     COCOCapDataset,
     COCOCapEvalDataset,
+    NoCapsEvalDataset,
 )
 
 from lavis.common.registry import registry
@@ -30,6 +31,21 @@ class COCOCapBuilder(BaseDatasetBuilder):
 
     def __init__(self, cfg=None):
         super().__init__(cfg)
+
+
+@registry.register_builder("nocaps")
+class COCOCapBuilder(BaseDatasetBuilder):
+    eval_dataset_cls = NoCapsEvalDataset
+
+    type2path = {
+        "default": "configs/datasets/nocaps/defaults.yaml",
+    }
+
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+
+    def _download_vis(self):
+        pass
 
 
 @registry.register_builder("msrvtt_caption")

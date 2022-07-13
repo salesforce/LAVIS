@@ -8,13 +8,15 @@ from lavis.tasks.base_task import BaseTask
 
 @registry.register_task("captioning")
 class CaptionTask(BaseTask):
-    def __init__(self, num_beams, max_len, min_len, evaluate):
+    def __init__(self, num_beams, max_len, min_len, evaluate, report_metric=True):
         super().__init__()
 
         self.num_beams = num_beams
         self.max_len = max_len
         self.min_len = min_len
         self.evaluate = evaluate
+
+        self.report_metric = report_metric
 
     @classmethod
     def setup_task(cls, cfg):
@@ -25,8 +27,14 @@ class CaptionTask(BaseTask):
         min_len = run_cfg.min_len
         evaluate = run_cfg.evaluate
 
+        report_metric = run_cfg.get("report_metric", True)
+
         return cls(
-            num_beams=num_beams, max_len=max_len, min_len=min_len, evaluate=evaluate
+            num_beams=num_beams,
+            max_len=max_len,
+            min_len=min_len,
+            evaluate=evaluate,
+            report_metric=report_metric,
         )
 
     def valid_step(self, model, samples):
@@ -55,9 +63,12 @@ class CaptionTask(BaseTask):
             remove_duplicate="image_id",
         )
 
-        metrics = self._report_metrics(
-            eval_result_file=eval_result_file, split_name=split_name
-        )
+        if self.report_metric:
+            metrics = self._report_metrics(
+                eval_result_file=eval_result_file, split_name=split_name
+            )
+        else:
+            metrics = {"agg_metrics": 0.0}
 
         return metrics
 
