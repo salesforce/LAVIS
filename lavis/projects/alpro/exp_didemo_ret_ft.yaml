@@ -29,16 +29,16 @@ run:
   task: retrieval
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 4e-5
+  init_lr: 3e-5
   min_lr: 1e-6
   weight_decay: 1e-4
-  max_epoch: 5
+  max_epoch: 10
   batch_size_train: 12
   batch_size_eval: 32
   num_workers: 4
 
-  # k_test: 256
-  k_test: 1000
+  k_test: 256
+  # k_test: 1000
 
   seed: 42
   output_dir: "output/ALPRO/didemo_retrieval"
