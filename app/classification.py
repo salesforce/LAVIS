@@ -120,13 +120,15 @@ def app():
 
                 with torch.no_grad():
                     image_feature = feature_extractor(
-                        img, "", mode="image", normalized=True
+                        img, "", mode="image", apply_proj=True, normalized=True
                     )[:, 0]
 
                     text_feature = feature_extractor(
-                        img, cls_prompt, mode="text", normalized=True
-                    )
-                    sims = (image_feature @ text_feature.t())[0]
+                        img, cls_prompt, mode="text", apply_proj=True, normalized=True
+                    )[:, 0, :]
+                    sims = (image_feature @ text_feature.t())[
+                        0
+                    ] / feature_extractor.temp
 
             else:
                 vis_processor = load_processor("blip_image_eval").build(image_size=384)

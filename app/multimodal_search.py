@@ -3,6 +3,7 @@ import os
 import numpy as np
 import streamlit as st
 import torch
+import torch.nn.functional as F
 from app import cache_root, device
 from app.utils import (
     getAttMap,
@@ -86,10 +87,11 @@ def app():
     with torch.no_grad():
         text_feature = feature_extractor(
             torch.zeros(0), user_question, mode="text", normalized=True
-        )[0]
+        )[0, 0, :]
 
         path2feat, paths, all_img_feats = load_feat()
         all_img_feats.to(device)
+        all_img_feats = F.normalize(all_img_feats, dim=1)
 
         num_cols = 4
         num_rows = int(num_display / num_cols)

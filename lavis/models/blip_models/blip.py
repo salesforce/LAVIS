@@ -53,17 +53,21 @@ class BlipBase(BaseModel):
         self.vision_proj = nn.Linear(vision_width, embed_dim)
         self.text_proj = nn.Linear(text_width, embed_dim)
 
+        self.temp = nn.Parameter(0.07 * torch.ones([]))
+
         if pretrained:
             self, msg = load_from_pretrained(self, pretrained)
             assert len(msg.missing_keys) == 0
 
-    def forward(self, image, caption, mode, normalized=False):
-
+    def forward(self, image, caption, mode, apply_proj=False, normalized=False):
         assert mode in [
             "image",
             "text",
             "multimodal",
         ], "mode parameter must be image, text, or multimodal"
+
+        if normalized:
+            apply_proj = True
 
         text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
             self.device
@@ -72,8 +76,11 @@ class BlipBase(BaseModel):
         if mode == "image":
             # return image features
             image_embeds = self.visual_encoder.forward_features(image)
-            if normalized:
+            if apply_proj:
                 image_embeds = self.vision_proj(image_embeds)
+
+                if normalized:
+                    image_embeds = F.normalize(image_embeds, dim=-1)
             return image_embeds
 
         elif mode == "text":
@@ -84,10 +91,13 @@ class BlipBase(BaseModel):
                 return_dict=True,
                 mode="text",
             )
-            text_embeds = text_output.last_hidden_state[:, 0, :]
-            if normalized:
+            text_embeds = text_output.last_hidden_state
+            if apply_proj:
                 text_embeds = self.text_proj(text_embeds)
-            # return text_output.last_hidden_state
+
+                if normalized:
+                    text_embeds = F.normalize(text_embeds, dim=-1)
+
             return text_embeds
 
         elif mode == "multimodal":
