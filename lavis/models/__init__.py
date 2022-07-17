@@ -11,7 +11,7 @@ from lavis.models.albef_models.albef_retrieval import AlbefRetrieval
 from lavis.models.albef_models.albef_vqa import AlbefVQA
 from lavis.models.alpro_models.alpro_qa import AlproQA
 from lavis.models.alpro_models.alpro_retrieval import AlproRetrieval
-from lavis.models.blip_models.blip import BlipBase, BlipITM
+from lavis.models.blip_models.blip import BlipFeatureExtractor, BlipITM
 from lavis.models.blip_models.blip_caption import BlipCaption
 from lavis.models.blip_models.blip_classification import BlipClassification
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
@@ -32,7 +32,7 @@ __all__ = [
     "AlproQA",
     "AlproRetrieval",
     "BaseModel",
-    "BlipBase",
+    "BlipFeatureExtractor",
     "BlipCaption",
     "BlipClassification",
     "BlipITM",

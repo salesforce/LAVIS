@@ -1,15 +1,64 @@
+import logging
+import os
+
 import torch
 import torch.nn.functional as F
-from lavis.common.utils import get_abs_path
+from lavis.common.utils import get_abs_path, is_url
 from lavis.models.base_model import BaseModel
-from lavis.models.blip_models import init_tokenizer, load_from_pretrained
 from lavis.models.med import BertModel
-from lavis.models.vit import VisionTransformer, VisionTransformerEncoder
+from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
+from lavis.processors import load_processor
+from timm.models.hub import download_cached_file
 from torch import nn
-from transformers import BertConfig
+from transformers import BertConfig, BertTokenizer
+
+from lavis.processors.blip_processors import BlipCaptionProcessor
 
 
 class BlipBase(BaseModel):
+    @classmethod
+    def init_tokenizer(cls):
+        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        tokenizer.add_special_tokens({"bos_token": "[DEC]"})
+        tokenizer.add_special_tokens({"additional_special_tokens": ["[ENC]"]})
+        tokenizer.enc_token_id = tokenizer.additional_special_tokens_ids[0]
+        return tokenizer
+
+    def load_from_pretrained(self, url_or_filename):
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(
+                url_or_filename, check_hash=False, progress=True
+            )
+            checkpoint = torch.load(cached_file, map_location="cpu")
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location="cpu")
+        else:
+            raise RuntimeError("checkpoint url or path is invalid")
+
+        state_dict = checkpoint["model"]
+
+        state_dict["visual_encoder.pos_embed"] = interpolate_pos_embed(
+            state_dict["visual_encoder.pos_embed"], self.visual_encoder
+        )
+        if "visual_encoder_m.pos_embed" in self.state_dict().keys():
+            state_dict["visual_encoder_m.pos_embed"] = interpolate_pos_embed(
+                state_dict["visual_encoder_m.pos_embed"], self.visual_encoder_m
+            )
+
+        for key in self.state_dict().keys():
+            if key in state_dict.keys():
+                if state_dict[key].shape != self.state_dict()[key].shape:
+                    del state_dict[key]
+
+        msg = self.load_state_dict(state_dict, strict=False)
+
+        logging.info("Missing keys {}".format(msg.missing_keys))
+        logging.info("load checkpoint from %s" % url_or_filename)
+
+        return self, msg
+
+
+class BlipFeatureExtractor(BlipBase):
     def __init__(
         self,
         med_config="configs/models/med_config.json",
@@ -42,7 +91,7 @@ class BlipBase(BaseModel):
         else:
             raise NotImplementedError("")
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
         med_config = BertConfig.from_json_file(get_abs_path(med_config))
         med_config.encoder_width = vision_width
         self.text_encoder = BertModel(config=med_config, add_pooling_layer=False)
@@ -56,7 +105,7 @@ class BlipBase(BaseModel):
         self.temp = nn.Parameter(0.07 * torch.ones([]))
 
         if pretrained:
-            self, msg = load_from_pretrained(self, pretrained)
+            msg = self.load_from_pretrained(pretrained)
             assert len(msg.missing_keys) == 0
 
     def forward(self, image, caption, mode, apply_proj=False, normalized=False):
@@ -118,7 +167,7 @@ class BlipBase(BaseModel):
             return output.last_hidden_state
 
 
-class BlipITM(BaseModel):
+class BlipITM(BlipBase):
     def __init__(
         self,
         med_config="configs/models/med_config.json",
@@ -166,7 +215,7 @@ class BlipITM(BaseModel):
             )
             med_config.encoder_width = vision_width
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
         med_config.encoder_width = vision_width
         self.text_encoder = BertModel(config=med_config, add_pooling_layer=False)
 
@@ -178,7 +227,7 @@ class BlipITM(BaseModel):
         self.itm_head = nn.Linear(text_width, 2)
 
         if pretrained:
-            self, msg = load_from_pretrained(self, pretrained)
+            msg = self.load_from_pretrained(pretrained)
             assert len(msg.missing_keys) == 0
 
     def forward(self, image, caption, match_head="itm"):
@@ -222,3 +271,19 @@ class BlipITM(BaseModel):
 
             sim = image_feat @ text_feat.t()
             return sim
+
+
+def load_feature_extractor(device, model_path_or_url=None, prompt="", max_words=50):
+    if model_path_or_url is None:
+        model_path_or_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
+
+    model = BlipFeatureExtractor(pretrained=model_path_or_url)
+    model.eval()
+    model = model.to(device)
+
+    vis_processor = load_processor("blip_image_eval").build(image_size=224)
+    text_processor = load_processor("blip_caption").build(
+        prompt=prompt, max_words=max_words
+    )
+
+    return model, vis_processor, text_processor

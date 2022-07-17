@@ -12,7 +12,7 @@ from app.utils import (
     read_img,
     resize_img,
 )
-from lavis.models import BlipBase
+from lavis.models import BlipFeatureExtractor
 from lavis.processors import load_processor
 
 
@@ -48,7 +48,7 @@ def load_feat():
 )
 def load_feature_extractor_model(device):
     model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
-    model = BlipBase(pretrained=model_url)
+    model = BlipFeatureExtractor(pretrained=model_url)
 
     model.eval()
     model = model.to(device)

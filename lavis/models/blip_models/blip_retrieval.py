@@ -5,20 +5,19 @@ import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.models.albef_models import compute_sim_matrix
 from lavis.models.base_model import (
-    BaseModel,
     MomentumDistilationMixin,
     SharedQueueMixin,
     all_gather_with_grad,
     concat_all_gather,
 )
-from lavis.models.blip_models import init_tokenizer, load_from_pretrained
+from lavis.models.blip_models.blip import BlipBase
 from lavis.models.med import XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
 @registry.register_model("blip_retrieval")
-class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_retrieval_base.yaml",
         "coco": "configs/models/blip_retrieval_coco.yaml",
@@ -39,7 +38,7 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         """ """
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = image_encoder
 
@@ -321,7 +320,7 @@ class BlipRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
             # [IMPORTANT] to reset queue pointer to 0.
             # Otherwise when updating last batch in the queue, the batch size and remaining queue length may be un-equal.
             model.reset_queue_ptr()

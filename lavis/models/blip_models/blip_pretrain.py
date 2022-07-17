@@ -3,19 +3,16 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
-from lavis.models.base_model import (
-    BaseModel,
-    MomentumDistilationMixin,
-    SharedQueueMixin,
-)
-from lavis.models.blip_models import init_tokenizer, tie_encoder_decoder_weights
+from lavis.models.base_model import MomentumDistilationMixin, SharedQueueMixin
+from lavis.models.blip_models import tie_encoder_decoder_weights
+from lavis.models.blip_models.blip import BlipBase
 from lavis.models.med import XBertEncoder, XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
 @registry.register_model("blip_pretrain")
-class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
+class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_pretrain_base.yaml",
         # "large": "configs/models/blip_pretrain_large.yaml",
@@ -36,7 +33,7 @@ class BlipPretrain(BaseModel, SharedQueueMixin, MomentumDistilationMixin):
         """ """
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         text_encoder.resize_token_embeddings(len(self.tokenizer))
         text_decoder.resize_token_embeddings(len(self.tokenizer))

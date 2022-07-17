@@ -29,7 +29,7 @@ def read_img(filepath):
 
 # model
 model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
-feature_extractor = BlipBase(pretrained=model_url)
+feature_extractor = BlipFeatureExtractor(pretrained=model_url)
 
 feature_extractor.eval()
 feature_extractor = feature_extractor.to(device)

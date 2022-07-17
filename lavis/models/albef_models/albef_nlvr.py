@@ -8,14 +8,14 @@ from transformers import BertConfig
 
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path
+from lavis.models.albef_models import AlbefBase
 from lavis.models.med import BertModel
 from lavis.models.vit import VisionTransformerEncoder
-from lavis.models.base_model import BaseModel, MomentumDistilationMixin
-from lavis.models.albef_models import init_tokenizer, load_from_pretrained
+from lavis.models.base_model import MomentumDistilationMixin
 
 
 @registry.register_model("albef_nlvr")
-class AlbefNLVR(BaseModel, MomentumDistilationMixin):
+class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_nlvr_base.yaml",
     }
@@ -32,7 +32,7 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
     ):
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
         self.max_txt_len = max_txt_len
 
         self.use_distill = use_distill
@@ -202,6 +202,6 @@ class AlbefNLVR(BaseModel, MomentumDistilationMixin):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
 
         return model

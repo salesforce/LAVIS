@@ -6,15 +6,15 @@ import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path, is_url
-from lavis.models.albef_models import init_tokenizer
-from lavis.models.base_model import BaseModel, MomentumDistilationMixin, tile
+from lavis.models.albef_models import AlbefBase
+from lavis.models.base_model import MomentumDistilationMixin, tile
 from lavis.models.med import BertConfig, BertLMHeadModel, XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
 from timm.models.hub import download_cached_file
 
 
 @registry.register_model("albef_vqa")
-class AlbefVQA(BaseModel, MomentumDistilationMixin):
+class AlbefVQA(AlbefBase, MomentumDistilationMixin):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_vqa.yaml",
         "vqav2": "configs/models/albef_vqav2.yaml",
@@ -32,7 +32,7 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
     ):
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
         self.max_txt_len = max_txt_len
 
         self.use_distill = use_distill
@@ -276,75 +276,73 @@ class AlbefVQA(BaseModel, MomentumDistilationMixin):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(
-                model,
+            msg = model.load_from_pretrained(
                 url_or_filename=pretrain_path,
                 init_decoder_as_encoder=init_decoder_as_encoder,
             )
 
         return model
 
+    def load_from_pretrained(self, url_or_filename, init_decoder_as_encoder):
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(
+                url_or_filename, check_hash=False, progress=True
+            )
+            checkpoint = torch.load(cached_file, map_location="cpu")
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location="cpu")
+        else:
+            raise RuntimeError("checkpoint url or path is invalid")
 
-def load_from_pretrained(model, url_or_filename, init_decoder_as_encoder):
-    if is_url(url_or_filename):
-        cached_file = download_cached_file(
-            url_or_filename, check_hash=False, progress=True
+        if "model" in checkpoint:
+            state_dict = checkpoint["model"]
+        else:
+            state_dict = checkpoint
+
+        # reshape positional embedding to accomodate for image resolution change
+        pos_embed_reshaped = interpolate_pos_embed(
+            state_dict["visual_encoder.pos_embed"], self.visual_encoder
         )
-        checkpoint = torch.load(cached_file, map_location="cpu")
-    elif os.path.isfile(url_or_filename):
-        checkpoint = torch.load(url_or_filename, map_location="cpu")
-    else:
-        raise RuntimeError("checkpoint url or path is invalid")
+        state_dict["visual_encoder.pos_embed"] = pos_embed_reshaped
 
-    if "model" in checkpoint:
-        state_dict = checkpoint["model"]
-    else:
-        state_dict = checkpoint
+        m_pos_embed_reshaped = interpolate_pos_embed(
+            state_dict["visual_encoder_m.pos_embed"], self.visual_encoder_m
+        )
+        state_dict["visual_encoder_m.pos_embed"] = m_pos_embed_reshaped
 
-    # reshape positional embedding to accomodate for image resolution change
-    pos_embed_reshaped = interpolate_pos_embed(
-        state_dict["visual_encoder.pos_embed"], model.visual_encoder
-    )
-    state_dict["visual_encoder.pos_embed"] = pos_embed_reshaped
+        for key in list(state_dict.keys()):
+            if "bert" in key:
+                encoder_key = key.replace("bert.", "")
+                state_dict[encoder_key] = state_dict[key]
 
-    m_pos_embed_reshaped = interpolate_pos_embed(
-        state_dict["visual_encoder_m.pos_embed"], model.visual_encoder_m
-    )
-    state_dict["visual_encoder_m.pos_embed"] = m_pos_embed_reshaped
+            # intialize text decoder as multimodal encoder (last 6 layers of model.text_encoder)
+            if init_decoder_as_encoder:
+                if "text_encoder" in key:
+                    if "layer" in key:
+                        encoder_keys = key.split(".")
+                        layer_num = int(encoder_keys[4])
 
-    for key in list(state_dict.keys()):
-        if "bert" in key:
-            encoder_key = key.replace("bert.", "")
-            state_dict[encoder_key] = state_dict[key]
-
-        # intialize text decoder as multimodal encoder (last 6 layers of model.text_encoder)
-        if init_decoder_as_encoder:
-            if "text_encoder" in key:
-                if "layer" in key:
-                    encoder_keys = key.split(".")
-                    layer_num = int(encoder_keys[4])
-
-                    if layer_num < 6:
-                        del state_dict[key]
-                        continue
+                        if layer_num < 6:
+                            del state_dict[key]
+                            continue
+                        else:
+                            decoder_layer_num = layer_num - 6
+                            encoder_keys[4] = str(decoder_layer_num)
+                            encoder_key = ".".join(encoder_keys)
                     else:
-                        decoder_layer_num = layer_num - 6
-                        encoder_keys[4] = str(decoder_layer_num)
-                        encoder_key = ".".join(encoder_keys)
-                else:
-                    encoder_key = key
-                decoder_key = encoder_key.replace("text_encoder", "text_decoder")
-                state_dict[decoder_key] = state_dict[key]
+                        encoder_key = key
+                    decoder_key = encoder_key.replace("text_encoder", "text_decoder")
+                    state_dict[decoder_key] = state_dict[key]
 
-                del state_dict[key]
+                    del state_dict[key]
 
-    for key in model.state_dict().keys():
-        if key in state_dict.keys():
-            if state_dict[key].shape != model.state_dict()[key].shape:
-                del state_dict[key]
+        for key in self.state_dict().keys():
+            if key in state_dict.keys():
+                if state_dict[key].shape != self.state_dict()[key].shape:
+                    del state_dict[key]
 
-    msg = model.load_state_dict(state_dict, strict=False)
-    logging.info("load checkpoint from %s" % url_or_filename)
-    logging.info(f"missing keys: {msg.missing_keys}")
+        msg = self.load_state_dict(state_dict, strict=False)
+        logging.info("load checkpoint from %s" % url_or_filename)
+        logging.info(f"missing keys: {msg.missing_keys}")
 
-    return model, msg
+        return msg

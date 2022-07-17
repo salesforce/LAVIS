@@ -68,8 +68,13 @@ class VQATask(BaseTask):
                 self.ques_files[split] = datasets[split].coco_fmt_qust_file
                 self.anno_files[split] = datasets[split].coco_fmt_anno_file
 
-        assert "test" in datasets, "No testing split is present."
-        self.answer_list = datasets["test"].answer_list
+        assert (
+            "test" in datasets or "val" in datasets
+        ), "No testing or validation split is present."
+        try:
+            self.answer_list = datasets["test"].answer_list
+        except KeyError:
+            self.answer_list = datasets["val"].answer_list
         return datasets
 
     def valid_step(self, model, samples):

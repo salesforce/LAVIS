@@ -1,14 +1,12 @@
 from lavis.common.registry import registry
 
-from lavis.models.blip_models import load_from_pretrained, init_tokenizer
-
-from lavis.models.base_model import BaseModel
+from lavis.models.blip_models.blip import BlipBase
 from lavis.models.med import XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 
 
 @registry.register_model("blip_caption")
-class BlipCaption(BaseModel):
+class BlipCaption(BlipBase):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_caption_base.yaml",
         "base_coco": "configs/models/blip_caption_base_coco.yaml",
@@ -19,7 +17,7 @@ class BlipCaption(BaseModel):
     def __init__(self, image_encoder, text_decoder, prompt=None, max_txt_len=40):
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = image_encoder
         self.text_decoder = text_decoder
@@ -119,6 +117,6 @@ class BlipCaption(BaseModel):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
 
         return model

@@ -3,23 +3,15 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
-from lavis.models.albef_models import (
-    compute_sim_matrix,
-    init_tokenizer,
-    load_from_pretrained,
-)
-from lavis.models.base_model import (
-    BaseModel,
-    MomentumDistilationMixin,
-    SharedQueueMixin,
-)
-from lavis.models.med import BertModel, XBertEncoder
+from lavis.models.albef_models import AlbefBase, compute_sim_matrix
+from lavis.models.base_model import MomentumDistilationMixin, SharedQueueMixin
+from lavis.models.med import XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
 
 
 @registry.register_model("albef_retrieval")
-class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_retrieval.yaml",
         "coco": "configs/models/albef_retrieval_coco.yaml",
@@ -40,7 +32,7 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     ):
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = image_encoder
         self.text_encoder = text_encoder
@@ -275,8 +267,7 @@ class AlbefRetrieval(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
 
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(
-                model,
+            msg = model.load_from_pretrained(
                 url_or_filename=pretrain_path,
             )
 

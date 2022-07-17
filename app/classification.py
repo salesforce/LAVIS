@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 import torch
-from lavis.models import BlipBase, load_model
+from lavis.models import BlipFeatureExtractor, load_model
 from lavis.models.blip_models.blip import BlipITM
 from lavis.processors import load_processor
 from lavis.processors.blip_processors import BlipCaptionProcessor
@@ -31,7 +31,7 @@ def load_demo_image(img_url=None):
 def load_model_cache(model_type, device):
     if model_type == "blip":
         model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
-        model = BlipBase(pretrained=model_url)
+        model = BlipFeatureExtractor(pretrained=model_url)
         model.eval()
         model = model.to(device)
     elif model_type == "CLIP_ViT-B-32":

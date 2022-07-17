@@ -1,14 +1,14 @@
 import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
-from lavis.models.base_model import BaseModel, tile
-from lavis.models.blip_models import init_tokenizer, load_from_pretrained
+from lavis.models.base_model import tile
+from lavis.models.blip_models.blip import BlipBase
 from lavis.models.med import XBertEncoder, XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 
 
 @registry.register_model("blip_vqa")
-class BlipVQA(BaseModel):
+class BlipVQA(BlipBase):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/blip_vqa_base.yaml",
         "vqav2": "configs/models/blip_vqav2.yaml",
@@ -17,7 +17,7 @@ class BlipVQA(BaseModel):
 
     def __init__(self, image_encoder, text_encoder, text_decoder, max_txt_len=35):
         super().__init__()
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = image_encoder
 
@@ -249,6 +249,6 @@ class BlipVQA(BaseModel):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            model, msg = load_from_pretrained(model, url_or_filename=pretrain_path)
+            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
 
         return model

@@ -6,9 +6,8 @@ import torch.nn.functional as F
 from transformers import BertConfig
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path
-from lavis.models.albef_models import init_tokenizer
+from lavis.models.albef_models import AlbefBase
 from lavis.models.base_model import (
-    BaseModel,
     MomentumDistilationMixin,
     SharedQueueMixin,
 )
@@ -18,7 +17,7 @@ from torch import nn
 
 
 @registry.register_model("albef_pretrain")
-class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
+class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
     PRETRAINED_MODEL_DICT = {
         "base": "configs/models/albef_pretrain_base.yaml",
     }
@@ -37,7 +36,7 @@ class AlbefPretrain(BaseModel, MomentumDistilationMixin, SharedQueueMixin):
     ):
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = image_encoder
         self.text_encoder = text_encoder

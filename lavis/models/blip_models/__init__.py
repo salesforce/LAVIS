@@ -1,53 +1,7 @@
 import logging
-import os
 from typing import List
 
-import torch
-from lavis.common.utils import is_url
-from lavis.models.vit import interpolate_pos_embed
-from timm.models.hub import download_cached_file
 from torch import nn
-from transformers import BertTokenizer
-
-
-def init_tokenizer():
-    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-    tokenizer.add_special_tokens({"bos_token": "[DEC]"})
-    tokenizer.add_special_tokens({"additional_special_tokens": ["[ENC]"]})
-    tokenizer.enc_token_id = tokenizer.additional_special_tokens_ids[0]
-    return tokenizer
-
-
-def load_from_pretrained(model, url_or_filename):
-    if is_url(url_or_filename):
-        cached_file = download_cached_file(
-            url_or_filename, check_hash=False, progress=True
-        )
-        checkpoint = torch.load(cached_file, map_location="cpu")
-    elif os.path.isfile(url_or_filename):
-        checkpoint = torch.load(url_or_filename, map_location="cpu")
-    else:
-        raise RuntimeError("checkpoint url or path is invalid")
-
-    state_dict = checkpoint["model"]
-
-    state_dict["visual_encoder.pos_embed"] = interpolate_pos_embed(
-        state_dict["visual_encoder.pos_embed"], model.visual_encoder
-    )
-    if "visual_encoder_m.pos_embed" in model.state_dict().keys():
-        state_dict["visual_encoder_m.pos_embed"] = interpolate_pos_embed(
-            state_dict["visual_encoder_m.pos_embed"], model.visual_encoder_m
-        )
-
-    for key in model.state_dict().keys():
-        if key in state_dict.keys():
-            if state_dict[key].shape != model.state_dict()[key].shape:
-                del state_dict[key]
-
-    msg = model.load_state_dict(state_dict, strict=False)
-    logging.info("Missing keys {}".format(msg.missing_keys))
-    logging.info("load checkpoint from %s" % url_or_filename)
-    return model, msg
 
 
 def tie_encoder_decoder_weights(
