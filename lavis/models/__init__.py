@@ -14,6 +14,7 @@ from lavis.models.alpro_models.alpro_retrieval import AlproRetrieval
 from lavis.models.blip_models.blip import BlipFeatureExtractor, BlipITM
 from lavis.models.blip_models.blip_caption import BlipCaption
 from lavis.models.blip_models.blip_classification import BlipClassification
+from lavis.models.blip_models.blip_nlvr import BlipNLVR
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
 from lavis.models.blip_models.blip_retrieval import BlipRetrieval
 from lavis.models.blip_models.blip_vqa import BlipVQA
@@ -36,6 +37,7 @@ __all__ = [
     "BlipCaption",
     "BlipClassification",
     "BlipITM",
+    "BlipNLVR",
     "BlipPretrain",
     "BlipRetrieval",
     "BlipVQA",
@@ -135,7 +137,7 @@ class ModelZoo:
             for k, v in registry.mapping["model_name_mapping"].items()
         }
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return (
             "=" * 50
             + "\n"
