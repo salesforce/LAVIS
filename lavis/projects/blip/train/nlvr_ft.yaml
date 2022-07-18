@@ -21,7 +21,7 @@ run:
   task: multimodal_classification
 
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 3e-5
+  init_lr: 2.5e-5
   min_lr: 0
   weight_decay: 0.05
   max_epoch: 15
@@ -35,7 +35,7 @@ run:
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val"]
+  valid_splits: ["val", "test"]
   test_splits: ["test"]
 
   # distribution-specific

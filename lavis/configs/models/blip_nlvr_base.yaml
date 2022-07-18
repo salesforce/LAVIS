@@ -3,10 +3,6 @@ model:
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_nlvr.pth"
   num_classes: 2
 
-  use_distill: True
-  momentum: 0.995
-  alpha: 0.4
-
   # vit encoder
   vit_type: "base"
   vit_grad_ckpt: False

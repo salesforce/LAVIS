@@ -1,5 +1,9 @@
 import os
+import random
+
 from collections import OrderedDict
+
+from pyrsistent import s
 
 from lavis.datasets.datasets.multimodal_classification_datasets import (
     MultimodalClassificationDataset,
@@ -31,6 +35,28 @@ class NLVRDataset(MultimodalClassificationDataset, __DisplMixin):
     def _build_class_labels(self):
         return {"False": 0, "True": 1}
 
+    @staticmethod
+    def _flip(samples):
+        sentence = samples["text_input"]
+        image0, image1 = samples["image0"], samples["image1"]
+
+        if "left" not in sentence and "right" not in sentence:
+            if random.random() < 0.5:
+                image0, image1 = image1, image0
+        else:
+            if random.random() < 0.5:
+                sentence = sentence.replace("left", "[TEMP_TOKEN]")
+                sentence = sentence.replace("right", "left")
+                sentence = sentence.replace("[TEMP_TOKEN]", "right")
+
+                image0, image1 = image1, image0
+
+        samples["text_input"] = sentence
+        samples["image0"] = image0
+        samples["image1"] = image1
+
+        return samples
+
     def __getitem__(self, index):
         ann = self.annotation[index]
 
@@ -45,11 +71,13 @@ class NLVRDataset(MultimodalClassificationDataset, __DisplMixin):
         sentence = self.text_processor(ann["sentence"])
         label = self.class_labels[ann["label"]]
 
-        return {
-            "image0": image0,
-            "image1": image1,
-            "text_input": sentence,
-            "label": label,
-            # "image_id": ann["image_id"],
-            "instance_id": ann["instance_id"],
-        }
+        return self._flip(
+            {
+                "image0": image0,
+                "image1": image1,
+                "text_input": sentence,
+                "label": label,
+                # "image_id": ann["image_id"],
+                "instance_id": ann["instance_id"],
+            }
+        )

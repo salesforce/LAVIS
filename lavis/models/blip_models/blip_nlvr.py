@@ -33,9 +33,6 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
             nn.Linear(hidden_size, num_classes),
         )
 
-    def _rampup_factor(self, epoch, iters, num_iters_per_epoch):
-        return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
-
     def forward(self, samples, is_train=True):
         text = samples["text_input"]
         text = self.tokenizer(text, padding="longest", return_tensors="pt").to(
@@ -135,4 +132,5 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
 
         msg = self.load_state_dict(state_dict, strict=False)
         print("load checkpoint from %s" % url_or_filename)
+        print(f"missing keys {msg.missing_keys}")
         return msg
