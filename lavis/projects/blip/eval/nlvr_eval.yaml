@@ -1,0 +1,31 @@
+model:
+  arch: blip_nlvr
+
+datasets:
+  nlvr: # name of the dataset builder
+    vis_processor:
+        eval:
+          name: "blip_image_eval"
+          image_size: 384
+    text_processor:
+        eval:
+          name: "blip_caption"
+
+run:
+  task: multimodal_classification
+
+  batch_size_train: 16
+  batch_size_eval: 64
+  num_workers: 4
+
+  seed: 42
+  output_dir: "output/BLIP/NLVR"
+
+  evaluate: True
+  test_splits: ["val", "test"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
