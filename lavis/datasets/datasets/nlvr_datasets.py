@@ -81,3 +81,9 @@ class NLVRDataset(MultimodalClassificationDataset, __DisplMixin):
                 "instance_id": ann["instance_id"],
             }
         )
+
+
+class NLVREvalDataset(NLVRDataset):
+    @staticmethod
+    def _flip(samples):
+        return samples

@@ -155,5 +155,8 @@ class ModelZoo:
     def __iter__(self):
         return iter(self.model_zoo.items())
 
+    def __len__(self):
+        return sum([len(v) for v in self.model_zoo.values()])
+
 
 model_zoo = ModelZoo()

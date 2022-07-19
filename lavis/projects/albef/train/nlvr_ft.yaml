@@ -24,7 +24,7 @@ run:
   init_lr: 2e-5
   min_lr: 1e-6
   weight_decay: 0.05
-  max_epoch: 10
+  max_epoch: 15
   batch_size_train: 16
   batch_size_eval: 64
   num_workers: 4
