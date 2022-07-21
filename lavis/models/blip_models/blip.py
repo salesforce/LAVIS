@@ -106,7 +106,7 @@ class BlipFeatureExtractor(BlipBase):
 
         if pretrained:
             msg = self.load_from_pretrained(pretrained)
-            assert len(msg.missing_keys) == 0
+            assert len(msg[1].missing_keys) == 0
 
     def forward(self, image, caption, mode, apply_proj=False, normalized=False):
         assert mode in [
