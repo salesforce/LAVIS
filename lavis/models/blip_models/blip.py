@@ -55,7 +55,7 @@ class BlipBase(BaseModel):
         logging.info("Missing keys {}".format(msg.missing_keys))
         logging.info("load checkpoint from %s" % url_or_filename)
 
-        return self, msg
+        return msg
 
 
 class BlipFeatureExtractor(BlipBase):
@@ -106,7 +106,7 @@ class BlipFeatureExtractor(BlipBase):
 
         if pretrained:
             msg = self.load_from_pretrained(pretrained)
-            assert len(msg[1].missing_keys) == 0
+            assert len(msg.missing_keys) == 0
 
     def forward(self, image, caption, mode, apply_proj=False, normalized=False):
         assert mode in [

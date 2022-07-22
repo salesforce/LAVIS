@@ -8,8 +8,7 @@ from matplotlib import pyplot as plt
 from scipy.ndimage import filters
 from skimage import transform as skimage_transform
 
-from lavis.models.blip_models import init_tokenizer
-from lavis.models import BlipITM, load_model
+from lavis.models import BlipBase, BlipITM, load_model
 
 
 def resize_img(raw_img):
@@ -39,7 +38,7 @@ def load_model_cache(name, model_type, is_eval, device):
 
 @st.cache(allow_output_mutation=True)
 def init_bert_tokenizer():
-    tokenizer = init_tokenizer()
+    tokenizer = BlipBase.init_tokenizer()
     return tokenizer
 
 
