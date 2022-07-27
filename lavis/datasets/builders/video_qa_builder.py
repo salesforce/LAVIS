@@ -11,9 +11,6 @@ class VideoQABuilder(BaseDatasetBuilder):
     train_dataset_cls = VideoQADataset
     eval_dataset_cls = VideoQADataset
 
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
     def build(self):
         datasets = super().build()
 
@@ -35,15 +32,9 @@ class MSRVTTQABuilder(VideoQABuilder):
         "default": "configs/datasets/msrvtt/defaults_qa.yaml",
     }
 
-    def _download_vis(self):
-        pass
-
 
 @registry.register_builder("msvd_qa")
 class MSVDQABuilder(VideoQABuilder):
     type2path = {
         "default": "configs/datasets/msvd/defaults_qa.yaml",
     }
-
-    def _download_vis(self):
-        pass

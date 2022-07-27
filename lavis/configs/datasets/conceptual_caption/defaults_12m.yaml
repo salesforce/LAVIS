@@ -12,4 +12,5 @@ datasets:
           storage:
               - conceptual_caption/annotations/cc12m.json
       images:
-          storage: /export/share/datasets/vision_language/cc12m_resize
+          storage: conceptual_caption/images_12m
+          # storage: /export/share/datasets/vision_language/cc12m_resize

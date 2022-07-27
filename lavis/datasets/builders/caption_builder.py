@@ -21,17 +21,6 @@ class COCOCapBuilder(BaseDatasetBuilder):
         "default": "configs/datasets/coco/defaults_cap.yaml",
     }
 
-    vis_urls = {
-        "images": {
-            "train": "http://images.cocodataset.org/zips/train2014.zip",  # md5: 0da8c0bd3d6becc4dcb32757491aca88
-            "val": "http://images.cocodataset.org/zips/val2014.zip",  # md5: a3d79f5ed8d289b7a7554ce06a5782b3
-            "test": "http://images.cocodataset.org/zips/test2014.zip",  # md5: 04127eef689ceac55e3a572c2c92f264
-        }
-    }
-
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
 
 @registry.register_builder("nocaps")
 class COCOCapBuilder(BaseDatasetBuilder):
@@ -40,12 +29,6 @@ class COCOCapBuilder(BaseDatasetBuilder):
     type2path = {
         "default": "configs/datasets/nocaps/defaults.yaml",
     }
-
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
-    def _download_vis(self):
-        pass
 
 
 @registry.register_builder("msrvtt_caption")
@@ -57,12 +40,6 @@ class MSRVTTCapBuilder(BaseDatasetBuilder):
         "default": "configs/datasets/msrvtt/defaults_cap.yaml",
     }
 
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
-    def _download_vis(self):
-        pass
-
 
 @registry.register_builder("msvd_caption")
 class MSVDCapBuilder(BaseDatasetBuilder):
@@ -73,12 +50,6 @@ class MSVDCapBuilder(BaseDatasetBuilder):
         "default": "configs/datasets/msvd/defaults_cap.yaml",
     }
 
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
-    def _download_vis(self):
-        pass
-
 
 @registry.register_builder("vatex_caption")
 class VATEXCapBuilder(BaseDatasetBuilder):
@@ -88,9 +59,3 @@ class VATEXCapBuilder(BaseDatasetBuilder):
     type2path = {
         "default": "configs/datasets/vatex/defaults_cap.yaml",
     }
-
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
-    def _download_vis(self):
-        pass

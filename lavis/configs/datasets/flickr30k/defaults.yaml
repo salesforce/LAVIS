@@ -7,12 +7,13 @@ datasets:
       annotations:
         train:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_train.json
-          storage: flickr30k/train.json
+          storage: flickr30k/annotations/train.json
         val:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_val.json
-          storage: flickr30k/val.json
+          storage: flickr30k/annotations/val.json
         test:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_test.json
-          storage: flickr30k/test.json
+          storage: flickr30k/annotations/test.json
       images:
-          storage: /export/share/datasets/vision/flickr30k
+          storage: flickr30k/images
+          # storage: /export/share/datasets/vision/flickr30k

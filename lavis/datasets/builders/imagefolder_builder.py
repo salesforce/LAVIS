@@ -12,12 +12,6 @@ class ImageNetBuilder(BaseDatasetBuilder):
 
     type2path = {"default": "configs/datasets/imagenet/defaults.yaml"}
 
-    def __init__(self, cfg=None):
-        super().__init__(cfg)
-
-    def _download_vis(self):
-        pass
-
     def _download_ann(self):
         pass
 

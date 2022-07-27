@@ -19,6 +19,6 @@ datasets:
           url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/msvd/train_ans2label.json
           storage: msvd/annotations/qa_ans2label.json
       videos:
-        storage: /export/share/dongxuli/data/msvd_qa/videos
+        storage: msvd/videos
 
       instance_id_key: question_id

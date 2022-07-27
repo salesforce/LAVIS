@@ -16,4 +16,5 @@ datasets:
           url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/didemo/retrieval_test.json
           storage: didemo/annotations/retrieval_test.json
       videos:
-        storage: /export/share/dongxuli/data/didemo_retrieval/videos
+        storage: didemo/videos
+        # storage: /export/share/dongxuli/data/didemo_retrieval/videos

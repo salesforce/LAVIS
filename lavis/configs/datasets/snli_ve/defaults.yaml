@@ -16,4 +16,5 @@ datasets:
           url: /export/share/dongxuli/data/lavis/snli/annotation/ve_test.json
           storage: snli/annotations/ve_test.json
       images:
-          storage: /export/share/datasets/vision/flickr30k/flickr30k-images
+          storage: flickr30k/images/flickr30k-images
+          # storage: /export/share/datasets/vision/flickr30k/flickr30k-images

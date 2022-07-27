@@ -16,4 +16,4 @@ datasets:
           url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/msrvtt/retrieval_test.json
           storage: msrvtt/annotations/retrieval_test.json
       videos:
-        storage: /export/share/dongxuli/data/msrvtt_retrieval/videos
+        storage: msrvtt/videos

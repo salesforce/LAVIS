@@ -12,4 +12,5 @@ datasets:
           storage:
               - sbu_captions/annotations/sbu.json
       images:
-          storage: /export/share/datasets/vision_language/sbu_resize
+          storage: sbu_captions/images
+          # storage: /export/share/datasets/vision_language/sbu_resize

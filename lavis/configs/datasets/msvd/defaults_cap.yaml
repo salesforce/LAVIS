@@ -16,4 +16,4 @@ datasets:
           url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/msvd/cap_test.json
           storage: msvd/annotations/cap_test.json
       videos:
-        storage: /export/share/dongxuli/data/msvd_qa/videos
+        storage: msvd/videos

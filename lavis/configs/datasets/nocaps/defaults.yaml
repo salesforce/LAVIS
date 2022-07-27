@@ -8,9 +8,10 @@ datasets:
       annotations:
         val:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/nocaps_val.json
-          storage:  nocap/annotations/nocaps_val.json
+          storage:  nocaps/annotations/nocaps_val.json
         test:
           url: https://storage.googleapis.com/sfr-vision-language-research/datasets/nocaps_test.json
-          storage: nocap/annotations/nocaps_test.json
+          storage: nocaps/annotations/nocaps_test.json
       images:
-        storage: /export/share/datasets/vision/nocaps/
+        storage: nocaps/images
+        # storage: /export/share/datasets/vision/nocaps/
