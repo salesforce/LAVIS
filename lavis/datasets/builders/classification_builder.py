@@ -9,7 +9,7 @@ class NLVRBuilder(BaseDatasetBuilder):
     train_dataset_cls = NLVRDataset
     eval_dataset_cls = NLVREvalDataset
 
-    type2path = {"default": "configs/datasets/nlvr/defaults.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/nlvr/defaults.yaml"}
 
 
 @registry.register_builder("snli_ve")
@@ -17,4 +17,4 @@ class SNLIVisualEntailmentBuilder(BaseDatasetBuilder):
     train_dataset_cls = SNLIVisualEntialmentDataset
     eval_dataset_cls = SNLIVisualEntialmentDataset
 
-    type2path = {"default": "configs/datasets/snli_ve/defaults.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/snli_ve/defaults.yaml"}

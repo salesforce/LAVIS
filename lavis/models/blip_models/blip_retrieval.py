@@ -18,7 +18,7 @@ from torch import nn
 
 @registry.register_model("blip_retrieval")
 class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_retrieval_base.yaml",
         "coco": "configs/models/blip_retrieval_coco.yaml",
         "flickr": "configs/models/blip_retrieval_flickr.yaml",

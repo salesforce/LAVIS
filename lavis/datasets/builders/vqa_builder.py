@@ -11,7 +11,7 @@ class COCOVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = COCOVQADataset
     eval_dataset_cls = COCOVQAEvalDataset
 
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/coco/defaults_vqa.yaml",
         "eval": "configs/datasets/coco/eval_vqa.yaml",
     }
@@ -20,12 +20,12 @@ class COCOVQABuilder(BaseDatasetBuilder):
 @registry.register_builder("vg_vqa")
 class VGVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = VGVQADataset
-    type2path = {"default": "configs/datasets/vg/defaults_vqa.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/vg/defaults_vqa.yaml"}
 
 
 @registry.register_builder("ok_vqa")
 class OKVQABuilder(COCOVQABuilder):
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/okvqa/defaults.yaml",
     }
 
@@ -35,4 +35,4 @@ class AOKVQABuilder(BaseDatasetBuilder):
     train_dataset_cls = AOKVQADataset
     eval_dataset_cls = AOKVQAEvalDataset
 
-    type2path = {"default": "configs/datasets/aokvqa/defaults.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/aokvqa/defaults.yaml"}

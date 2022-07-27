@@ -10,7 +10,7 @@ class ImageNetBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageFolderDataset
     eval_dataset_cls = ImageFolderDataset
 
-    type2path = {"default": "configs/datasets/imagenet/defaults.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/imagenet/defaults.yaml"}
 
     def _download_ann(self):
         pass

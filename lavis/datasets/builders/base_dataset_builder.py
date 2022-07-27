@@ -77,7 +77,7 @@ class BaseDatasetBuilder:
 
     @classmethod
     def default_config_path(cls, type="default"):
-        return utils.get_abs_path(cls.type2path[type])
+        return utils.get_abs_path(cls.DATASET_CONFIG_DICT[type])
 
     def _download_data(self):
         self._download_ann()

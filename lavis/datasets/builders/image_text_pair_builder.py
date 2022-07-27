@@ -8,25 +8,29 @@ from lavis.datasets.datasets.image_text_pair_datasets import ImageTextPairDatase
 class ConceptualCaption3MBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
-    type2path = {"default": "configs/datasets/conceptual_caption/defaults_3m.yaml"}
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/conceptual_caption/defaults_3m.yaml"
+    }
 
 
 @registry.register_builder("conceptual_caption_12m")
 class ConceptualCaption12MBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
-    type2path = {"default": "configs/datasets/conceptual_caption/defaults_12m.yaml"}
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/conceptual_caption/defaults_12m.yaml"
+    }
 
 
 @registry.register_builder("sbu_caption")
 class SBUCaptionBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
-    type2path = {"default": "configs/datasets/sbu_caption/defaults.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/sbu_caption/defaults.yaml"}
 
 
 @registry.register_builder("vg_caption")
 class VGCaptionBuilder(BaseDatasetBuilder):
     train_dataset_cls = ImageTextPairDataset
 
-    type2path = {"default": "configs/datasets/vg/defaults_caption.yaml"}
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/vg/defaults_caption.yaml"}

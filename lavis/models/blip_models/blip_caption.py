@@ -7,7 +7,7 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_caption")
 class BlipCaption(BlipBase):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_caption_base.yaml",
         "base_coco": "configs/models/blip_caption_base_coco.yaml",
         "large": "configs/models/blip_caption_large.yaml",

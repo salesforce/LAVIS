@@ -16,7 +16,7 @@ from lavis.models.base_model import MomentumDistilationMixin
 
 @registry.register_model("albef_nlvr")
 class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_nlvr_base.yaml",
     }
 

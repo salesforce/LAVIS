@@ -53,7 +53,9 @@ def get_model_config(model_name, model_type="base"):
 
     from omegaconf import OmegaConf
 
-    config_path = registry.get_model_class(model_name).PRETRAINED_MODEL_DICT[model_type]
+    config_path = registry.get_model_class(model_name).PRETRAINED_MODEL_CONFIG_DICT[
+        model_type
+    ]
 
     config = OmegaConf.load(config_path)
     config = OmegaConf.to_container(config)
@@ -134,7 +136,7 @@ def load_model_and_preprocess(name, model_type="base", is_eval=False, device="cp
 class ModelZoo:
     def __init__(self) -> None:
         self.model_zoo = {
-            k: list(v.PRETRAINED_MODEL_DICT.keys())
+            k: list(v.PRETRAINED_MODEL_CONFIG_DICT.keys())
             for k, v in registry.mapping["model_name_mapping"].items()
         }
 

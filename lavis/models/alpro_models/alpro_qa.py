@@ -12,7 +12,7 @@ from lavis.models.timesformer.vit import TimeSformer
 
 @registry.register_model("alpro_qa")
 class AlproQA(BaseModel):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/alpro_qa.yaml",
         "msrvtt": "configs/models/alpro_qa_msrvtt.yaml",
         "msvd": "configs/models/alpro_qa_msvd.yaml",

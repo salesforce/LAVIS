@@ -13,7 +13,7 @@ from torch import nn
 
 @registry.register_model("blip_pretrain")
 class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_pretrain_base.yaml",
         # "large": "configs/models/blip_pretrain_large.yaml",
     }

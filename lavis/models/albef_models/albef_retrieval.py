@@ -12,7 +12,7 @@ from torch import nn
 
 @registry.register_model("albef_retrieval")
 class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_retrieval.yaml",
         "coco": "configs/models/albef_retrieval_coco.yaml",
         "flickr": "configs/models/albef_retrieval_flickr.yaml",

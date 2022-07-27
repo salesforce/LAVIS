@@ -96,7 +96,7 @@ def load_dataset(name, cfg_path=None, vis_path=None, data_type=None):
 class DatasetZoo:
     def __init__(self) -> None:
         self.dataset_zoo = {
-            k: list(v.type2path.keys())
+            k: list(v.DATASET_CONFIG_DICT.keys())
             for k, v in sorted(registry.mapping["builder_name_mapping"].items())
         }
 

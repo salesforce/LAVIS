@@ -20,7 +20,7 @@ from torch import nn
 
 @registry.register_model("alpro_retrieval")
 class AlproRetrieval(BaseModel):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/alpro_retrieval.yaml",
         "msrvtt": "configs/models/alpro_retrieval_msrvtt.yaml",
         "didemo": "configs/models/alpro_retrieval_didemo.yaml",

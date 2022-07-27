@@ -12,7 +12,7 @@ from torch import nn
 
 @registry.register_model("blip_classification")
 class BlipClassification(BlipBase, MomentumDistilationMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_classification_base.yaml",
     }
 

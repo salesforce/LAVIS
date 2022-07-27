@@ -17,7 +17,7 @@ class COCOCapBuilder(BaseDatasetBuilder):
     train_dataset_cls = COCOCapDataset
     eval_dataset_cls = COCOCapEvalDataset
 
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/coco/defaults_cap.yaml",
     }
 
@@ -26,7 +26,7 @@ class COCOCapBuilder(BaseDatasetBuilder):
 class COCOCapBuilder(BaseDatasetBuilder):
     eval_dataset_cls = NoCapsEvalDataset
 
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/nocaps/defaults.yaml",
     }
 
@@ -36,7 +36,7 @@ class MSRVTTCapBuilder(BaseDatasetBuilder):
     train_dataset_cls = VideoCaptionDataset
     eval_dataset_cls = VideoCaptionEvalDataset
 
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/msrvtt/defaults_cap.yaml",
     }
 
@@ -46,7 +46,7 @@ class MSVDCapBuilder(BaseDatasetBuilder):
     train_dataset_cls = VideoCaptionDataset
     eval_dataset_cls = VideoCaptionEvalDataset
 
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/msvd/defaults_cap.yaml",
     }
 
@@ -56,6 +56,6 @@ class VATEXCapBuilder(BaseDatasetBuilder):
     train_dataset_cls = VideoCaptionDataset
     eval_dataset_cls = VideoCaptionEvalDataset
 
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/vatex/defaults_cap.yaml",
     }

@@ -28,13 +28,13 @@ class VideoQABuilder(BaseDatasetBuilder):
 
 @registry.register_builder("msrvtt_qa")
 class MSRVTTQABuilder(VideoQABuilder):
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/msrvtt/defaults_qa.yaml",
     }
 
 
 @registry.register_builder("msvd_qa")
 class MSVDQABuilder(VideoQABuilder):
-    type2path = {
+    DATASET_CONFIG_DICT = {
         "default": "configs/datasets/msvd/defaults_qa.yaml",
     }

@@ -15,7 +15,7 @@ from transformers import BertConfig
 
 @registry.register_model("blip_nlvr")
 class BlipNLVR(BlipBase, MomentumDistilationMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_nlvr_base.yaml",
     }
 

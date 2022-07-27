@@ -9,7 +9,7 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_vqa")
 class BlipVQA(BlipBase):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_vqa_base.yaml",
         "vqav2": "configs/models/blip_vqav2.yaml",
         # "large": "configs/models/blip_vqa_large.yaml"

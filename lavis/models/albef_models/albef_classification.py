@@ -13,7 +13,7 @@ from torch import nn
 
 @registry.register_model("albef_classification")
 class AlbefClassification(AlbefBase, MomentumDistilationMixin):
-    PRETRAINED_MODEL_DICT = {
+    PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_classification.yaml",
         "ve": "configs/models/albef_classification_ve.yaml",
     }
