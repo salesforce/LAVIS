@@ -1,17 +1,18 @@
+import datetime
 import logging
 import time
-import datetime
 
+import lavis.common.dist_utils as dist_utils
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torch.distributed as dist
-import lavis.common.dist_utils as dist_utils
+import torch.nn.functional as F
 from lavis.common.config import node_to_dict
 from lavis.common.dist_utils import get_rank
 from lavis.common.logger import MetricLogger
 from lavis.common.registry import registry
 from lavis.models.alpro_models import init_tokenizer, load_from_pretrained
+from lavis.models.alpro_models.alpro_outputs import AlproIntermediateOutput, AlproOutput
 from lavis.models.base_model import BaseModel, all_gather_with_grad
 from lavis.models.med import XBertEncoder
 from lavis.models.timesformer.vit import TimeSformer
@@ -108,7 +109,13 @@ class AlproRetrieval(BaseModel):
 
         vtc_loss = (loss_v2t + loss_t2v) / 2
 
-        vtm_loss, vtm_logits, vtm_labels = self.compute_vtm(
+        (
+            vtm_loss,
+            vtm_logits,
+            vtm_labels,
+            encoder_output,
+            encoder_output_neg,
+        ) = self.compute_vtm(
             text_embeds=text_embeds,
             text_atts=text.attention_mask,
             image_embeds=video_embeds,
@@ -119,7 +126,20 @@ class AlproRetrieval(BaseModel):
 
         loss = vtc_loss + vtm_loss
 
-        return {"loss": loss}
+        # return {"loss": loss}
+        return AlproOutput(
+            loss=loss,
+            loss_vtc=vtc_loss,
+            loss_vtm=vtm_loss,
+            intermediate_output=AlproIntermediateOutput(
+                video_embeds=video_embeds,
+                text_embeds=text_embeds,
+                encoder_output=encoder_output,
+                encoder_output_neg=encoder_output_neg,
+                vtm_logits=vtm_logits,
+                vtm_labels=vtm_labels,
+            ),
+        )
 
     def compute_vtm(
         self, text_embeds, text_atts, image_embeds, image_atts, sim_i2t, sim_t2i
@@ -205,7 +225,13 @@ class AlproRetrieval(BaseModel):
         ).to(device)
         vtm_loss = F.cross_entropy(vtm_logits, vtm_labels)
 
-        return vtm_loss, vtm_logits, vtm_labels
+        return (
+            vtm_loss,
+            vtm_logits,
+            vtm_labels,
+            encoder_outputs_pos,
+            encoder_outputs_neg,
+        )
 
     def compute_sim_matrix(self, data_loader, task_cfg):
         k_test = task_cfg.get("k_test")

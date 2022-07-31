@@ -5,6 +5,10 @@ from torch import nn
 from lavis.common.registry import registry
 from lavis.common.config import node_to_dict
 from lavis.models.alpro_models import init_tokenizer, load_from_pretrained
+from lavis.models.alpro_models.alpro_outputs import (
+    AlproIntermediateOutput,
+    AlproOutputWithLogits,
+)
 from lavis.models.base_model import BaseModel
 from lavis.models.med import XBertEncoder
 from lavis.models.timesformer.vit import TimeSformer
@@ -73,17 +77,26 @@ class AlproQA(BaseModel):
         attention_mask = torch.cat([text.attention_mask, video_atts], dim=1)
         embedding_output = torch.cat([text_embeds, video_embeds], dim=1)
 
-        output = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_output = super(type(self.text_encoder), self.text_encoder).forward(
             encoder_embeds=embedding_output,
             attention_mask=attention_mask,
             return_dict=True,
             mode="fusion",
         )
 
-        prediction = self.classifier(output.last_hidden_state[:, 0, :])
+        prediction = self.classifier(encoder_output.last_hidden_state[:, 0, :])
         if is_train:
             loss = F.cross_entropy(prediction, targets)
-            return {"loss": loss}
+            # return {"loss": loss}
+            return AlproOutputWithLogits(
+                loss=loss,
+                intermediate_output=AlproIntermediateOutput(
+                    video_embeds=video_embeds,
+                    text_embeds=text_embeds,
+                    encoder_output=encoder_output,
+                ),
+                logits=prediction,
+            )
         else:
             return {"predictions": prediction, "targets": targets}
 

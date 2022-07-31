@@ -5,6 +5,10 @@ import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.models.base_model import MomentumDistilationMixin
 from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import (
+    BlipIntermediateOutput,
+    BlipOutputWithLogits,
+)
 from lavis.models.med import XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
@@ -77,9 +81,9 @@ class BlipClassification(BlipBase, MomentumDistilationMixin):
         targets = samples["label"]
 
         image_embeds = self.visual_encoder.forward_features(samples["image"])
-        multimodal_embeds = self.text_encoder(samples["tokenized_text"], image_embeds)
+        encoder_output = self.text_encoder(samples["tokenized_text"], image_embeds)
 
-        prediction = self.cls_head(multimodal_embeds.last_hidden_state[:, 0, :])
+        prediction = self.cls_head(encoder_output.last_hidden_state[:, 0, :])
 
         if is_train:
             if self.use_distill:
@@ -87,12 +91,12 @@ class BlipClassification(BlipBase, MomentumDistilationMixin):
                     self._momentum_update()
 
                     image_embeds_m = self.visual_encoder_m(samples["image"])
-                    multimodal_embeds_m = self.text_encoder_m(
+                    encoder_output_m = self.text_encoder_m(
                         samples["tokenized_text"], image_embeds_m
                     )
 
                     prediction_m = self.cls_head_m(
-                        multimodal_embeds_m.last_hidden_state[:, 0, :]
+                        encoder_output_m.last_hidden_state[:, 0, :]
                     )
 
                 alpha = self.alpha * self._rampup_factor(
@@ -110,7 +114,19 @@ class BlipClassification(BlipBase, MomentumDistilationMixin):
             else:
                 loss = F.cross_entropy(prediction, targets)
 
-            return {"loss": loss}
+            # return {"loss": loss}
+            return BlipOutputWithLogits(
+                loss=loss,
+                intermediate_output=BlipIntermediateOutput(
+                    image_embeds=image_embeds,
+                    image_embeds_m=image_embeds_m,
+                    encoder_output=encoder_output,
+                    encoder_output_m=encoder_output_m,
+                ),
+                logits=prediction,
+                logits_m=prediction_m,
+            )
+
         else:
             return {"predictions": prediction, "targets": targets}
 

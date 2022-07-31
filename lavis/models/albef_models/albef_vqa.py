@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path, is_url
 from lavis.models.albef_models import AlbefBase
+from lavis.models.albef_models.albef_outputs import AlbefIntermediateOutput, AlbefOutput
 from lavis.models.base_model import MomentumDistilationMixin, tile
 from lavis.models.med import BertConfig, BertLMHeadModel, XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
@@ -62,10 +63,27 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
 
     def forward(self, samples):
-        multimodal_embeds = self.forward_encoder(samples)
-        decoder_out = self.forward_decoder(samples, encoder_out=multimodal_embeds)
+        (
+            encoder_output,
+            encoder_output_m,
+            image_embeds,
+            image_embeds_m,
+        ) = self.forward_encoder(samples)
+        loss, decoder_output, decoder_targets = self.forward_decoder(
+            samples, encoder_out=(encoder_output, encoder_output_m)
+        )
 
-        return decoder_out
+        return AlbefOutput(
+            loss=loss,
+            intermediate_output=AlbefIntermediateOutput(
+                image_embeds=image_embeds,
+                image_embeds_m=image_embeds_m,
+                encoder_output=encoder_output,
+                encoder_output_m=encoder_output_m,
+                decoder_output=decoder_output,
+                decoder_labels=decoder_targets,
+            ),
+        )
 
     def forward_encoder(self, samples):
         questions = samples["text_input"]
@@ -79,7 +97,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         samples.update({"tokenized_text": questions})
 
         image_embeds = self.visual_encoder.forward_features(samples["image"])
-        multimodal_embeds = self.text_encoder(
+        encoder_output = self.text_encoder(
             tokenized_text=samples["tokenized_text"], visual_embeds=image_embeds
         )
 
@@ -87,14 +105,15 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             self._momentum_update()
             with torch.no_grad():
                 image_embeds_m = self.visual_encoder_m(samples["image"])
-                multimodal_embeds_m = self.text_encoder_m(
+                encoder_output_m = self.text_encoder_m(
                     tokenized_text=samples["tokenized_text"],
                     visual_embeds=image_embeds_m,
                 )
         else:
-            multimodal_embeds_m = None
+            encoder_output_m = None
+            image_embeds_m = None
 
-        return multimodal_embeds, multimodal_embeds_m
+        return encoder_output, encoder_output_m, image_embeds, image_embeds_m
 
     def forward_decoder(self, samples, encoder_out, **kwargs):
         answers = self.tokenizer(
@@ -155,7 +174,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
 
         loss = loss.sum() / bsz
 
-        return {"loss": loss}
+        return loss, answer_output, answer_targets
 
     def predict_answers(
         self, samples, num_ans_candidates=None, answer_list=None, **kwargs

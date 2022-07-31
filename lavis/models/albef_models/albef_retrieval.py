@@ -4,6 +4,11 @@ import torch
 import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.models.albef_models import AlbefBase, compute_sim_matrix
+from lavis.models.albef_models.albef_outputs import (
+    AlbefIntermediateOutput,
+    AlbefOutput,
+    AlbefSimilarity,
+)
 from lavis.models.base_model import MomentumDistilationMixin, SharedQueueMixin
 from lavis.models.med import XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder
@@ -129,9 +134,8 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
             text_output_m = self.text_encoder_m.forward_features(text)
-            text_feat_m = F.normalize(
-                self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
-            )
+            text_embeds_m = text_output_m.last_hidden_state
+            text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_all = torch.cat(
                 [text_feat_m.t(), self.text_queue.clone().detach()], dim=1
             )
@@ -165,11 +169,11 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
                 F.log_softmax(sim_t2i, dim=1) * sim_targets, dim=1
             ).mean()
 
-        loss_ita = (loss_i2t + loss_t2i) / 2
+        loss_itc = (loss_i2t + loss_t2i) / 2
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m, idx)
 
-        output_pos = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_output_pos = super(type(self.text_encoder), self.text_encoder).forward(
             encoder_embeds=text_embeds,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
@@ -210,7 +214,7 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         image_embeds_all = torch.cat([image_embeds_neg, image_embeds], dim=0)
         image_atts_all = torch.cat([image_atts, image_atts], dim=0)
 
-        output_neg = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_output_neg = super(type(self.text_encoder), self.text_encoder).forward(
             encoder_embeds=text_embeds_all,
             attention_mask=text_atts_all,
             encoder_hidden_states=image_embeds_all,
@@ -221,24 +225,42 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
 
         vl_embeddings = torch.cat(
             [
-                output_pos.last_hidden_state[:, 0, :],
-                output_neg.last_hidden_state[:, 0, :],
+                encoder_output_pos.last_hidden_state[:, 0, :],
+                encoder_output_neg.last_hidden_state[:, 0, :],
             ],
             dim=0,
         )
-        vl_output = self.itm_head(vl_embeddings)
+        itm_logits = self.itm_head(vl_embeddings)
 
         itm_labels = torch.cat(
             [torch.ones(bs, dtype=torch.long), torch.zeros(2 * bs, dtype=torch.long)],
             dim=0,
         ).to(self.device)
-        loss_itm = F.cross_entropy(vl_output, itm_labels)
+        loss_itm = F.cross_entropy(itm_logits, itm_labels)
 
-        return {
-            "loss": loss_ita + loss_itm,
-            "loss_ita": loss_ita,
-            "loss_itm": loss_itm,
-        }
+        return AlbefOutput(
+            loss=loss_itc + loss_itm,
+            loss_itc=loss_itc,
+            loss_itm=loss_itm,
+            sims=AlbefSimilarity(
+                sim_i2t=sim_i2t,
+                sim_t2i=sim_t2i,
+                sim_i2t_m=sim_i2t_m,
+                sim_t2i_m=sim_t2i_m,
+                sim_i2t_targets=sim_i2t_targets,
+                sim_t2i_targets=sim_t2i_targets,
+            ),
+            intermediate_output=AlbefIntermediateOutput(
+                image_embeds=image_embeds,
+                image_embeds_m=image_embeds_m,
+                text_embeds=text_embeds,
+                text_embeds_m=text_embeds_m,
+                encoder_output=encoder_output_pos,
+                encoder_output_neg=encoder_output_neg,
+                itm_logits=itm_logits,
+                itm_labels=itm_labels,
+            ),
+        )
 
     @classmethod
     def from_config(cls, cfg=None):

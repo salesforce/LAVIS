@@ -3,23 +3,38 @@ Adapted from https://github.com/openai/CLIP. Originally MIT License, Copyright (
 """
 
 import datetime
+import json
+import logging
+import os
+import re
+import time
+import warnings
 from collections import OrderedDict
+from copy import deepcopy
 from dataclasses import dataclass
-from typing import Callable, Optional, Tuple, Union
+from pathlib import Path
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 import torch.nn.functional as F
-import time
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path
 from lavis.models.base_model import BaseModel
+from lavis.models.clip_models.timm_model import TimmModel
+from lavis.models.clip_models.transform import image_transform
+from lavis.models.clip_models.utils import freeze_batch_norm_2d
+from lavis.tasks.multimodal_classification import MultimodalClassificationTask
 from torch import nn
 
-from lavis.tasks.multimodal_classification import MultimodalClassificationTask
+from .pretrained import (
+    download_pretrained,
+    get_pretrained_url,
+    list_pretrained_tag_models,
+)
 
-from .timm_model import TimmModel
-from .utils import freeze_batch_norm_2d
+_MODEL_CONFIG_PATHS = [Path(__file__).parent.parent.parent / f"configs/models/clip/"]
+_MODEL_CONFIGS = {}  # directory (model_name: config) of model architecture configs
 
 
 class Bottleneck(nn.Module):
@@ -814,27 +829,6 @@ def trace_model(model, batch_size=256, device=torch.device("cpu")):
     return
 
 
-# factory.py
-import json
-import logging
-import os
-import re
-from copy import deepcopy
-from pathlib import Path
-
-import torch
-
-# from .model import CLIP, convert_weights_to_fp16
-# from .openai import load_openai_model
-from .pretrained import download_pretrained, get_pretrained_url
-
-# from .transform import image_transform
-
-
-_MODEL_CONFIG_PATHS = [Path(__file__).parent.parent.parent / f"configs/models/clip/"]
-_MODEL_CONFIGS = {}  # directory (model_name: config) of model architecture configs
-
-
 def _natural_key(string_):
     return [int(s) if s.isdigit() else s for s in re.split(r"(\d+)", string_.lower())]
 
@@ -952,27 +946,27 @@ def create_model(
     return model
 
 
-# def create_model_and_transforms(
-#     model_name: str,
-#     pretrained: str = "",
-#     precision: str = "fp32",
-#     device: torch.device = torch.device("cpu"),
-#     jit: bool = False,
-#     force_quick_gelu: bool = False,
-#     pretrained_image: bool = False,
-# ):
-#     model = create_model(
-#         model_name,
-#         pretrained,
-#         precision,
-#         device,
-#         jit,
-#         force_quick_gelu=force_quick_gelu,
-#         pretrained_image=pretrained_image,
-#     )
-#     preprocess_train = image_transform(model.visual.image_size, is_train=True)
-#     preprocess_val = image_transform(model.visual.image_size, is_train=False)
-#     return model, preprocess_train, preprocess_val
+def create_model_and_transforms(
+    model_name: str,
+    pretrained: str = "",
+    precision: str = "fp32",
+    device: torch.device = torch.device("cpu"),
+    jit: bool = False,
+    force_quick_gelu: bool = False,
+    pretrained_image: bool = False,
+):
+    model = create_model(
+        model_name,
+        pretrained,
+        precision,
+        device,
+        jit,
+        force_quick_gelu=force_quick_gelu,
+        pretrained_image=pretrained_image,
+    )
+    preprocess_train = image_transform(model.visual.image_size, is_train=True)
+    preprocess_val = image_transform(model.visual.image_size, is_train=False)
+    return model, preprocess_train, preprocess_val
 
 
 def list_models():
@@ -986,19 +980,6 @@ def add_model_config(path):
         path = Path(path)
     _MODEL_CONFIG_PATHS.append(path)
     _rescan_model_configs()
-
-
-# openai.py
-""" OpenAI pretrained model functions
-Adapted from https://github.com/openai/CLIP. Originally MIT License, Copyright (c) 2021 OpenAI.
-"""
-
-import warnings
-from typing import List, Union
-
-from .pretrained import list_pretrained_tag_models
-
-# __all__ = ["list_openai_models", "load_openai_model"]
 
 
 def list_openai_models() -> List[str]:

@@ -6,6 +6,10 @@ from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path, is_url
 from lavis.models.base_model import MomentumDistilationMixin
 from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import (
+    BlipOutput,
+    BlipIntermediateOutput,
+)
 from lavis.models.blip_models.nlvr_encoder import BertModel
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
 from timm.models.hub import download_cached_file
@@ -52,7 +56,7 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
         )
         image0_embeds, image1_embeds = torch.split(image_embeds, targets.size(0))
 
-        multimodal_embeds = self.text_encoder(
+        encoder_output = self.text_encoder(
             text.input_ids,
             attention_mask=text.attention_mask,
             encoder_hidden_states=[image0_embeds, image1_embeds],
@@ -63,11 +67,18 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
             return_dict=True,
         )
 
-        prediction = self.cls_head(multimodal_embeds.last_hidden_state[:, 0, :])
+        prediction = self.cls_head(encoder_output.last_hidden_state[:, 0, :])
 
         if is_train:
             loss = F.cross_entropy(prediction, targets)
-            return {"loss": loss}
+            # return {"loss": loss}
+            return BlipOutput(
+                loss=loss,
+                intermediate_output=BlipIntermediateOutput(
+                    image_embeds=torch.stack([image0_embeds, image1_embeds], dim=0),
+                    encoder_output=encoder_output,
+                ),
+            )
         else:
             return {"predictions": prediction, "targets": targets}
 

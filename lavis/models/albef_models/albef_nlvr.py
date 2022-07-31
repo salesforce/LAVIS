@@ -2,16 +2,15 @@ from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
-
-from torch import nn
-from transformers import BertConfig
-
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path
 from lavis.models.albef_models import AlbefBase
+from lavis.models.albef_models.albef_outputs import AlbefIntermediateOutput, AlbefOutput
+from lavis.models.base_model import MomentumDistilationMixin
 from lavis.models.med import BertModel
 from lavis.models.vit import VisionTransformerEncoder
-from lavis.models.base_model import MomentumDistilationMixin
+from torch import nn
+from transformers import BertConfig
 
 
 @registry.register_model("albef_nlvr")
@@ -92,7 +91,7 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
         )
         image0_embeds, image1_embeds = torch.split(image_embeds, targets.size(0))
 
-        multimodal_embeds = self.text_encoder(
+        encoder_output = self.text_encoder(
             text.input_ids,
             attention_mask=text.attention_mask,
             encoder_hidden_states=[image0_embeds, image1_embeds],
@@ -103,7 +102,7 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
             return_dict=True,
         )
 
-        prediction = self.cls_head(multimodal_embeds.last_hidden_state[:, 0, :])
+        prediction = self.cls_head(encoder_output.last_hidden_state[:, 0, :])
 
         if is_train:
             if self.use_distill:
@@ -114,7 +113,7 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
                     image0_embeds_m, image1_embeds_m = torch.split(
                         image_embeds_m, targets.size(0)
                     )
-                    multimodal_embeds_m = self.text_encoder(
+                    encoder_output_m = self.text_encoder(
                         text.input_ids,
                         attention_mask=text.attention_mask,
                         encoder_hidden_states=[image0_embeds_m, image1_embeds_m],
@@ -126,7 +125,7 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
                     )
 
                     prediction_m = self.cls_head_m(
-                        multimodal_embeds_m.last_hidden_state[:, 0, :]
+                        encoder_output_m.last_hidden_state[:, 0, :]
                     )
 
                 alpha = self.alpha * self._rampup_factor(
@@ -144,7 +143,21 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
             else:
                 loss = F.cross_entropy(prediction, targets)
 
-            return {"loss": loss}
+                encoder_output_m = None
+                image0_embeds_m, image1_embeds_m = None, None
+
+            # return {"loss": loss}
+            return AlbefOutput(
+                loss=loss,
+                intermediate_output=AlbefIntermediateOutput(
+                    image_embeds=torch.stack([image0_embeds, image1_embeds], dim=0),
+                    image_embeds_m=torch.stack(
+                        [image0_embeds_m, image1_embeds_m], dim=0
+                    ),
+                    encoder_output=encoder_output,
+                    encoder_output_m=encoder_output_m,
+                ),
+            )
         else:
             return {"predictions": prediction, "targets": targets}
 

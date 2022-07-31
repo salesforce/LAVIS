@@ -6,6 +6,11 @@ from lavis.common.registry import registry
 from lavis.models.base_model import MomentumDistilationMixin, SharedQueueMixin
 from lavis.models.blip_models import tie_encoder_decoder_weights
 from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import (
+    BlipOutput,
+    BlipSimilarity,
+    BlipIntermediateOutput,
+)
 from lavis.models.med import XBertEncoder, XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
@@ -106,6 +111,7 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
         with torch.no_grad():
             self.temp.clamp_(0.001, 0.5)
 
+        # image embeddings and features
         image_embeds = self.visual_encoder.forward_features(image)
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
@@ -120,10 +126,10 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             return_tensors="pt",
         ).to(image.device)
 
+        # text embeddings and features
         text_output = self.text_encoder.forward_features(text)
-        text_feat = F.normalize(
-            self.text_proj(text_output.last_hidden_state[:, 0, :]), dim=-1
-        )
+        text_embeds = text_output.last_hidden_state
+        text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
 
         # get momentum features
         with torch.no_grad():
@@ -137,9 +143,8 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             )
 
             text_output_m = self.text_encoder_m.forward_features(text)
-            text_feat_m = F.normalize(
-                self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
-            )
+            text_embeds_m = text_output_m.last_hidden_state
+            text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_all = torch.cat(
                 [text_feat_m.t(), self.text_queue.clone().detach()], dim=1
             )
@@ -167,7 +172,7 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             F.log_softmax(sim_t2i, dim=1) * sim_t2i_targets, dim=1
         ).mean()
 
-        loss_ita = (loss_i2t + loss_t2i) / 2
+        loss_itc = (loss_i2t + loss_t2i) / 2
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m)
 
@@ -230,13 +235,13 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             ],
             dim=0,
         )
-        vl_output = self.itm_head(vl_embeddings)
+        itm_logits = self.itm_head(vl_embeddings)
 
         itm_labels = torch.cat(
             [torch.ones(bs, dtype=torch.long), torch.zeros(2 * bs, dtype=torch.long)],
             dim=0,
         ).to(image.device)
-        loss_itm = F.cross_entropy(vl_output, itm_labels)
+        loss_itm = F.cross_entropy(itm_logits, itm_labels)
 
         # LM
         decoder_input_ids = text.input_ids.clone()
@@ -255,12 +260,33 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
         )
 
         loss_lm = decoder_output.loss
-        return {
-            "loss": loss_ita + loss_itm + loss_lm,
-            "loss_ita": loss_ita,
-            "loss_itm": loss_itm,
-            "loss_lm": loss_lm,
-        }
+
+        return BlipOutput(
+            loss=loss_itc + loss_itm + loss_lm,
+            loss_itc=loss_itc,
+            loss_itm=loss_itm,
+            loss_lm=loss_lm,
+            sims=BlipSimilarity(
+                sim_i2t=sim_i2t,
+                sim_t2i=sim_t2i,
+                sim_i2t_m=sim_i2t_m,
+                sim_t2i_m=sim_t2i_m,
+                sim_i2t_targets=sim_i2t_targets,
+                sim_t2i_targets=sim_t2i_targets,
+            ),
+            intermediate_output=BlipIntermediateOutput(
+                image_embeds=image_embeds,
+                text_embeds=text_embeds,
+                image_embeds_m=image_embeds_m,
+                text_embeds_m=text_embeds_m,
+                encoder_output=output_pos,
+                encoder_output_neg=output_neg,
+                itm_logits=itm_logits,
+                itm_labels=itm_labels,
+                decoder_output=decoder_output,
+                decoder_labels=decoder_targets,
+            ),
+        )
 
     @classmethod
     def from_config(cls, cfg=None):

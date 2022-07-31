@@ -3,17 +3,19 @@ from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn.functional as F
-from transformers import BertConfig
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path
 from lavis.models.albef_models import AlbefBase
-from lavis.models.base_model import (
-    MomentumDistilationMixin,
-    SharedQueueMixin,
+from lavis.models.albef_models.albef_outputs import (
+    AlbefIntermediateOutput,
+    AlbefOutput,
+    AlbefSimilarity,
 )
+from lavis.models.base_model import MomentumDistilationMixin, SharedQueueMixin
 from lavis.models.med import BertForMaskedLM
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
+from transformers import BertConfig
 
 
 @registry.register_model("albef_pretrain")
@@ -139,9 +141,8 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
                 return_dict=True,
                 mode="text",
             )
-            text_feat_m = F.normalize(
-                self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
-            )
+            text_embeds_m = text_output_m.last_hidden_state
+            text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_all = torch.cat(
                 [text_feat_m.t(), self.text_queue.clone().detach()], dim=1
             )
@@ -169,12 +170,12 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
             F.log_softmax(sim_t2i, dim=1) * sim_t2i_targets, dim=1
         ).mean()
 
-        loss_ita = (loss_i2t + loss_t2i) / 2
+        loss_itc = (loss_i2t + loss_t2i) / 2
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m)
 
         # forward the positve image-text pair
-        output_pos = self.text_encoder.bert(
+        encoder_output_pos = self.text_encoder.bert(
             encoder_embeds=text_embeds,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
@@ -217,7 +218,7 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         image_embeds_all = torch.cat([image_embeds_neg, image_embeds], dim=0)
         image_atts_all = torch.cat([image_atts, image_atts], dim=0)
 
-        output_neg = self.text_encoder.bert(
+        encoder_output_neg = self.text_encoder.bert(
             encoder_embeds=text_embeds_all,
             attention_mask=text_atts_all,
             encoder_hidden_states=image_embeds_all,
@@ -228,18 +229,18 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
 
         vl_embeddings = torch.cat(
             [
-                output_pos.last_hidden_state[:, 0, :],
-                output_neg.last_hidden_state[:, 0, :],
+                encoder_output_pos.last_hidden_state[:, 0, :],
+                encoder_output_neg.last_hidden_state[:, 0, :],
             ],
             dim=0,
         )
-        vl_output = self.itm_head(vl_embeddings)
+        itm_logits = self.itm_head(vl_embeddings)
 
         itm_labels = torch.cat(
             [torch.ones(bs, dtype=torch.long), torch.zeros(2 * bs, dtype=torch.long)],
             dim=0,
         ).to(self.device)
-        loss_itm = F.cross_entropy(vl_output, itm_labels)
+        loss_itm = F.cross_entropy(itm_logits, itm_labels)
 
         # MLM
         input_ids = text.input_ids.clone()
@@ -275,12 +276,30 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         )
         loss_mlm = mlm_output.loss
 
-        return {
-            "loss": loss_ita + loss_itm + loss_mlm,
-            "loss_ita": loss_ita,
-            "loss_itm": loss_itm,
-            "loss_mlm": loss_mlm,
-        }
+        return AlbefOutput(
+            loss=loss_itc + loss_itm + loss_mlm,
+            loss_itc=loss_itc,
+            loss_itm=loss_itm,
+            loss_mlm=loss_mlm,
+            sims=AlbefSimilarity(
+                sim_i2t=sim_i2t,
+                sim_t2i=sim_t2i,
+                sim_i2t_m=sim_i2t_m,
+                sim_t2i_m=sim_t2i_m,
+                sim_i2t_targets=sim_i2t_targets,
+                sim_t2i_targets=sim_t2i_targets,
+            ),
+            intermediate_output=AlbefIntermediateOutput(
+                image_embeds=image_embeds,
+                image_embeds_m=image_embeds_m,
+                text_embeds=text_embeds,
+                text_embeds_m=text_embeds_m,
+                encoder_output=encoder_output_pos,
+                encoder_output_neg=encoder_output_neg,
+                itm_logits=itm_logits,
+                itm_labels=itm_labels,
+            ),
+        )
 
     def mask(
         self,

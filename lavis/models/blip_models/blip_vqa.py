@@ -3,6 +3,10 @@ import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.models.base_model import tile
 from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import (
+    BlipOutput,
+    BlipIntermediateOutput,
+)
 from lavis.models.med import XBertEncoder, XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 
@@ -27,10 +31,20 @@ class BlipVQA(BlipBase):
         self.max_txt_len = max_txt_len
 
     def forward(self, samples):
-        multimodal_embeds = self.forward_encoder(samples)
-        decoder_out = self.forward_decoder(samples, encoder_out=multimodal_embeds)
+        encoder_output, image_embeds = self.forward_encoder(samples)
+        loss, decoder_output, decoder_targets = self.forward_decoder(
+            samples=samples, encoder_out=encoder_output
+        )
 
-        return decoder_out
+        return BlipOutput(
+            loss=loss,
+            intermediate_output=BlipIntermediateOutput(
+                image_embeds=image_embeds,
+                encoder_output=encoder_output,
+                decoder_output=decoder_output,
+                decoder_labels=decoder_targets,
+            ),
+        )
 
     def forward_encoder(self, samples):
         questions = samples["text_input"]
@@ -45,11 +59,11 @@ class BlipVQA(BlipBase):
         samples.update({"tokenized_text": questions})
 
         image_embeds = self.visual_encoder.forward_features(samples["image"])
-        multimodal_embeds = self.text_encoder(
+        encoder_output = self.text_encoder(
             tokenized_text=samples["tokenized_text"], visual_embeds=image_embeds
         )
 
-        return multimodal_embeds
+        return encoder_output, image_embeds
 
     def forward_decoder(self, samples, encoder_out, **kwargs):
         answers = self.tokenizer(
@@ -88,7 +102,7 @@ class BlipVQA(BlipBase):
 
         loss = loss.sum() / bsz
 
-        return {"loss": loss}
+        return loss, answer_output, answer_targets
 
     def predict_answers(
         self,
@@ -166,7 +180,7 @@ class BlipVQA(BlipBase):
         answer_ids = answer_candidates.input_ids
         answer_atts = answer_candidates.attention_mask
 
-        question_output = self.forward_encoder(samples)
+        question_output, _ = self.forward_encoder(samples)
         question_states = question_output.last_hidden_state
 
         tokenized_question = samples["tokenized_text"]

@@ -11,6 +11,11 @@ from lavis.models.base_model import (
     concat_all_gather,
 )
 from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import (
+    BlipOutput,
+    BlipSimilarity,
+    BlipIntermediateOutput,
+)
 from lavis.models.med import XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder
 from torch import nn
@@ -118,9 +123,8 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
         ).to(image.device)
 
         text_output = self.text_encoder.forward_features(text)
-        text_feat = F.normalize(
-            self.text_proj(text_output.last_hidden_state[:, 0, :]), dim=-1
-        )
+        text_embeds = text_output.last_hidden_state
+        text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
 
         # Image-text Contrastive Learning
         idx = idx.view(-1, 1)
@@ -142,9 +146,8 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
             # text_output_m = self.text_encoder_m(text.input_ids, attention_mask = text.attention_mask,
             #                                     return_dict = True, mode = 'text')
             text_output_m = self.text_encoder_m.forward_features(text)
-            text_feat_m = F.normalize(
-                self.text_proj_m(text_output_m.last_hidden_state[:, 0, :]), dim=-1
-            )
+            text_embeds_m = text_output_m.last_hidden_state
+            text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_m_all = torch.cat(
                 [text_feat_m.t(), self.text_queue.clone().detach()], dim=1
             )
@@ -169,7 +172,7 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
             F.log_softmax(sim_t2i, dim=1) * sim_t2i_targets, dim=1
         ).mean()
 
-        loss_ita = (loss_i2t + loss_t2i) / 2
+        loss_itc = (loss_i2t + loss_t2i) / 2
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m, idx)
 
@@ -277,17 +280,37 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
             ],
             dim=0,
         )
-        vl_output = self.itm_head(vl_embeddings)
+        itm_logits = self.itm_head(vl_embeddings)
 
         itm_labels = torch.cat(
             [torch.ones(bs, dtype=torch.long), torch.zeros(2 * bs, dtype=torch.long)],
             dim=0,
-        ).to(image.device)
-        loss_itm = F.cross_entropy(vl_output, itm_labels)
+        ).to(self.device)
+        loss_itm = F.cross_entropy(itm_logits, itm_labels)
 
-        loss = loss_ita + loss_itm
-
-        return {"loss": loss, "loss_ita": loss_ita, "loss_itm": loss_itm}
+        return BlipOutput(
+            loss=loss_itc + loss_itm,
+            loss_itc=loss_itc,
+            loss_itm=loss_itm,
+            sims=BlipSimilarity(
+                sim_i2t=sim_i2t,
+                sim_t2i=sim_t2i,
+                sim_i2t_m=sim_i2t_m,
+                sim_t2i_m=sim_t2i_m,
+                sim_i2t_targets=sim_i2t_targets,
+                sim_t2i_targets=sim_t2i_targets,
+            ),
+            intermediate_output=BlipIntermediateOutput(
+                image_embeds=image_embeds,
+                image_embeds_m=image_embeds_m,
+                text_embeds=text_embeds,
+                text_embeds_m=text_embeds_m,
+                encoder_output=output_pos,
+                encoder_output_neg=output_neg,
+                itm_logits=itm_logits,
+                itm_labels=itm_labels,
+            ),
+        )
 
     def reset_queue_ptr(self):
         self.queue_ptr = torch.zeros(1, dtype=torch.long)

@@ -1,6 +1,10 @@
 from lavis.common.registry import registry
 
 from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import (
+    BlipOutput,
+    BlipIntermediateOutput,
+)
 from lavis.models.med import XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 
@@ -55,13 +59,23 @@ class BlipCaption(BlipBase):
             decoder_targets=decoder_targets,
         )
 
-        return {k: decoder_output[k] for k in decoder_output}
+        # return {k: decoder_output[k] for k in decoder_output}
+        return decoder_output, decoder_targets
 
     def forward(self, samples):
         image_embeds = self.forward_encoder(samples)
-        decoder_out = self.forward_decoder(samples, image_embeds)
+        decoder_output, decoder_targets = self.forward_decoder(samples, image_embeds)
 
-        return decoder_out
+        # return decoder_out
+        return BlipOutput(
+            loss=decoder_output.loss,
+            loss_lm=decoder_output.loss,
+            intermediate_output=BlipIntermediateOutput(
+                image_embeds=image_embeds,
+                decoder_output=decoder_output,
+                decoder_labels=decoder_targets,
+            ),
+        )
 
     def generate(
         self,
