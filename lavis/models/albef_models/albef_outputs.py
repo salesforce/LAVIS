@@ -32,6 +32,7 @@ class AlbefIntermediateOutput(ModelOutput):
 
     # intermediate outputs of multimodal encoder
     encoder_output: Optional[BaseModelOutputWithPoolingAndCrossAttentions] = None
+    encoder_output_m: Optional[BaseModelOutputWithPoolingAndCrossAttentions] = None
     encoder_output_neg: Optional[BaseModelOutputWithPoolingAndCrossAttentions] = None
 
     itm_logits: Optional[torch.FloatTensor] = None
