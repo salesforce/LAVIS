@@ -1,4 +1,4 @@
-![Samples from the COCO Caption dataset (Image credit: "https://arxiv.org/pdf/1504.00325.pdf").](imgs/coco_caption.png)
+![Samples from the COCO Caption dataset (Image credit: "https://arxiv.org/pdf/1504.00325.pdf").](imgs/coco_caption.png)(Samples from the COCO Caption dataset. Image credit: "https://arxiv.org/pdf/1504.00325.pdf")
 
 # Microsoft COCO Dataset (Captioning)
 
@@ -30,6 +30,12 @@ Models are typically evaluated according to a [BLEU](https://aclanthology.org/P0
 | 8    |   M^2   |  39.1  | 131.2 |  29.2  | 22.6  |                 [paper](https://arxiv.org/pdf/1912.08226v2.pdf), [code](https://github.com/aimagelab/meshed-memory-transformer)                  |
 | 9    |  BUTD   |  36.5  | 113.5 |  27.0  | 20.3  |               [paper](https://arxiv.org/abs/1707.07998?context=cs), [code](https://github.com/peteanderson80/bottom-up-attention)                |
 | 10    | ClipCap |  32.2  | 108.4 |  27.1  | 20.1  |                     [paper](https://arxiv.org/pdf/2111.09734v1.pdf), [code](https://github.com/rmokady/clip_prefix_caption)                      |
+
+## Auto-Downloading
+
+```
+cd lavis/datasets/download_scripts && python download_coco.py
+```
 
 ## References
 "Microsoft COCO Captions: Data Collection and Evaluation Server", Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dollar, C. Lawrence Zitnick

@@ -34,5 +34,9 @@ Accuracy.
 | 10    | UNITER | 77.2  | 77.9 |                                                          [paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123750103.pdf), [code](https://github.com/ChenRocks/UNITER)                                                          |
 
 
+## Downloading
+Auto-downloading is not supported for this dataset. Please refer to https://lil.nlp.cornell.edu/nlvr/ and fill in the Google form to download the original images.
+
+
 ## References
 Suhr, Alane, Stephanie Zhou, Ally Zhang, Iris Zhang, Huajun Bai, and Yoav Artzi. "A corpus for reasoning about natural language grounded in photographs." arXiv preprint arXiv:1811.00491 (2018).

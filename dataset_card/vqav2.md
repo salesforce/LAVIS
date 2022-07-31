@@ -38,6 +38,11 @@ Accuracies computed by evaluation server: https://eval.ai/web/challenges/challen
 | 9    | ALBEF  |   75.8   |   76.0   |  [paper](https://arxiv.org/abs/2107.07651), [code](https://github.com/salesforce/ALBEF), [blog](https://blog.salesforceairesearch.com/align-before-fuse/)                                                                                       |
 | 10    | UNITER | 73.8  | 74.0 |                                                          [paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123750103.pdf), [code](https://github.com/ChenRocks/UNITER)                                                          |
 
+## Auto-Downloading
+
+```
+cd lavis/datasets/download_scripts && python download_coco.py
+```
 
 ## References
 "Microsoft COCO Captions: Data Collection and Evaluation Server", Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dollar, C. Lawrence Zitnick

@@ -27,13 +27,12 @@ Models are typically evaluated according to a [CIDEr](https://aclanthology.org/P
 | 2    |  LEMON  |  117.3 | 15.0  |114.3 | 14.9           |                                                         [paper]()                                                                     |
 | 3    |  BLIP   |  113.2 | 14.8 |  -  | -  | [paper](https://arxiv.org/pdf/2201.12086.pdf), [code](https://github.com/salesforce/BLIP), [demo](https://huggingface.co/spaces/Salesforce/BLIP) |
 | 4    | SimVLM  |  112.2  | - | 110.3  | 14.5  |                                                [paper](https://openreview.net/pdf?id=GUrhfTuf_3)                                                 |
+| 5    |  VinVL  |  105.1  | 14.4 |  103.7  | 14.4  |                           [paper](https://arxiv.org/pdf/2101.00529v2.pdf), [code](https://github.com/microsoft/Oscar)                            |
 
-| 4    |  VinVL  |  41.0  | 140.9 |  103.7  | 14.4  |                           [paper](https://arxiv.org/pdf/2101.00529v2.pdf), [code](https://github.com/microsoft/Oscar)                            |
-| 5    |  OSCAR  |  40.7  | 140.0 |  30.6  | 24.5  |                           [paper](https://arxiv.org/pdf/2004.06165v5.pdf), [code](https://github.com/microsoft/Oscar)                            |
-| 6    |  BLIP   |  40.4  | 136.7 |  31.4  | 24.3  | [paper](https://arxiv.org/pdf/2201.12086.pdf), [code](https://github.com/salesforce/BLIP), [demo](https://huggingface.co/spaces/Salesforce/BLIP) |
-| 7    |   M^2   |  39.1  | 131.2 |  29.2  | 22.6  |                 [paper](https://arxiv.org/pdf/1912.08226v2.pdf), [code](https://github.com/aimagelab/meshed-memory-transformer)                  |
-| 8    |  BUTD   |  36.5  | 113.5 |  27.0  | 20.3  |               [paper](https://arxiv.org/abs/1707.07998?context=cs), [code](https://github.com/peteanderson80/bottom-up-attention)                |
-| 9    | ClipCap |  32.2  | 108.4 |  27.1  | 20.1  |                     [paper](https://arxiv.org/pdf/2111.09734v1.pdf), [code](https://github.com/rmokady/clip_prefix_caption)                      |
+## Auto-Downloading
+```
+cd lavis/datasets/download_scripts && python download_nocaps.py
+```
 
 ## References
-"Microsoft COCO Captions: Data Collection and Evaluation Server", Xinlei Chen, Hao Fang, Tsung-Yi Lin, Ramakrishna Vedantam, Saurabh Gupta, Piotr Dollar, C. Lawrence Zitnick
+Agrawal, Harsh, Karan Desai, Yufei Wang, Xinlei Chen, Rishabh Jain, Mark Johnson, Dhruv Batra, Devi Parikh, Stefan Lee, and Peter Anderson. "Nocaps: Novel object captioning at scale." In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 8948-8957. 2019.

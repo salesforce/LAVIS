@@ -5,6 +5,8 @@
 ## Description
 (from https://arxiv.org/abs/1811.10582)
 
+**The SNLI_VE dataset is built on top of Flickr30k. See downloading scripts below.**
+
 Distribution by Split
 The data details of train, dev and test split is shown below. The instances of three labels (entailment, neutral and contradiction) are evenly distributed for each split.
 
@@ -41,8 +43,13 @@ Accuracy.
 | 4    | ALBEF  |   80.8   |   80.9   |  [paper](https://arxiv.org/abs/2107.07651), [code](https://github.com/salesforce/ALBEF), [blog](https://blog.salesforceairesearch.com/align-before-fuse/)                                                 |
 | 5    | VILLA  | 80.2  | 80.0  |                                                                          [paper](https://arxiv.org/pdf/2004.06165v5.pdf), [code](https://github.com/microsoft/Oscar)                                                                           |
 | 6    | UNITER | 79.4  | 79.4 |                                                          [paper](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123750103.pdf), [code](https://github.com/ChenRocks/UNITER)                                                          |
+| 7    | LXMERT | 72.4  | 72.5 |                                                          [paper](https://aclanthology.org/D19-1514.pdf), [code](https://github.com/airsplay/lxmert)                                                          |
+| 8    |  BUTD   |  65.3  | 65.7 |   [paper](https://arxiv.org/abs/1707.07998?context=cs), [code](https://github.com/peteanderson80/bottom-up-attention)                |
 
-
+## Auto-Downloading
+```
+cd lavis/datasets/download_scripts && python download_flickr.py
+```
 
 ## References
 Xie, Ning, Farley Lai, Derek Doran, and Asim Kadav. "Visual entailment task for visually-grounded language learning." arXiv preprint arXiv:1811.10582 (2018).
