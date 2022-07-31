@@ -2,6 +2,8 @@ model:
   arch: albef_retrieval
   model_type: base
 
+  queue_size: 65536
+
 datasets:
   coco_retrieval: # name of the dataset builder
     vis_processor:

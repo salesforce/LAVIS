@@ -34,7 +34,7 @@ run:
   output_dir: "output/ALBEF/VQA"
 
   evaluate: False
-  test_splits: ["test"]
+  test_splits: ["val"]
 
   # distribution-specific
   device: "cuda"
