@@ -1,3 +1,4 @@
+import torch
 from lavis.common.registry import registry
 
 from lavis.models.blip_models.blip import BlipBase
@@ -53,13 +54,19 @@ class BlipCaption(BlipBase):
         )
         decoder_targets[:, : self.prompt_length] = -100
 
-        _, decoder_output = self.text_decoder.forward_loss(
-            text_tokenized=text,
-            visual_embeds=image_embeds,
-            decoder_targets=decoder_targets,
+        # forward decoder
+        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+            self.device
+        )
+        decoder_output = self.text_decoder(
+            input_ids=text.input_ids,
+            attention_mask=text.attention_mask,
+            encoder_hidden_states=image_embeds,
+            encoder_attention_mask=image_atts,
+            labels=decoder_targets,
+            return_dict=True,
         )
 
-        # return {k: decoder_output[k] for k in decoder_output}
         return decoder_output, decoder_targets
 
     def forward(self, samples):

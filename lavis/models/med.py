@@ -1313,52 +1313,6 @@ class XBertLMHeadDecoder(BertLMHeadModel):
         else:
             return cls(config=med_config)
 
-    def forward_loss(
-        self,
-        text_tokenized: BatchEncoding,
-        visual_embeds: Tensor,
-        decoder_targets: Tensor,
-        **kwargs
-    ) -> Tuple:
-        """
-        not to override forward(), which will be used for generation.
-        """
-        visual_atts = torch.ones(visual_embeds.size()[:-1], dtype=torch.long).to(
-            self.device
-        )
-
-        decoder_output = super().forward(
-            text_tokenized.input_ids,
-            attention_mask=text_tokenized.attention_mask,
-            encoder_hidden_states=visual_embeds,
-            encoder_attention_mask=visual_atts,
-            labels=decoder_targets,
-            return_dict=True,
-        )
-        loss_lm = decoder_output.loss
-
-        return loss_lm, decoder_output
-
-    def forward_bert(
-        self,
-        text_input_ids,
-        attention_mask,
-        encoder_hidden_states,
-        encoder_attention_mask,
-        labels,
-        return_dict,
-    ):
-        decoder_output = super().forward(
-            text_input_ids,
-            attention_mask=attention_mask,
-            encoder_hidden_states=encoder_hidden_states,
-            encoder_attention_mask=encoder_attention_mask,
-            labels=labels,
-            return_dict=return_dict,
-        )
-
-        return decoder_output
-
     def generate_from_encoder(
         self,
         tokenized_prompt,
