@@ -173,7 +173,7 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
 
         self._dequeue_and_enqueue(image_feat_m, text_feat_m, idx)
 
-        encoder_output_pos = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_output_pos = self.text_encoder(
             encoder_embeds=text_embeds,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
@@ -214,7 +214,7 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         image_embeds_all = torch.cat([image_embeds_neg, image_embeds], dim=0)
         image_atts_all = torch.cat([image_atts, image_atts], dim=0)
 
-        encoder_output_neg = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_output_neg = self.text_encoder(
             encoder_embeds=text_embeds_all,
             attention_mask=text_atts_all,
             encoder_hidden_states=image_embeds_all,

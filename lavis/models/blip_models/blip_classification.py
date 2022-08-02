@@ -81,7 +81,9 @@ class BlipClassification(BlipBase, MomentumDistilationMixin):
         targets = samples["label"]
 
         image_embeds = self.visual_encoder.forward_features(samples["image"])
-        encoder_output = self.text_encoder(samples["tokenized_text"], image_embeds)
+        encoder_output = self.text_encoder.forward_automask(
+            samples["tokenized_text"], image_embeds
+        )
 
         prediction = self.cls_head(encoder_output.last_hidden_state[:, 0, :])
 
@@ -91,7 +93,7 @@ class BlipClassification(BlipBase, MomentumDistilationMixin):
                     self._momentum_update()
 
                     image_embeds_m = self.visual_encoder_m(samples["image"])
-                    encoder_output_m = self.text_encoder_m(
+                    encoder_output_m = self.text_encoder_m.forward_automask(
                         samples["tokenized_text"], image_embeds_m
                     )
 

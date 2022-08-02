@@ -59,7 +59,7 @@ class BlipVQA(BlipBase):
         samples.update({"tokenized_text": questions})
 
         image_embeds = self.visual_encoder.forward_features(samples["image"])
-        encoder_output = self.text_encoder(
+        encoder_output = self.text_encoder.forward_automask(
             tokenized_text=samples["tokenized_text"], visual_embeds=image_embeds
         )
 

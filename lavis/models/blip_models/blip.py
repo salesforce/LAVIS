@@ -5,14 +5,13 @@ import torch
 import torch.nn.functional as F
 from lavis.common.utils import get_abs_path, is_url
 from lavis.models.base_model import BaseModel
+from lavis.models.blip_models.blip_outputs import BlipOutputFeatures
 from lavis.models.med import BertModel
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
 from lavis.processors import load_processor
 from timm.models.hub import download_cached_file
 from torch import nn
 from transformers import BertConfig, BertTokenizer
-
-from lavis.processors.blip_processors import BlipCaptionProcessor
 
 
 class BlipBase(BaseModel):
@@ -108,15 +107,13 @@ class BlipFeatureExtractor(BlipBase):
             msg = self.load_from_pretrained(pretrained)
             assert len(msg.missing_keys) == 0
 
-    def forward(self, image, caption, mode, apply_proj=False, normalized=False):
+    def forward(self, image=None, caption=None, mode="multimodal", normalized=True):
+
         assert mode in [
             "image",
             "text",
             "multimodal",
-        ], "mode parameter must be image, text, or multimodal"
-
-        if normalized:
-            apply_proj = True
+        ], "mode parameter must be image, text, or multimodal, but got {}".format(mode)
 
         text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
             self.device
@@ -125,12 +122,14 @@ class BlipFeatureExtractor(BlipBase):
         if mode == "image":
             # return image features
             image_embeds = self.visual_encoder.forward_features(image)
-            if apply_proj:
-                image_embeds = self.vision_proj(image_embeds)
 
-                if normalized:
-                    image_embeds = F.normalize(image_embeds, dim=-1)
-            return image_embeds
+            image_features = self.vision_proj(image_embeds)
+            if normalized:
+                image_features = F.normalize(image_features, dim=-1)
+
+            return BlipOutputFeatures(
+                image_embeds=image_embeds, image_features=image_features
+            )
 
         elif mode == "text":
             # return text features
@@ -141,13 +140,14 @@ class BlipFeatureExtractor(BlipBase):
                 mode="text",
             )
             text_embeds = text_output.last_hidden_state
-            if apply_proj:
-                text_embeds = self.text_proj(text_embeds)
 
-                if normalized:
-                    text_embeds = F.normalize(text_embeds, dim=-1)
+            text_features = self.text_proj(text_embeds)
+            if normalized:
+                text_features = F.normalize(text_features, dim=-1)
 
-            return text_embeds
+            return BlipOutputFeatures(
+                text_embeds=text_embeds, text_features=text_features
+            )
 
         elif mode == "multimodal":
             # return multimodel features
@@ -164,7 +164,10 @@ class BlipFeatureExtractor(BlipBase):
                 encoder_attention_mask=image_atts,
                 return_dict=True,
             )
-            return output.last_hidden_state
+
+            multimodal_embeds = output.last_hidden_state
+
+            return BlipOutputFeatures(multimodal_embeds=multimodal_embeds)
 
 
 class BlipITM(BlipBase):

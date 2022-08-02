@@ -150,7 +150,7 @@ class AlproRetrieval(BaseModel):
         attention_mask = torch.cat([text_atts, image_atts], dim=1)
         embedding_output_pos = torch.cat([text_embeds, image_embeds], dim=1)
 
-        encoder_outputs_pos = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_outputs_pos = self.text_encoder(
             encoder_embeds=embedding_output_pos,
             attention_mask=attention_mask,
             return_dict=True,
@@ -203,7 +203,7 @@ class AlproRetrieval(BaseModel):
         embedding_output_all = torch.cat([text_embeds_all, video_embeds_all], dim=1)
 
         # forward negative pairs via cross encoder
-        encoder_outputs_neg = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_outputs_neg = self.text_encoder(
             encoder_embeds=embedding_output_all,
             attention_mask=attention_mask_all,
             return_dict=True,
@@ -322,7 +322,7 @@ class AlproRetrieval(BaseModel):
                 [text_feats[topk_idx].to(self.device), video_feats_repeat], dim=1
             )
 
-            output = super(type(self.text_encoder), self.text_encoder).forward(
+            output = self.text_encoder(
                 encoder_embeds=embedding_output,
                 attention_mask=attention_mask,
                 return_dict=True,
@@ -362,7 +362,7 @@ class AlproRetrieval(BaseModel):
             )
             attention_mask = torch.cat([text_atts_repeat, video_atts], dim=1)
 
-            output = super(type(self.text_encoder), self.text_encoder).forward(
+            output = self.text_encoder(
                 encoder_embeds=embedding_output,
                 attention_mask=attention_mask,
                 return_dict=True,

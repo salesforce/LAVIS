@@ -141,7 +141,7 @@ def compute_sim_matrix(model, data_loader, **kwargs):
         encoder_att = torch.ones(encoder_output.size()[:-1], dtype=torch.long).to(
             model.device
         )
-        output = model.text_encoder.forward_bert(
+        output = model.text_encoder(
             text_ids[topk_idx],
             attention_mask=text_atts[topk_idx],
             encoder_hidden_states=encoder_output,
@@ -169,7 +169,7 @@ def compute_sim_matrix(model, data_loader, **kwargs):
         encoder_att = torch.ones(encoder_output.size()[:-1], dtype=torch.long).to(
             model.device
         )
-        output = model.text_encoder.forward_bert(
+        output = model.text_encoder(
             text_ids[start + i].repeat(k_test, 1),
             attention_mask=text_atts[start + i].repeat(k_test, 1),
             encoder_hidden_states=encoder_output,

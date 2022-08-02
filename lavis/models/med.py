@@ -1385,39 +1385,18 @@ class XBertEncoder(BertModel, BaseEncoder):
         else:
             return cls(config=med_config, add_pooling_layer=False)
 
-    def forward(self, tokenized_text, visual_embeds, **kwargs):
+    def forward_automask(self, tokenized_text, visual_embeds, **kwargs):
         image_atts = torch.ones(visual_embeds.size()[:-1], dtype=torch.long).to(
             self.device
         )
 
         text = tokenized_text
-        text_output = self.forward_bert(
+        text_output = super().forward(
             text.input_ids,
             attention_mask=text.attention_mask,
             encoder_hidden_states=visual_embeds,
             encoder_attention_mask=image_atts,
             return_dict=True,
-        )
-
-        return text_output
-
-    def forward_bert(
-        self,
-        text_input_ids,
-        attention_mask,
-        encoder_hidden_states,
-        encoder_attention_mask,
-        return_dict=True,
-        mode="multimodal",
-    ):
-
-        text_output = super().forward(
-            text_input_ids,
-            attention_mask=attention_mask,
-            encoder_hidden_states=encoder_hidden_states,
-            encoder_attention_mask=encoder_attention_mask,
-            return_dict=return_dict,
-            mode=mode,
         )
 
         return text_output

@@ -77,7 +77,7 @@ class AlproQA(BaseModel):
         attention_mask = torch.cat([text.attention_mask, video_atts], dim=1)
         embedding_output = torch.cat([text_embeds, video_embeds], dim=1)
 
-        encoder_output = super(type(self.text_encoder), self.text_encoder).forward(
+        encoder_output = self.text_encoder(
             encoder_embeds=embedding_output,
             attention_mask=attention_mask,
             return_dict=True,

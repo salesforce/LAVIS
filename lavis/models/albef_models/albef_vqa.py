@@ -97,7 +97,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         samples.update({"tokenized_text": questions})
 
         image_embeds = self.visual_encoder.forward_features(samples["image"])
-        encoder_output = self.text_encoder(
+        encoder_output = self.text_encoder.forward_automask(
             tokenized_text=samples["tokenized_text"], visual_embeds=image_embeds
         )
 
@@ -105,7 +105,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             self._momentum_update()
             with torch.no_grad():
                 image_embeds_m = self.visual_encoder_m(samples["image"])
-                encoder_output_m = self.text_encoder_m(
+                encoder_output_m = self.text_encoder_m.forward_automask(
                     tokenized_text=samples["tokenized_text"],
                     visual_embeds=image_embeds_m,
                 )

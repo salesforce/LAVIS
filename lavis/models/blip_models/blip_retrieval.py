@@ -182,7 +182,7 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
 
         # forward the positve image-text pair
         bs = image.size(0)
-        output_pos = self.text_encoder.forward_bert(
+        output_pos = self.text_encoder(
             encoder_input_ids,
             attention_mask=text.attention_mask,
             encoder_hidden_states=image_embeds,
@@ -265,7 +265,7 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
         image_embeds_all = torch.cat([image_embeds_neg, image_embeds], dim=0)
         image_atts_all = torch.cat([image_atts, image_atts], dim=0)
 
-        output_neg = self.text_encoder.forward_bert(
+        output_neg = self.text_encoder(
             text_ids_all,
             attention_mask=text_atts_all,
             encoder_hidden_states=image_embeds_all,

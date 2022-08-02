@@ -62,3 +62,28 @@ class BlipOutput(ModelOutput):
 class BlipOutputWithLogits(BlipOutput):
     logits: torch.FloatTensor = None
     logits_m: torch.FloatTensor = None
+
+
+@dataclass
+class BlipOutputFeatures(ModelOutput):
+    """
+    Data class of features from BlipFeatureExtractor.
+
+    Args:
+        image_embeds: `torch.FloatTensor` of shape `(batch_size, num_patches+1, embed_dim)`, `optional`
+        image_features: `torch.FloatTensor` of shape `(batch_size, num_patches+1, feature_dim)`, `optional`
+        text_embeds: `torch.FloatTensor` of shape `(batch_size, sequence_length+1, embed_dim)`, `optional`
+        text_features: `torch.FloatTensor` of shape `(batch_size, sequence_length+1, feature_dim)`, `optional`
+
+        The first embedding or feature is for the [CLS] token.
+
+        Features are obtained by projecting the corresponding embedding into a normalized low-dimensional space.
+    """
+
+    image_embeds: Optional[torch.FloatTensor] = None
+    image_features: Optional[torch.FloatTensor] = None
+
+    text_embeds: Optional[torch.FloatTensor] = None
+    text_features: Optional[torch.FloatTensor] = None
+
+    multimodal_embeds: Optional[torch.FloatTensor] = None
