@@ -127,7 +127,7 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
         ).to(image.device)
 
         # text embeddings and features
-        text_output = self.text_encoder.forward_features(text)
+        text_output = self.text_encoder.forward_text(text)
         text_embeds = text_output.last_hidden_state
         text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
 
@@ -142,7 +142,7 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
 
-            text_output_m = self.text_encoder_m.forward_features(text)
+            text_output_m = self.text_encoder_m.forward_text(text)
             text_embeds_m = text_output_m.last_hidden_state
             text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_all = torch.cat(

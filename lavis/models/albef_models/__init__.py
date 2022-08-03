@@ -65,7 +65,6 @@ class AlbefBase(BaseModel):
         return self, msg
 
 
-# def compute_sim_matrix(model, data_loader, k_test=256):
 def compute_sim_matrix(model, data_loader, **kwargs):
     k_test = kwargs.pop("k_test")
 
@@ -90,7 +89,7 @@ def compute_sim_matrix(model, data_loader, **kwargs):
             max_length=35,
             return_tensors="pt",
         ).to(model.device)
-        text_output = model.text_encoder.forward_features(text_input)
+        text_output = model.text_encoder.forward_text(text_input)
         text_embed = F.normalize(
             model.text_proj(text_output.last_hidden_state[:, 0, :])
         )

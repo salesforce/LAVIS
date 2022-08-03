@@ -58,7 +58,7 @@ class AlproQA(BaseModel):
             return_tensors="pt",
         ).to(self.device)
 
-        text_output = self.text_encoder.forward_features(
+        text_output = self.text_encoder.forward_text(
             text,
             token_type_ids=torch.zeros(
                 text.input_ids.shape, dtype=torch.long, device=self.device

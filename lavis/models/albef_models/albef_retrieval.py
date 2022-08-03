@@ -86,6 +86,9 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples):
+        import pdb
+
+        pdb.set_trace()
         image = samples["image"]
         caption = samples["text_input"]
         idx = samples["image_id"]
@@ -114,7 +117,7 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
             return_tensors="pt",
         ).to(self.device)
 
-        text_output = self.text_encoder.forward_features(text)
+        text_output = self.text_encoder.forward_text(text)
 
         text_embeds = text_output.last_hidden_state
         text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
@@ -133,7 +136,7 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
             image_feat_all = torch.cat(
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
-            text_output_m = self.text_encoder_m.forward_features(text)
+            text_output_m = self.text_encoder_m.forward_text(text)
             text_embeds_m = text_output_m.last_hidden_state
             text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_all = torch.cat(

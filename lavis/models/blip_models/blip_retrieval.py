@@ -122,7 +122,7 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
             return_tensors="pt",
         ).to(image.device)
 
-        text_output = self.text_encoder.forward_features(text)
+        text_output = self.text_encoder.forward_text(text)
         text_embeds = text_output.last_hidden_state
         text_feat = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
 
@@ -143,9 +143,7 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
                 [image_feat_m.t(), self.image_queue.clone().detach()], dim=1
             )
 
-            # text_output_m = self.text_encoder_m(text.input_ids, attention_mask = text.attention_mask,
-            #                                     return_dict = True, mode = 'text')
-            text_output_m = self.text_encoder_m.forward_features(text)
+            text_output_m = self.text_encoder_m.forward_text(text)
             text_embeds_m = text_output_m.last_hidden_state
             text_feat_m = F.normalize(self.text_proj_m(text_embeds_m[:, 0, :]), dim=-1)
             text_feat_m_all = torch.cat(
