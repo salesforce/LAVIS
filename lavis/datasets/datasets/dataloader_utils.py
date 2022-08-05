@@ -1,6 +1,7 @@
+import time
 import torch
-
 from lavis.datasets.data_utils import move_to_cuda
+from torch.utils.data import DataLoader
 
 
 class PrefetchLoader(object):
@@ -82,3 +83,41 @@ def record_cuda_stream(batch):
             record_cuda_stream(t)
     else:
         pass
+
+
+class IterLoader:
+    """
+    A wrapper to convert DataLoader as an infinite iterator.
+
+    Modified from:
+        https://github.com/open-mmlab/mmcv/blob/master/mmcv/runner/iter_based_runner.py
+    """
+
+    def __init__(self, dataloader: DataLoader, use_distributed: bool = False):
+        self._dataloader = dataloader
+        self.iter_loader = iter(self._dataloader)
+        self._use_distributed = use_distributed
+        self._epoch = 0
+
+    @property
+    def epoch(self) -> int:
+        return self._epoch
+
+    def __next__(self):
+        try:
+            data = next(self.iter_loader)
+        except StopIteration:
+            self._epoch += 1
+            if hasattr(self._dataloader.sampler, "set_epoch") and self._use_distributed:
+                self._dataloader.sampler.set_epoch(self._epoch)
+            time.sleep(2)  # Prevent possible deadlock during epoch transition
+            self.iter_loader = iter(self._dataloader)
+            data = next(self.iter_loader)
+
+        return data
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return len(self._dataloader)

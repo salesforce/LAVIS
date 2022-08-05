@@ -5,6 +5,7 @@ class Registry:
         "processor_name_mapping": {},
         "model_name_mapping": {},
         "lr_scheduler_name_mapping": {},
+        "runner_name_mapping": {},
         "state": {},
         "paths": {},
     }
@@ -153,6 +154,30 @@ class Registry:
         return wrap
 
     @classmethod
+    def register_runner(cls, name):
+        r"""Register a model to registry with key 'name'
+
+        Args:
+            name: Key with which the task will be registered.
+
+        Usage:
+
+            from lavis.common.registry import registry
+        """
+
+        def wrap(runner_cls):
+            if name in cls.mapping["runner_name_mapping"]:
+                raise KeyError(
+                    "Name '{}' already registered for {}.".format(
+                        name, cls.mapping["runner_name_mapping"][name]
+                    )
+                )
+            cls.mapping["runner_name_mapping"][name] = runner_cls
+            return runner_cls
+
+        return wrap
+
+    @classmethod
     def register_path(cls, name, path):
         r"""Register a path to registry with key 'name'
 
@@ -214,6 +239,10 @@ class Registry:
     @classmethod
     def get_lr_scheduler_class(cls, name):
         return cls.mapping["lr_scheduler_name_mapping"].get(name, None)
+
+    @classmethod
+    def get_runner_class(cls, name):
+        return cls.mapping["runner_name_mapping"].get(name, None)
 
     @classmethod
     def get_path(cls, name):

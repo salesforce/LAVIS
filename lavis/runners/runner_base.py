@@ -14,12 +14,13 @@ from lavis.common.dist_utils import (
     main_process,
 )
 from lavis.common.registry import registry
-from lavis.datasets.datasets.prefetch_loader import PrefetchLoader
+from lavis.datasets.datasets.dataloader_utils import PrefetchLoader, IterLoader
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader
 
 
-class Runner:
+@registry.register_runner("runner_base")
+class RunnerBase:
     def __init__(self, cfg, task, model, datasets, job_id):
         self.config = cfg
         self.job_id = job_id
@@ -81,9 +82,12 @@ class Runner:
         if self._lr_sched is None:
             lr_sched_cls = registry.get_lr_scheduler_class(self.config.run_cfg.lr_sched)
 
-            max_epoch = self.config.run_cfg.max_epoch
-            min_lr = self.config.run_cfg.min_lr
-            init_lr = self.config.run_cfg.init_lr
+            # max_epoch = self.config.run_cfg.max_epoch
+            max_epoch = self.max_epoch
+            # min_lr = self.config.run_cfg.min_lr
+            min_lr = self.min_lr
+            # init_lr = self.config.run_cfg.init_lr
+            init_lr = self.init_lr
 
             # optional parameters
             decay_rate = self.config.run_cfg.get("lr_decay_rate", None)
@@ -203,9 +207,14 @@ class Runner:
 
     @property
     def train_loader(self):
-        train_loader = self.dataloaders["train"]
+        train_dataloader = self.dataloaders["train"]
 
-        return train_loader
+        if not isinstance(train_dataloader, IterLoader):
+            # if not an IterLoader, we wrap it as an IterLoader
+            train_dataloader = IterLoader(train_dataloader, self.use_distributed)
+            self.dataloaders["train"] = train_dataloader
+
+        return train_dataloader
 
     def setup_output_dir(self):
         lib_root = Path(registry.get_path("library_root"))
@@ -231,8 +240,8 @@ class Runner:
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
-                if self.use_distributed:
-                    self.train_loader.sampler.set_epoch(cur_epoch)
+                # if self.use_distributed:
+                #     self.train_loader.sampler.set_epoch(cur_epoch)
 
                 train_stats = self.train_epoch(cur_epoch)
                 self.log_stats(split_name="train", stats=train_stats)

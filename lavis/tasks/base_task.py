@@ -1,3 +1,4 @@
+from curses import start_color
 import logging
 import os
 
@@ -101,24 +102,98 @@ class BaseTask:
         data_loader,
         optimizer,
         lr_scheduler,
-        cuda_enabled=True,
+        cuda_enabled=False,
         log_freq=50,
     ):
+        return self._train_inner_loop(
+            epoch=epoch,
+            iters_per_epoch=len(data_loader),
+            model=model,
+            data_loader=data_loader,
+            optimizer=optimizer,
+            lr_scheduler=lr_scheduler,
+            log_freq=log_freq,
+            cuda_enabled=cuda_enabled,
+        )
+
+    def train_iters(
+        self,
+        epoch,
+        start_iters,
+        iters_per_inner_epoch,
+        model,
+        data_loader,
+        optimizer,
+        lr_scheduler,
+        cuda_enabled=False,
+        log_freq=50,
+    ):
+        return self._train_inner_loop(
+            epoch=epoch,
+            start_iters=start_iters,
+            iters_per_epoch=iters_per_inner_epoch,
+            model=model,
+            data_loader=data_loader,
+            optimizer=optimizer,
+            lr_scheduler=lr_scheduler,
+            log_freq=log_freq,
+            cuda_enabled=cuda_enabled,
+        )
+
+    def _train_inner_loop(
+        self,
+        epoch,
+        iters_per_epoch,
+        model,
+        data_loader,
+        optimizer,
+        lr_scheduler,
+        start_iters=None,
+        log_freq=50,
+        cuda_enabled=False,
+    ):
+        """
+        An inner training loop compatible with both epoch-based and iter-based training.
+
+        When using epoch-based, training stops after one epoch; when using iter-based,
+        training stops after #iters_per_epoch iterations.
+        """
         metric_logger = MetricLogger(delimiter="  ")
         metric_logger.add_meter("lr", SmoothedValue(window_size=1, fmt="{value:.6f}"))
         metric_logger.add_meter("loss", SmoothedValue(window_size=1, fmt="{value:.4f}"))
 
-        header = "Train Epoch: [{}]".format(epoch)
+        # if iter-based runner, schedule lr based on inner epoch.
+        logging.info(
+            "Start training epoch {}, {} iters per inner epoch.".format(
+                epoch, iters_per_epoch
+            )
+        )
+        header = "Train: data epoch: [{}]".format(epoch)
+        if start_iters is None:
+            # epoch-based runner
+            inner_epoch = epoch
+        else:
+            # In iter-based runner, we schedule the learning rate based on iterations.
+            inner_epoch = start_iters // iters_per_epoch
+            header = header + "; inner epoch [{}]".format(inner_epoch)
 
-        for i, samples in enumerate(
-            metric_logger.log_every(data_loader, log_freq, header)
-        ):
+        for i in metric_logger.log_every(range(iters_per_epoch), log_freq, header):
+            # if using iter-based runner, we stop after iters_per_epoch iterations.
+            if i >= iters_per_epoch:
+                break
+
+            samples = next(data_loader)
+
             samples = prepare_sample(samples, cuda_enabled=cuda_enabled)
             samples.update(
-                {"epoch": epoch, "num_iters_per_epoch": len(data_loader), "iters": i}
+                {
+                    "epoch": inner_epoch,
+                    "num_iters_per_epoch": iters_per_epoch,
+                    "iters": i,
+                }
             )
 
-            lr_scheduler.step(cur_epoch=epoch, cur_step=i)
+            lr_scheduler.step(cur_epoch=inner_epoch, cur_step=i)
             optimizer.zero_grad()
 
             loss = self.train_step(model=model, samples=samples)

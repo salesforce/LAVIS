@@ -20,7 +20,7 @@ from lavis.common.utils import now
 from lavis.datasets.builders import *
 from lavis.models import *
 from lavis.processors import *
-from lavis.runners.runner_base import Runner
+from lavis.runners.runner_base import RunnerBase
 from lavis.tasks import *
 
 
@@ -56,7 +56,7 @@ def setup_seeds(config):
 
 def main():
     # allow auto-dl completes on main process without timeout when using NCCL backend.
-    os.environ["NCCL_BLOCKING_WAIT"] = "1"
+    # os.environ["NCCL_BLOCKING_WAIT"] = "1"
 
     # set before init_distributed_mode() to ensure the same job_id shared across all ranks.
     job_id = now()
@@ -76,7 +76,9 @@ def main():
     datasets = task.build_datasets(cfg)
     model = task.build_model(cfg)
 
-    runner = Runner(cfg=cfg, job_id=job_id, task=task, model=model, datasets=datasets)
+    runner = RunnerBase(
+        cfg=cfg, job_id=job_id, task=task, model=model, datasets=datasets
+    )
     runner.evaluate()
 
 
