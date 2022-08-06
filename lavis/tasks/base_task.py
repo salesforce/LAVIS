@@ -1,6 +1,7 @@
 from curses import start_color
 import logging
 import os
+from typing import Iterable
 
 import torch.distributed as dist
 from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
@@ -57,6 +58,12 @@ class BaseTask:
                 logging.info(
                     "Loaded {} records for {} split.".format(
                         len(datasets[split_name]), split_name
+                    )
+                )
+            else:
+                logging.info(
+                    "No __len__ for {} split. This is expected if the dataset is a DataPipe.".format(
+                        split_name
                     )
                 )
         return datasets
@@ -158,6 +165,10 @@ class BaseTask:
         When using epoch-based, training stops after one epoch; when using iter-based,
         training stops after #iters_per_epoch iterations.
         """
+        if not hasattr(data_loader, "__next__"):
+            # convert to iterator if not already
+            data_loader = iter(data_loader)
+
         metric_logger = MetricLogger(delimiter="  ")
         metric_logger.add_meter("lr", SmoothedValue(window_size=1, fmt="{value:.6f}"))
         metric_logger.add_meter("loss", SmoothedValue(window_size=1, fmt="{value:.4f}"))

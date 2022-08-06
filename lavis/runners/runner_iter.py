@@ -2,51 +2,13 @@ import datetime
 import logging
 import os
 import time
-import torch
 
+import torch
 import torch.distributed as dist
 from lavis.common.dist_utils import is_main_process, main_process
 from lavis.common.registry import registry
-
 from lavis.runners.runner_base import RunnerBase
-
-
-# class IterLoader:
-#     """
-#     A wrapper to convert DataLoader as an infinite iterator.
-
-#     Adapted from:
-#         https://github.com/open-mmlab/mmcv/blob/master/mmcv/runner/iter_based_runner.py
-#     """
-
-#     def __init__(self, dataloader: DataLoader, use_distributed: bool = False):
-#         self._dataloader = dataloader
-#         self.iter_loader = iter(self._dataloader)
-#         self._use_distributed = use_distributed
-#         self._epoch = 0
-
-#     @property
-#     def epoch(self) -> int:
-#         return self._epoch
-
-#     def __next__(self):
-#         try:
-#             data = next(self.iter_loader)
-#         except StopIteration:
-#             self._epoch += 1
-#             if hasattr(self._dataloader.sampler, "set_epoch") and self._use_distributed:
-#                 self._dataloader.sampler.set_epoch(self._epoch)
-#             time.sleep(2)  # Prevent possible deadlock during epoch transition
-#             self.iter_loader = iter(self._dataloader)
-#             data = next(self.iter_loader)
-
-#         return data
-
-#     def __iter__(self):
-#         return self
-
-#     def __len__(self):
-#         return len(self._dataloader)
+from torch.utils.data import DataLoader
 
 
 @registry.register_runner("runner_iter")
@@ -85,7 +47,11 @@ class RunnerIter(RunnerBase):
 
     @property
     def cur_epoch(self):
-        return self.train_loader.epoch
+        try:
+            return self.train_loader.epoch
+        except AttributeError:
+            # pipeline data (e.g. LAION) is streaming, have no concept of epoch
+            return 0
 
     def _progress(self, cur_iters):
         return "{}_iters={}".format(self.cur_epoch, cur_iters)
@@ -100,9 +66,11 @@ class RunnerIter(RunnerBase):
 
             # training phase
             if not self.evaluate_only:
-                logging.info("Start training")
-                # if self.use_distributed:
-                #     self.train_loader.sampler.set_epoch(self.cur_epoch)
+                logging.info(
+                    "Start training, max_iters={}, in total {} inner epochs.".format(
+                        self.max_iters, self.max_iters / self.iters_per_inner_epoch
+                    )
+                )
 
                 train_stats = self.train_iters(self.cur_epoch, start_iters)
                 self.log_stats(split_name="train", stats=train_stats)
@@ -162,6 +130,36 @@ class RunnerIter(RunnerBase):
             log_freq=self.log_freq,
         )
 
+    @property
+    def dataloaders(self):
+        # [FIXME] this should be specified as an attribute of the dataset.
+        use_datapipe = self.config.run_cfg.get("use_datapipe", False)
+
+        if use_datapipe:
+            # avoid creating samplers etc. for pipeline data
+            if self._dataloaders is None:
+                dataloaders = []
+
+                split_names = sorted(self.datasets.keys())
+                datasets = [self.datasets[split] for split in split_names]
+
+                dataloaders = create_pipeline_loader(
+                    datasets=datasets,
+                    batch_size=[
+                        self.config.run_cfg.batch_size_train
+                        if split == "train"
+                        else self.config.run_cfg.batch_size_eval
+                        for split in split_names
+                    ],
+                    num_workers=[self.config.run_cfg.num_workers] * len(datasets),
+                )
+
+                self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
+
+            return self._dataloaders
+        else:
+            return super().dataloaders
+
     @main_process
     def save_checkpoint(self, cur_iters, is_best=False):
         save_obj = {
@@ -176,3 +174,19 @@ class RunnerIter(RunnerBase):
         )
         logging.info("Saving checkpoint at iters {} to {}.".format(cur_iters, save_to))
         torch.save(save_obj, save_to)
+
+
+def create_pipeline_loader(datasets, batch_size, num_workers):
+    loaders = []
+
+    for dataset, batch_size, num_workers in zip(datasets, batch_size, num_workers):
+        loaders.append(
+            DataLoader(
+                dataset,
+                batch_size=batch_size,
+                num_workers=num_workers,
+                pin_memory=True,
+            )
+        )
+
+    return loaders

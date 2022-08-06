@@ -363,7 +363,14 @@ class RunnerBase:
             pass
 
 
-def create_loader(datasets, samplers, batch_size, num_workers, is_trains, collate_fns):
+def create_loader(
+    datasets,
+    samplers,
+    batch_size,
+    num_workers,
+    is_trains,
+    collate_fns,
+):
     loaders = []
     for dataset, sampler, bs, n_worker, is_train, collate_fn in zip(
         datasets, samplers, batch_size, num_workers, is_trains, collate_fns
