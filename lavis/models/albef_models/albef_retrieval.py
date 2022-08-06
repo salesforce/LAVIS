@@ -86,9 +86,6 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples):
-        import pdb
-
-        pdb.set_trace()
         image = samples["image"]
         caption = samples["text_input"]
         idx = samples["image_id"]
