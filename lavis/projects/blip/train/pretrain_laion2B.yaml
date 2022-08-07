@@ -5,7 +5,47 @@ model:
   alpha: 0.4
 
 datasets:
+  coco_caption:
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"
   laion2B_multi:
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"
+  conceptual_caption_3m: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"
+  conceptual_caption_12m: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"
+  vg_caption: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"
+  sbu_caption: # name of the dataset builder
     vis_processor:
         train:
           name: "blip_image_train"

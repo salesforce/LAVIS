@@ -68,7 +68,7 @@ class RunnerIter(RunnerBase):
             if not self.evaluate_only:
                 logging.info(
                     "Start training, max_iters={}, in total {} inner epochs.".format(
-                        self.max_iters, self.max_iters / self.iters_per_inner_epoch
+                        self.max_iters, int(self.max_iters / self.iters_per_inner_epoch)
                     )
                 )
 
@@ -130,36 +130,6 @@ class RunnerIter(RunnerBase):
             log_freq=self.log_freq,
         )
 
-    @property
-    def dataloaders(self):
-        # [FIXME] this should be specified as an attribute of the dataset.
-        use_datapipe = self.config.run_cfg.get("use_datapipe", False)
-
-        if use_datapipe:
-            # avoid creating samplers etc. for pipeline data
-            if self._dataloaders is None:
-                dataloaders = []
-
-                split_names = sorted(self.datasets.keys())
-                datasets = [self.datasets[split] for split in split_names]
-
-                dataloaders = create_pipeline_loader(
-                    datasets=datasets,
-                    batch_size=[
-                        self.config.run_cfg.batch_size_train
-                        if split == "train"
-                        else self.config.run_cfg.batch_size_eval
-                        for split in split_names
-                    ],
-                    num_workers=[self.config.run_cfg.num_workers] * len(datasets),
-                )
-
-                self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
-
-            return self._dataloaders
-        else:
-            return super().dataloaders
-
     @main_process
     def save_checkpoint(self, cur_iters, is_best=False):
         save_obj = {
@@ -174,19 +144,3 @@ class RunnerIter(RunnerBase):
         )
         logging.info("Saving checkpoint at iters {} to {}.".format(cur_iters, save_to))
         torch.save(save_obj, save_to)
-
-
-def create_pipeline_loader(datasets, batch_size, num_workers):
-    loaders = []
-
-    for dataset, batch_size, num_workers in zip(datasets, batch_size, num_workers):
-        loaders.append(
-            DataLoader(
-                dataset,
-                batch_size=batch_size,
-                num_workers=num_workers,
-                pin_memory=True,
-            )
-        )
-
-    return loaders

@@ -53,11 +53,22 @@ class BaseTask:
             multi_datasets[name] = datasets
 
         datasets = concat_datasets(multi_datasets)
+
+        # print dataset statistics
         for split_name in datasets:
+            if split_name == "train":
+                if isinstance(datasets[split_name], tuple):
+                    # mixed wds.DataPipeline and torch.utils.data.Dataset
+                    concat_split = datasets[split_name][0]
+                else:
+                    concat_split = datasets[split_name]
+            else:
+                concat_split = datasets[split_name]
+
             if hasattr(datasets[split_name], "__len__"):
                 logging.info(
                     "Loaded {} records for {} split.".format(
-                        len(datasets[split_name]), split_name
+                        len(concat_split), split_name
                     )
                 )
             else:

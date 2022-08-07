@@ -6,8 +6,10 @@ import tarfile
 import zipfile
 
 import decord
+import webdataset as wds
 import numpy as np
 import torch
+from torch.utils.data.dataset import IterableDataset, ChainDataset
 from decord import VideoReader
 from lavis.common.registry import registry
 from lavis.datasets.datasets.base_dataset import ConcatDataset
@@ -74,6 +76,28 @@ def prepare_sample(samples, cuda_enabled=True):
 
 
 def concat_datasets(datasets):
+    """
+    Concatenates multiple datasets into a single dataset.
+
+    It supports may-style datasets and DataPipeline from WebDataset. Currently, does not support
+    generic IterableDataset because it requires creating separate samplers.
+
+    Now only supports conctenating training datasets and assuming validation and testing
+    have only a single dataset. This is because metrics should not be computed on the concatenated
+    datasets.
+
+    Args:
+        datasets: dict of torch.utils.data.Dataset objects by split.
+
+    Returns:
+        Dict of concatenated datasets by split, "train" is the concatenation of multiple datasets,
+        "val" and "test" remain the same.
+
+        If the input training datasets contain both map-style and DataPipeline datasets, returns
+        a tuple, where the first element is a concatenated map-style dataset and the second
+        element is a chained DataPipeline dataset.
+
+    """
     if len(datasets) == 1:
         return datasets[list(datasets.keys())[0]]
     else:
@@ -95,7 +119,29 @@ def concat_datasets(datasets):
                 ), "Do not support multiple {} datasets.".format(split_name)
                 concat_datasets[split_name] = concat_datasets[split_name][0]
             else:
-                concat_datasets["train"] = ConcatDataset(concat_datasets["train"])
+                iterable_datasets, map_datasets = [], []
+                for dataset in concat_datasets[split_name]:
+                    if isinstance(dataset, wds.DataPipeline):
+                        logging.info(
+                            "Dataset {} is IterableDataset, can't be concatenated.".format(
+                                dataset
+                            )
+                        )
+                        iterable_datasets.append(dataset)
+                    elif isinstance(dataset, IterableDataset):
+                        raise NotImplementedError(
+                            "Do not support concatenation of generic IterableDataset."
+                        )
+                    else:
+                        map_datasets.append(dataset)
+
+                if len(iterable_datasets) > 0:
+                    # concatenate map-style datasets and iterable-style datasets separately
+                    concat_datasets["train"] = ConcatDataset(
+                        map_datasets
+                    ), ChainDataset(iterable_datasets)
+                else:
+                    concat_datasets["train"] = ConcatDataset(map_datasets)
 
         return concat_datasets
 

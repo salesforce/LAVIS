@@ -14,13 +14,25 @@ from lavis.common.dist_utils import (
     main_process,
 )
 from lavis.common.registry import registry
-from lavis.datasets.datasets.dataloader_utils import PrefetchLoader, IterLoader
+from lavis.datasets.datasets.dataloader_utils import (
+    IterLoader,
+    MultiIterLoader,
+    PrefetchLoader,
+)
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
+from torch.utils.data.dataset import ChainDataset
 
 
 @registry.register_runner("runner_base")
 class RunnerBase:
+    """
+    A runner class to train and evaluate a model given a task and datasets.
+
+    The runner uses pytorch distributed data parallel by default. Future release
+    will support other distributed frameworks.
+    """
+
     def __init__(self, cfg, task, model, datasets, job_id):
         self.config = cfg
         self.job_id = job_id
@@ -52,9 +64,14 @@ class RunnerBase:
 
     @property
     def model(self):
+        """
+        A property to get the DDP-wrapped model on the device.
+        """
+        # move model to device
         if self._model.device != self.device:
             self._model = self._model.to(self.device)
 
+            # distributed training wrapper
             if self.use_distributed:
                 if self._wrapped_model is None:
                     self._wrapped_model = DDP(
@@ -79,6 +96,9 @@ class RunnerBase:
 
     @property
     def lr_scheduler(self):
+        """
+        A property to get and create learning rate scheduler by split just in need.
+        """
         if self._lr_sched is None:
             lr_sched_cls = registry.get_lr_scheduler_class(self.config.run_cfg.lr_sched)
 
@@ -107,45 +127,42 @@ class RunnerBase:
         return self._lr_sched
 
     @property
-    def dataloaders(self):
+    def dataloaders(self) -> dict:
+        """
+        A property to get and create dataloaders by split just in need.
+
+        Multiple datasets in the same training split will be concatenated or chained.
+
+        Returns:
+            dict: {split_name: (tuples of) dataloader}
+        """
         if self._dataloaders is None:
 
             split_names = sorted(self.datasets.keys())
 
             datasets = [self.datasets[split] for split in split_names]
-            is_train = [split in self.train_splits for split in split_names]
+            is_trains = [split in self.train_splits for split in split_names]
 
-            if self.use_distributed:
-                samplers = create_sampler(
-                    datasets=datasets,
-                    shuffles=is_train,
-                    num_tasks=get_world_size(),
-                    global_rank=get_rank(),
-                )
-                if not self.use_dist_eval_sampler:
-                    # e.g. retrieval evaluation
-                    dist_samplers = [
-                        sampler if flag else None
-                        for sampler, flag in zip(samplers, is_train)
-                    ]
-                    samplers = dist_samplers
-            else:
-                samplers = [None] * len(self.datasets)
+            batch_sizes = [
+                self.config.run_cfg.batch_size_train
+                if split == "train"
+                else self.config.run_cfg.batch_size_eval
+                for split in split_names
+            ]
 
-            dataloaders = create_loader(
+            collate_fns = []
+            for dataset in datasets:
+                if isinstance(dataset, tuple):
+                    collate_fns.append([getattr(d, "collater", None) for d in dataset])
+                else:
+                    collate_fns.append(getattr(dataset, "collater", None))
+
+            dataloaders = self.create_loaders(
                 datasets=datasets,
-                samplers=samplers,
-                batch_size=[
-                    self.config.run_cfg.batch_size_train
-                    if split == "train"
-                    else self.config.run_cfg.batch_size_eval
-                    for split in split_names
-                ],
-                num_workers=[self.config.run_cfg.num_workers] * len(datasets),
-                is_trains=is_train,
-                collate_fns=[
-                    getattr(dataset, "collater", None) for dataset in datasets
-                ],
+                num_workers=self.config.run_cfg.num_workers,
+                batch_sizes=batch_sizes,
+                is_trains=is_trains,
+                collate_fns=collate_fns,
             )
 
             self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
@@ -208,11 +225,6 @@ class RunnerBase:
     @property
     def train_loader(self):
         train_dataloader = self.dataloaders["train"]
-
-        if not isinstance(train_dataloader, IterLoader):
-            # if not an IterLoader, we wrap it as an IterLoader
-            train_dataloader = IterLoader(train_dataloader, self.use_distributed)
-            self.dataloaders["train"] = train_dataloader
 
         return train_dataloader
 
@@ -338,6 +350,84 @@ class RunnerBase:
                 epoch=cur_epoch,
             )
 
+    def create_loaders(
+        self,
+        datasets,
+        num_workers,
+        batch_sizes,
+        is_trains,
+        collate_fns,
+    ):
+        """
+        Create dataloaders for training and validation.
+        """
+
+        def _create_loader(dataset, num_workers, bsz, is_train, collate_fn):
+            # create a single dataloader for each split
+            if isinstance(dataset, ChainDataset):
+                # wds.WebdDataset instance are chained together
+                # webdataset.DataPipeline has its own sampler and collate_fn
+                loader = iter(
+                    DataLoader(
+                        dataset,
+                        batch_size=bsz,
+                        num_workers=num_workers,
+                        pin_memory=True,
+                    )
+                )
+            else:
+                # map-style dataset are concatenated together
+                # setup distributed sampler
+                if self.use_distributed:
+                    sampler = DistributedSampler(
+                        dataset,
+                        shuffle=is_train,
+                        num_replicas=get_world_size(),
+                        rank=get_rank(),
+                    )
+                    if not self.use_dist_eval_sampler:
+                        # e.g. retrieval evaluation
+                        sampler = sampler if is_train else None
+                else:
+                    sampler = None
+
+                loader = DataLoader(
+                    dataset,
+                    batch_size=bsz,
+                    num_workers=num_workers,
+                    pin_memory=True,
+                    sampler=sampler,
+                    shuffle=sampler is None and is_train,
+                    collate_fn=collate_fn,
+                    drop_last=True if is_train else False,
+                )
+                loader = PrefetchLoader(loader)
+
+                if is_train:
+                    loader = IterLoader(loader, use_distributed=self.use_distributed)
+
+            return loader
+
+        loaders = []
+
+        for dataset, bsz, is_train, collate_fn in zip(
+            datasets, batch_sizes, is_trains, collate_fns
+        ):
+            if isinstance(dataset, tuple):
+                # when there exists iterable datasets, they cannot be concatenated,
+                loader = MultiIterLoader(
+                    loaders=[
+                        _create_loader(d, num_workers, bsz, is_train, collate_fn[i])
+                        for i, d in enumerate(dataset)
+                    ]
+                )
+            else:
+                loader = _create_loader(dataset, num_workers, bsz, is_train, collate_fn)
+
+            loaders.append(loader)
+
+        return loaders
+
     @main_process
     def save_checkpoint(self, cur_epoch, is_best=False):
         save_obj = {
@@ -361,46 +451,3 @@ class RunnerBase:
                 f.write(json.dumps(log_stats) + "\n")
         elif isinstance(stats, list):
             pass
-
-
-def create_loader(
-    datasets,
-    samplers,
-    batch_size,
-    num_workers,
-    is_trains,
-    collate_fns,
-):
-    loaders = []
-    for dataset, sampler, bs, n_worker, is_train, collate_fn in zip(
-        datasets, samplers, batch_size, num_workers, is_trains, collate_fns
-    ):
-        if is_train:
-            shuffle = sampler is None
-            drop_last = True
-        else:
-            shuffle = False
-            drop_last = False
-        loader = DataLoader(
-            dataset,
-            batch_size=bs,
-            num_workers=n_worker,
-            pin_memory=True,
-            sampler=sampler,
-            shuffle=shuffle,
-            collate_fn=collate_fn,
-            drop_last=drop_last,
-        )
-        loader = PrefetchLoader(loader)
-        loaders.append(loader)
-    return loaders
-
-
-def create_sampler(datasets, shuffles, num_tasks, global_rank):
-    samplers = []
-    for dataset, shuffle in zip(datasets, shuffles):
-        sampler = torch.utils.data.DistributedSampler(
-            dataset, num_replicas=num_tasks, rank=global_rank, shuffle=shuffle
-        )
-        samplers.append(sampler)
-    return samplers
