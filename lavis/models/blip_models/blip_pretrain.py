@@ -288,6 +288,9 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             ),
         )
 
+    def reset_queue_ptr(self):
+        self.queue_ptr = torch.zeros(1, dtype=torch.long)
+
     @classmethod
     def from_config(cls, cfg=None):
         # set from_pretrained=True to load weights for 'bert-base-uncased'
@@ -312,5 +315,13 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             tie_enc_dec_weights=True,
             max_txt_len=max_txt_len,
         )
+
+        # load pre-trained weights
+        pretrain_path = cfg.get("pretrained", None)
+        if pretrain_path is not None:
+            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+            # [IMPORTANT] to reset queue pointer to 0.
+            # Otherwise when updating last batch in the queue, the batch size and remaining queue length may be un-equal.
+            model.reset_queue_ptr()
 
         return model
