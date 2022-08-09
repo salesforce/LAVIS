@@ -75,6 +75,32 @@ def prepare_sample(samples, cuda_enabled=True):
     return samples
 
 
+def reorg_datasets_by_split(datasets):
+    """
+    Organizes datasets by split.
+
+    Args:
+        datasets: dict of torch.utils.data.Dataset objects by name.
+
+    Returns:
+        Dict of datasets by split {split_name: List[Datasets]}.
+    """
+    # if len(datasets) == 1:
+    #     return datasets[list(datasets.keys())[0]]
+    # else:
+    reorg_datasets = dict()
+
+    # reorganize by split
+    for _, dataset in datasets.items():
+        for split_name, dataset_split in dataset.items():
+            if split_name not in reorg_datasets:
+                reorg_datasets[split_name] = [dataset_split]
+            else:
+                reorg_datasets[split_name].append(dataset_split)
+
+    return reorg_datasets
+
+
 def concat_datasets(datasets):
     """
     Concatenates multiple datasets into a single dataset.
@@ -98,52 +124,48 @@ def concat_datasets(datasets):
         element is a chained DataPipeline dataset.
 
     """
-    if len(datasets) == 1:
-        return datasets[list(datasets.keys())[0]]
-    else:
-        concat_datasets = dict()
-
-        # reorganize by split
-        for _, dataset in datasets.items():
-            for split_name, dataset_split in dataset.items():
-                if split_name not in concat_datasets:
-                    concat_datasets[split_name] = [dataset_split]
-                else:
-                    concat_datasets[split_name].append(dataset_split)
-
-        # concatenate datasets in the same split
-        for split_name in concat_datasets:
-            if split_name != "train":
-                assert (
-                    len(concat_datasets[split_name]) == 1
-                ), "Do not support multiple {} datasets.".format(split_name)
-                concat_datasets[split_name] = concat_datasets[split_name][0]
-            else:
-                iterable_datasets, map_datasets = [], []
-                for dataset in concat_datasets[split_name]:
-                    if isinstance(dataset, wds.DataPipeline):
-                        logging.info(
-                            "Dataset {} is IterableDataset, can't be concatenated.".format(
-                                dataset
-                            )
+    # concatenate datasets in the same split
+    for split_name in datasets:
+        if split_name != "train":
+            assert (
+                len(datasets[split_name]) == 1
+            ), "Do not support multiple {} datasets.".format(split_name)
+            datasets[split_name] = datasets[split_name][0]
+        else:
+            iterable_datasets, map_datasets = [], []
+            for dataset in datasets[split_name]:
+                if isinstance(dataset, wds.DataPipeline):
+                    logging.info(
+                        "Dataset {} is IterableDataset, can't be concatenated.".format(
+                            dataset
                         )
-                        iterable_datasets.append(dataset)
-                    elif isinstance(dataset, IterableDataset):
-                        raise NotImplementedError(
-                            "Do not support concatenation of generic IterableDataset."
-                        )
-                    else:
-                        map_datasets.append(dataset)
-
-                if len(iterable_datasets) > 0:
-                    # concatenate map-style datasets and iterable-style datasets separately
-                    concat_datasets["train"] = ConcatDataset(
-                        map_datasets
-                    ), ChainDataset(iterable_datasets)
+                    )
+                    iterable_datasets.append(dataset)
+                elif isinstance(dataset, IterableDataset):
+                    raise NotImplementedError(
+                        "Do not support concatenation of generic IterableDataset."
+                    )
                 else:
-                    concat_datasets["train"] = ConcatDataset(map_datasets)
+                    map_datasets.append(dataset)
 
-        return concat_datasets
+            # if len(iterable_datasets) > 0:
+            # concatenate map-style datasets and iterable-style datasets separately
+            chained_datasets = (
+                ChainDataset(iterable_datasets) if len(iterable_datasets) > 0 else None
+            )
+            concat_datasets = (
+                ConcatDataset(map_datasets) if len(map_datasets) > 0 else None
+            )
+
+            train_datasets = concat_datasets, chained_datasets
+            train_datasets = tuple([x for x in train_datasets if x is not None])
+            train_datasets = (
+                train_datasets[0] if len(train_datasets) == 1 else train_datasets
+            )
+
+            datasets[split_name] = train_datasets
+
+    return datasets
 
 
 def extract_archive(from_path, to_path=None, overwrite=False):

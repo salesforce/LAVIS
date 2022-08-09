@@ -1,5 +1,6 @@
 model:
   arch: blip_pretrain
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
   queue_size: 57600
 
   alpha: 0.4
@@ -66,7 +67,7 @@ run:
   # optimizer
   lr_sched: "linear_warmup_step_lr"
   # lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 3e-4
+  init_lr: 2e-4
   min_lr: 1e-6
   warmup_lr: 1e-6
   lr_decay_rate: 0.9

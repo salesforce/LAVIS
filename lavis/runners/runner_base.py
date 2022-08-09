@@ -7,6 +7,7 @@ from pathlib import Path
 
 import torch
 import torch.distributed as dist
+import webdataset as wds
 from lavis.common.dist_utils import (
     get_rank,
     get_world_size,
@@ -14,6 +15,7 @@ from lavis.common.dist_utils import (
     main_process,
 )
 from lavis.common.registry import registry
+from lavis.datasets.data_utils import concat_datasets, reorg_datasets_by_split
 from lavis.datasets.datasets.dataloader_utils import (
     IterLoader,
     MultiIterLoader,
@@ -131,13 +133,93 @@ class RunnerBase:
         """
         A property to get and create dataloaders by split just in need.
 
-        Multiple datasets in the same training split will be concatenated or chained.
+        If no train_dataset_ratio is provided, concatenate map-style datasets and
+        chain wds.DataPipe datasets separately. Training set becomes a tuple
+        (ConcatDataset, ChainDataset), both are optional but at least one of them is
+        required. The resultant ConcatDataset and ChainDataset will be sampled evenly.
+
+        If train_dataset_ratio is provided, create a MultiIterLoader to sample
+        each dataset by ratios during training.
+
+        Currently do not support multiple datasets for validation and test.
 
         Returns:
             dict: {split_name: (tuples of) dataloader}
         """
         if self._dataloaders is None:
+            # reoganize datasets by split and concatenate/chain if necessary
+            dataset_ratios = self.config.run_cfg.get("train_dataset_ratios", None)
 
+            if dataset_ratios is None:
+                # concatenate map-style datasets and chain wds.DataPipe datasets separately
+                # training set becomes a tuple (ConcatDataset, ChainDataset), both are
+                # optional but at least one of them is required. The resultant ConcatDataset
+                # and ChainDataset will be sampled evenly.
+                logging.info(
+                    "dataset_ratios not specified, datasets will be concatenated (map-style datasets) or chained (webdataset.DataPipeline)."
+                )
+
+                datasets = reorg_datasets_by_split(self.datasets)
+                self.datasets = concat_datasets(datasets)
+            else:
+                # create multi-loader with the provided ratios, without concatenating or chaining
+                missing_keys = [k for k in dataset_ratios if k not in self.datasets]
+                if len(missing_keys) > 0:
+                    raise ValueError(
+                        "Datasets with the following split names are not found: {}".format(
+                            missing_keys
+                        )
+                    )
+
+                unexpected_keys = [k for k in self.datasets if k not in dataset_ratios]
+                if len(unexpected_keys) > 0:
+                    raise ValueError(
+                        "Datasets with the following split names are not expected: {}".format(
+                            unexpected_keys
+                        )
+                    )
+
+                dataset_ratios = [float(dataset_ratios[k]) for k in self.datasets]
+                self.datasets = reorg_datasets_by_split(self.datasets)
+                # to keep the same structure as return value of concat_datasets
+                self.datasets = {
+                    k: v[0] if len(v) == 1 else v for k, v in datasets.items()
+                }
+
+            # print dataset statistics after concatenation/chaining
+            for split_name in self.datasets:
+                if isinstance(self.datasets[split_name], tuple) or isinstance(
+                    self.datasets[split_name], list
+                ):
+                    # mixed wds.DataPipeline and torch.utils.data.Dataset
+                    num_records = sum(
+                        [
+                            len(d)
+                            if not type(d) in [wds.DataPipeline, ChainDataset]
+                            else 0
+                            for d in self.datasets[split_name]
+                        ]
+                    )
+
+                else:
+                    if hasattr(self.datasets[split_name], "__len__"):
+                        # a single map-style dataset
+                        num_records = len(self.datasets[split_name])
+                    else:
+                        # a single wds.DataPipeline
+                        num_records = -1
+                        logging.info(
+                            "Only a single wds.DataPipeline dataset, no __len__ attribute."
+                        )
+
+                if num_records >= 0:
+                    logging.info(
+                        "Loaded {} records for {} split.".format(
+                            num_records, split_name
+                        )
+                    )
+
+            # create dataloaders
             split_names = sorted(self.datasets.keys())
 
             datasets = [self.datasets[split] for split in split_names]
@@ -152,7 +234,7 @@ class RunnerBase:
 
             collate_fns = []
             for dataset in datasets:
-                if isinstance(dataset, tuple):
+                if isinstance(dataset, tuple) or isinstance(dataset, list):
                     collate_fns.append([getattr(d, "collater", None) for d in dataset])
                 else:
                     collate_fns.append(getattr(dataset, "collater", None))
@@ -163,6 +245,7 @@ class RunnerBase:
                 batch_sizes=batch_sizes,
                 is_trains=is_trains,
                 collate_fns=collate_fns,
+                dataset_ratios=dataset_ratios,
             )
 
             self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
@@ -216,6 +299,9 @@ class RunnerBase:
 
     @property
     def evaluate_only(self):
+        """
+        Set to True to skip training.
+        """
         return self.config.run_cfg.evaluate
 
     @property
@@ -322,12 +408,6 @@ class RunnerBase:
             log_freq=self.log_freq,
         )
 
-    def unwrap_dist_model(self, model):
-        if self.use_distributed:
-            return model.module
-        else:
-            return model
-
     @torch.no_grad()
     def eval_epoch(self, split_name, cur_epoch):
         data_loader = self.dataloaders.get(split_name, None)
@@ -350,6 +430,12 @@ class RunnerBase:
                 epoch=cur_epoch,
             )
 
+    def unwrap_dist_model(self, model):
+        if self.use_distributed:
+            return model.module
+        else:
+            return model
+
     def create_loaders(
         self,
         datasets,
@@ -357,6 +443,7 @@ class RunnerBase:
         batch_sizes,
         is_trains,
         collate_fns,
+        dataset_ratios=None,
     ):
         """
         Create dataloaders for training and validation.
@@ -364,7 +451,9 @@ class RunnerBase:
 
         def _create_loader(dataset, num_workers, bsz, is_train, collate_fn):
             # create a single dataloader for each split
-            if isinstance(dataset, ChainDataset):
+            if isinstance(dataset, ChainDataset) or isinstance(
+                dataset, wds.DataPipeline
+            ):
                 # wds.WebdDataset instance are chained together
                 # webdataset.DataPipeline has its own sampler and collate_fn
                 loader = iter(
@@ -413,13 +502,13 @@ class RunnerBase:
         for dataset, bsz, is_train, collate_fn in zip(
             datasets, batch_sizes, is_trains, collate_fns
         ):
-            if isinstance(dataset, tuple):
-                # when there exists iterable datasets, they cannot be concatenated,
+            if isinstance(dataset, list) or isinstance(dataset, tuple):
                 loader = MultiIterLoader(
                     loaders=[
                         _create_loader(d, num_workers, bsz, is_train, collate_fn[i])
                         for i, d in enumerate(dataset)
-                    ]
+                    ],
+                    ratios=dataset_ratios,
                 )
             else:
                 loader = _create_loader(dataset, num_workers, bsz, is_train, collate_fn)

@@ -1,13 +1,11 @@
-from curses import start_color
 import logging
 import os
-from typing import Iterable
 
 import torch.distributed as dist
 from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
 from lavis.common.logger import MetricLogger, SmoothedValue
 from lavis.common.registry import registry
-from lavis.datasets.data_utils import concat_datasets, prepare_sample
+from lavis.datasets.data_utils import prepare_sample
 
 
 class BaseTask:
@@ -35,10 +33,10 @@ class BaseTask:
             cfg (common.config.Config): _description_
 
         Returns:
-            multi_datasets (List): _description_
+            dict: Dictionary of torch.utils.data.Dataset objects by split.
         """
 
-        multi_datasets = dict()
+        datasets = dict()
 
         datasets_config = cfg.datasets_cfg
 
@@ -48,35 +46,10 @@ class BaseTask:
             dataset_config = datasets_config[name]
 
             builder = registry.get_builder_class(name)(dataset_config)
-            datasets = builder.build_datasets()
+            dataset = builder.build_datasets()
 
-            multi_datasets[name] = datasets
+            datasets[name] = dataset
 
-        datasets = concat_datasets(multi_datasets)
-
-        # print dataset statistics
-        for split_name in datasets:
-            if split_name == "train":
-                if isinstance(datasets[split_name], tuple):
-                    # mixed wds.DataPipeline and torch.utils.data.Dataset
-                    concat_split = datasets[split_name][0]
-                else:
-                    concat_split = datasets[split_name]
-            else:
-                concat_split = datasets[split_name]
-
-            if hasattr(datasets[split_name], "__len__"):
-                logging.info(
-                    "Loaded {} records for {} split.".format(
-                        len(concat_split), split_name
-                    )
-                )
-            else:
-                logging.info(
-                    "No __len__ for {} split. This is expected if the dataset is a DataPipe.".format(
-                        split_name
-                    )
-                )
         return datasets
 
     def train_step(self, model, samples):

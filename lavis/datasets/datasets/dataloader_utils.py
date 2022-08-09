@@ -22,7 +22,7 @@ class MultiIterLoader:
             ), "Loader {} has no __next__ method.".format(loader)
 
         if ratios is None:
-            ratios = [1] * len(loaders)
+            ratios = [1.0] * len(loaders)
         else:
             assert len(ratios) == len(loaders)
             ratios = [float(ratio) / sum(ratios) for ratio in ratios]
