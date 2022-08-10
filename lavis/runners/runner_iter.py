@@ -5,10 +5,12 @@ import time
 
 import torch
 import torch.distributed as dist
+import webdataset as wds
 from lavis.common.dist_utils import is_main_process, main_process
 from lavis.common.registry import registry
+from lavis.datasets.data_utils import concat_datasets, reorg_datasets_by_split
 from lavis.runners.runner_base import RunnerBase
-from torch.utils.data import DataLoader
+from torch.utils.data.dataset import ChainDataset
 
 
 @registry.register_runner("runner_iter")
@@ -144,3 +146,127 @@ class RunnerIter(RunnerBase):
         )
         logging.info("Saving checkpoint at iters {} to {}.".format(cur_iters, save_to))
         torch.save(save_obj, save_to)
+
+    @property
+    def dataloaders(self) -> dict:
+        """
+        A property to get and create dataloaders by split just in need.
+
+        If no train_dataset_ratio is provided, concatenate map-style datasets and
+        chain wds.DataPipe datasets separately. Training set becomes a tuple
+        (ConcatDataset, ChainDataset), both are optional but at least one of them is
+        required. The resultant ConcatDataset and ChainDataset will be sampled evenly.
+
+        If train_dataset_ratio is provided, create a MultiIterLoader to sample
+        each dataset by ratios during training.
+
+        Currently do not support multiple datasets for validation and test.
+
+        Returns:
+            dict: {split_name: (tuples of) dataloader}
+        """
+        if self._dataloaders is None:
+            # reoganize datasets by split and concatenate/chain if necessary
+            dataset_ratios = self.config.run_cfg.get("train_dataset_ratios", None)
+
+            if dataset_ratios is None:
+                # concatenate map-style datasets and chain wds.DataPipe datasets separately
+                # training set becomes a tuple (ConcatDataset, ChainDataset), both are
+                # optional but at least one of them is required. The resultant ConcatDataset
+                # and ChainDataset will be sampled evenly.
+                logging.info(
+                    "dataset_ratios not specified, datasets will be concatenated (map-style datasets) or chained (webdataset.DataPipeline)."
+                )
+
+                datasets = reorg_datasets_by_split(self.datasets)
+                self.datasets = concat_datasets(datasets)
+            else:
+                # create multi-loader with the provided ratios, without concatenating or chaining
+                missing_keys = [k for k in dataset_ratios if k not in self.datasets]
+                if len(missing_keys) > 0:
+                    raise ValueError(
+                        "Datasets with the following split names are not found: {}".format(
+                            missing_keys
+                        )
+                    )
+
+                unexpected_keys = [k for k in self.datasets if k not in dataset_ratios]
+                if len(unexpected_keys) > 0:
+                    raise ValueError(
+                        "Datasets with the following split names are not expected: {}".format(
+                            unexpected_keys
+                        )
+                    )
+
+                dataset_ratios = [float(dataset_ratios[k]) for k in self.datasets]
+                self.datasets = reorg_datasets_by_split(self.datasets)
+                # to keep the same structure as return value of concat_datasets
+                self.datasets = {
+                    k: v[0] if len(v) == 1 else v for k, v in datasets.items()
+                }
+
+            # print dataset statistics after concatenation/chaining
+            for split_name in self.datasets:
+                if isinstance(self.datasets[split_name], tuple) or isinstance(
+                    self.datasets[split_name], list
+                ):
+                    # mixed wds.DataPipeline and torch.utils.data.Dataset
+                    num_records = sum(
+                        [
+                            len(d)
+                            if not type(d) in [wds.DataPipeline, ChainDataset]
+                            else 0
+                            for d in self.datasets[split_name]
+                        ]
+                    )
+
+                else:
+                    try:
+                        # a single map-style dataset
+                        num_records = len(self.datasets[split_name])
+                    except TypeError:
+                        # a single wds.DataPipeline or ChainDataset
+                        num_records = -1
+                        logging.info(
+                            "Only a single wds.DataPipeline dataset, no __len__ attribute."
+                        )
+
+                if num_records >= 0:
+                    logging.info(
+                        "Loaded {} records for {} split from the dataset.".format(
+                            num_records, split_name
+                        )
+                    )
+
+            # create dataloaders
+            split_names = sorted(self.datasets.keys())
+
+            datasets = [self.datasets[split] for split in split_names]
+            is_trains = [split in self.train_splits for split in split_names]
+
+            batch_sizes = [
+                self.config.run_cfg.batch_size_train
+                if split == "train"
+                else self.config.run_cfg.batch_size_eval
+                for split in split_names
+            ]
+
+            collate_fns = []
+            for dataset in datasets:
+                if isinstance(dataset, tuple) or isinstance(dataset, list):
+                    collate_fns.append([getattr(d, "collater", None) for d in dataset])
+                else:
+                    collate_fns.append(getattr(dataset, "collater", None))
+
+            dataloaders = self.create_loaders(
+                datasets=datasets,
+                num_workers=self.config.run_cfg.num_workers,
+                batch_sizes=batch_sizes,
+                is_trains=is_trains,
+                collate_fns=collate_fns,
+                dataset_ratios=dataset_ratios,
+            )
+
+            self._dataloaders = {k: v for k, v in zip(split_names, dataloaders)}
+
+        return self._dataloaders

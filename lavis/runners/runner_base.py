@@ -150,41 +150,16 @@ class RunnerBase:
             # reoganize datasets by split and concatenate/chain if necessary
             dataset_ratios = self.config.run_cfg.get("train_dataset_ratios", None)
 
-            if dataset_ratios is None:
-                # concatenate map-style datasets and chain wds.DataPipe datasets separately
-                # training set becomes a tuple (ConcatDataset, ChainDataset), both are
-                # optional but at least one of them is required. The resultant ConcatDataset
-                # and ChainDataset will be sampled evenly.
-                logging.info(
-                    "dataset_ratios not specified, datasets will be concatenated (map-style datasets) or chained (webdataset.DataPipeline)."
-                )
+            # concatenate map-style datasets and chain wds.DataPipe datasets separately
+            # training set becomes a tuple (ConcatDataset, ChainDataset), both are
+            # optional but at least one of them is required. The resultant ConcatDataset
+            # and ChainDataset will be sampled evenly.
+            logging.info(
+                "dataset_ratios not specified, datasets will be concatenated (map-style datasets) or chained (webdataset.DataPipeline)."
+            )
 
-                datasets = reorg_datasets_by_split(self.datasets)
-                self.datasets = concat_datasets(datasets)
-            else:
-                # create multi-loader with the provided ratios, without concatenating or chaining
-                missing_keys = [k for k in dataset_ratios if k not in self.datasets]
-                if len(missing_keys) > 0:
-                    raise ValueError(
-                        "Datasets with the following split names are not found: {}".format(
-                            missing_keys
-                        )
-                    )
-
-                unexpected_keys = [k for k in self.datasets if k not in dataset_ratios]
-                if len(unexpected_keys) > 0:
-                    raise ValueError(
-                        "Datasets with the following split names are not expected: {}".format(
-                            unexpected_keys
-                        )
-                    )
-
-                dataset_ratios = [float(dataset_ratios[k]) for k in self.datasets]
-                self.datasets = reorg_datasets_by_split(self.datasets)
-                # to keep the same structure as return value of concat_datasets
-                self.datasets = {
-                    k: v[0] if len(v) == 1 else v for k, v in datasets.items()
-                }
+            datasets = reorg_datasets_by_split(self.datasets)
+            self.datasets = concat_datasets(datasets)
 
             # print dataset statistics after concatenation/chaining
             for split_name in self.datasets:
@@ -214,7 +189,7 @@ class RunnerBase:
 
                 if num_records >= 0:
                     logging.info(
-                        "Loaded {} records for {} split.".format(
+                        "Loaded {} records for {} split from the dataset.".format(
                             num_records, split_name
                         )
                     )
