@@ -31,6 +31,9 @@ class BaseModel(nn.Module):
 
     @classmethod
     def from_pretrained(cls, model_type="base"):
+        """
+        Build a pretrained model from default configuration file, specified by model_type.
+        """
         return cls._from_config(cfg=None, model_type=model_type)
 
     @property

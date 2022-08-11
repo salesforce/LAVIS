@@ -11,9 +11,11 @@ from lavis.models.albef_models.albef_retrieval import AlbefRetrieval
 from lavis.models.albef_models.albef_vqa import AlbefVQA
 from lavis.models.alpro_models.alpro_qa import AlproQA
 from lavis.models.alpro_models.alpro_retrieval import AlproRetrieval
-from lavis.models.blip_models.blip import BlipBase, BlipFeatureExtractor, BlipITM
+
+from lavis.models.blip_models.blip import BlipBase, BlipITM
 from lavis.models.blip_models.blip_caption import BlipCaption
 from lavis.models.blip_models.blip_classification import BlipClassification
+from lavis.models.blip_models.blip_feature_extractor import BlipFeatureExtractor
 from lavis.models.blip_models.blip_nlvr import BlipNLVR
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
 from lavis.models.blip_models.blip_retrieval import BlipRetrieval
@@ -66,6 +68,23 @@ def get_model_config(model_name, model_type="base"):
 
 
 def load_model(name, model_type="base", is_eval=False, device="cpu"):
+    """
+    Load supported models.
+
+    List all available models and types in registry:
+    >>> from lavis.models import model_zoo
+    >>> print(model_zoo)
+
+    Args:
+        name (str): name of the model.
+        model_type (str): type of the model. Default: "base".
+        is_eval (bool): whether the model is in eval mode. Default: False.
+        device (str): device to use. Default: "cpu".
+
+    Returns:
+        model (torch.nn.Module): model.
+    """
+
     model = registry.get_model_class(name).from_pretrained(model_type=model_type)
 
     if is_eval:
@@ -75,6 +94,10 @@ def load_model(name, model_type="base", is_eval=False, device="cpu"):
 
 
 def load_preprocess(config):
+    """
+    Load preprocessor configs and construct preprocessors.
+    """
+
     def _build_proc_from_cfg(cfg):
         print(cfg)
         return (
@@ -107,6 +130,24 @@ def load_preprocess(config):
 
 
 def load_model_and_preprocess(name, model_type="base", is_eval=False, device="cpu"):
+    """
+    Load model and its related preprocessors.
+
+    List all available models and types in registry:
+    >>> from lavis.models import model_zoo
+    >>> print(model_zoo)
+
+    Args:
+        name (str): name of the model.
+        model_type (str): type of the model. Default: "base".
+        is_eval (bool): whether the model is in eval mode. Default: False.
+        device (str): device to use. Default: "cpu".
+
+    Returns:
+        model (torch.nn.Module): model.
+        vis_processors (dict): preprocessors for visual inputs.
+        txt_processors (dict): preprocessors for text inputs.
+    """
     model_cls = registry.get_model_class(name)
 
     # load model
@@ -134,6 +175,16 @@ def load_model_and_preprocess(name, model_type="base", is_eval=False, device="cp
 
 
 class ModelZoo:
+    """
+    A utility class to create string representation of available model architectures and types.
+
+    >>> from lavis.models import model_zoo
+    >>> # list all available models
+    >>> print(model_zoo)
+    >>> # show total number of models
+    >>> print(len(model_zoo))
+    """
+
     def __init__(self) -> None:
         self.model_zoo = {
             k: list(v.PRETRAINED_MODEL_CONFIG_DICT.keys())

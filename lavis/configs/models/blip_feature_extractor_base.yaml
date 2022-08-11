@@ -1,0 +1,24 @@
+model:
+  arch: blip_pretrain
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+
+  # vit encoder
+  vit_type: "base"
+  vit_grad_ckpt: False
+  vit_ckpt_layer: 0
+
+  image_size: 224
+
+  # bert config
+  med_config_path: "configs/models/med_config.json"
+
+  embed_dim: 256
+
+preprocess:
+  vis_processor:
+      eval:
+        name: "blip_image_eval"
+        image_size: 224
+  text_processor:
+      eval:
+        name: "blip_caption"

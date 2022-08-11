@@ -245,6 +245,30 @@ class Registry:
         return cls.mapping["runner_name_mapping"].get(name, None)
 
     @classmethod
+    def list_runners(cls):
+        return sorted(cls.mapping["runner_name_mapping"].keys())
+
+    @classmethod
+    def list_models(cls):
+        return sorted(cls.mapping["model_name_mapping"].keys())
+
+    @classmethod
+    def list_tasks(cls):
+        return sorted(cls.mapping["task_name_mapping"].keys())
+
+    @classmethod
+    def list_processors(cls):
+        return sorted(cls.mapping["processor_name_mapping"].keys())
+
+    @classmethod
+    def list_lr_schedulers(cls):
+        return sorted(cls.mapping["lr_scheduler_name_mapping"].keys())
+
+    @classmethod
+    def list_datasets(cls):
+        return sorted(cls.mapping["builder_name_mapping"].keys())
+
+    @classmethod
     def get_path(cls, name):
         return cls.mapping["paths"].get(name, None)
 

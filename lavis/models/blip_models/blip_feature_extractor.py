@@ -1,0 +1,137 @@
+import warnings
+
+import torch
+import torch.nn.functional as F
+from lavis.common.registry import registry
+from lavis.models.blip_models.blip import BlipBase
+from lavis.models.blip_models.blip_outputs import BlipOutputFeatures
+from lavis.models.med import XBertEncoder
+from lavis.models.vit import VisionTransformerEncoder
+from torch import nn
+
+
+@registry.register_model("blip_feature_extractor")
+class BlipFeatureExtractor(BlipBase):
+    PRETRAINED_MODEL_CONFIG_DICT = {
+        "base": "configs/models/blip_feature_extractor_base.yaml",
+        # "large": "configs/models/blip_feature_extractor_large.yaml",
+    }
+
+    def __init__(self, image_encoder, text_encoder, embed_dim, max_txt_len=40):
+        super().__init__()
+
+        self.tokenizer = self.init_tokenizer()
+
+        self.visual_encoder = image_encoder
+        self.text_encoder = text_encoder
+
+        # creating projection layers for ITC
+        text_width = text_encoder.config.hidden_size
+        vision_width = image_encoder.vision_width
+
+        self.vision_proj = nn.Linear(vision_width, embed_dim)
+        self.text_proj = nn.Linear(text_width, embed_dim)
+
+        self.max_txt_len = max_txt_len
+
+    @torch.no_grad()
+    def forward(self, samples, mode="multimodal"):
+        image = samples.get("image")
+        caption = samples.get("text_input")
+
+        # assert mode is one of "image", "text", "multimodal"
+        assert mode in [
+            "image",
+            "text",
+            "multimodal",
+        ], "mode must be one of 'image', 'text', 'multimodal'"
+
+        # initalize output
+        image_embeds, text_embeds, multimodal_embeds = None, None, None
+        image_features, text_features = None, None
+
+        if mode == "image":
+            assert (
+                image is not None
+            ), "Image is not provided for mode 'image' or 'multimodal'"
+            # return image features
+            image_embeds = self.visual_encoder.forward_features(image)
+
+            image_features = self.vision_proj(image_embeds)
+            image_features = F.normalize(image_features, dim=-1)
+
+        elif mode == "text":
+            assert (
+                caption is not None
+            ), "text input is None for mode 'text' or 'multimodal'"
+
+            text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
+                self.device
+            )
+
+            # return text features
+            text_output = self.text_encoder(
+                text.input_ids,
+                attention_mask=text.attention_mask,
+                return_dict=True,
+                mode="text",
+            )
+            text_embeds = text_output.last_hidden_state
+
+            text_features = self.text_proj(text_embeds)
+            text_features = F.normalize(text_features, dim=-1)
+
+        elif mode == "multimodal":
+            # return multimodel features
+            image_embeds = self.visual_encoder.forward_features(image)
+            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+                self.device
+            )
+
+            text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
+                self.device
+            )
+            text.input_ids[:, 0] = self.tokenizer.enc_token_id
+
+            output = self.text_encoder(
+                text.input_ids,
+                attention_mask=text.attention_mask,
+                encoder_hidden_states=image_embeds,
+                encoder_attention_mask=image_atts,
+                return_dict=True,
+            )
+
+            multimodal_embeds = output.last_hidden_state
+
+        return BlipOutputFeatures(
+            image_embeds=image_embeds,
+            image_features=image_features,
+            text_embeds=text_embeds,
+            text_features=text_features,
+            multimodal_embeds=multimodal_embeds,
+        )
+
+    @classmethod
+    def from_config(cls, cfg=None):
+        # set from_pretrained=True to load weights for 'bert-base-uncased'
+        image_encoder = VisionTransformerEncoder.from_config(cfg)
+        text_encoder = XBertEncoder.from_config(cfg)
+
+        embed_dim = cfg.get("embed_dim", 256)
+        max_txt_len = cfg.get("max_txt_len", 30)
+
+        model = cls(
+            image_encoder=image_encoder,
+            text_encoder=text_encoder,
+            embed_dim=embed_dim,
+            max_txt_len=max_txt_len,
+        )
+
+        # load pre-trained weights
+        pretrain_path = cfg.get("pretrained", None)
+        if pretrain_path is not None:
+            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        else:
+            warnings.warn("No pretrained weights are loaded.")
+
+        return model

@@ -73,6 +73,10 @@ class BlipFeatureExtractor(BlipBase):
             image_size (int): input image size
             vit (str): model size of vision transformer
         """
+        DeprecationWarning(
+            "BlipFeatureExtractor is deprecated, use lavis.models.blip_models.blip_feature_extractor.BlipFeatureExtractor instead"
+        )
+
         super().__init__()
 
         if vit == "base":
