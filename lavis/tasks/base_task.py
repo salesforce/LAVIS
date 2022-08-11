@@ -95,6 +95,7 @@ class BaseTask:
         lr_scheduler,
         cuda_enabled=False,
         log_freq=50,
+        accum_grad_iters=1,
     ):
         return self._train_inner_loop(
             epoch=epoch,
@@ -105,6 +106,7 @@ class BaseTask:
             lr_scheduler=lr_scheduler,
             log_freq=log_freq,
             cuda_enabled=cuda_enabled,
+            accum_grad_iters=accum_grad_iters,
         )
 
     def train_iters(
@@ -118,6 +120,7 @@ class BaseTask:
         lr_scheduler,
         cuda_enabled=False,
         log_freq=50,
+        accum_grad_iters=1,
     ):
         return self._train_inner_loop(
             epoch=epoch,
@@ -129,6 +132,7 @@ class BaseTask:
             lr_scheduler=lr_scheduler,
             log_freq=log_freq,
             cuda_enabled=cuda_enabled,
+            accum_grad_iters=accum_grad_iters,
         )
 
     def _train_inner_loop(
@@ -142,6 +146,7 @@ class BaseTask:
         start_iters=None,
         log_freq=50,
         cuda_enabled=False,
+        accum_grad_iters=1,
     ):
         """
         An inner training loop compatible with both epoch-based and iter-based training.
@@ -189,13 +194,16 @@ class BaseTask:
             )
 
             lr_scheduler.step(cur_epoch=inner_epoch, cur_step=i)
-            optimizer.zero_grad()
 
             loss = self.train_step(model=model, samples=samples)
 
             # after_train_step()
             loss.backward()
-            optimizer.step()
+
+            # update gradients every accum_grad_iters iterations
+            if (i + 1) % accum_grad_iters == 0:
+                optimizer.step()
+                optimizer.zero_grad()
 
             metric_logger.update(loss=loss.item())
             metric_logger.update(lr=optimizer.param_groups[0]["lr"])

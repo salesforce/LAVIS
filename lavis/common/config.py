@@ -381,6 +381,12 @@ def create_runner_config_validator():
         type=list,
         help="Splits to use for testing. If not provided, will skip the testing.",
     )
+    # add arguments for accumulating gradient for iterations
+    validator.add_argument(
+        "accum_grad_iters",
+        type=int,
+        help="Number of iterations to accumulate gradient for.",
+    )
 
     # ====== distributed training ======
     validator.add_argument(

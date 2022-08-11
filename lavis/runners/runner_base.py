@@ -249,6 +249,10 @@ class RunnerBase:
         return float(self.config.run_cfg.min_lr)
 
     @property
+    def accum_grad_iters(self):
+        return int(self.config.run_cfg.get("accum_grad_iters", 1))
+
+    @property
     def valid_splits(self):
         valid_splits = self.config.run_cfg.get("valid_splits", [])
 
@@ -381,6 +385,7 @@ class RunnerBase:
             lr_scheduler=self.lr_scheduler,
             cuda_enabled=self.cuda_enabled,
             log_freq=self.log_freq,
+            accum_grad_iters=self.accum_grad_iters,
         )
 
     @torch.no_grad()

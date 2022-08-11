@@ -130,6 +130,7 @@ class RunnerIter(RunnerBase):
             lr_scheduler=self.lr_scheduler,
             cuda_enabled=self.cuda_enabled,
             log_freq=self.log_freq,
+            accum_grad_iters=self.accum_grad_iters,
         )
 
     @main_process
