@@ -15,3 +15,16 @@ model:
 
   # generation configs
   prompt: "a picture of "
+
+preprocess:
+    vis_processor:
+        train:
+          name: "blip_image_train"
+        eval:
+          name: "blip_image_eval"
+    text_processor:
+        train:
+          name: "blip_caption"
+          prompt: "a picture of "
+        eval:
+          name: "blip_caption"

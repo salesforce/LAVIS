@@ -3,8 +3,6 @@ import random
 
 from collections import OrderedDict
 
-from pyrsistent import s
-
 from lavis.datasets.datasets.multimodal_classification_datasets import (
     MultimodalClassificationDataset,
 )
