@@ -125,7 +125,7 @@ class BlipVQA(BlipBase):
             )
 
     def generate_answers(self, samples, num_beams=3, max_length=10, min_length=1):
-        encoder_out = self.forward_encoder(samples)
+        encoder_out, _ = self.forward_encoder(samples)
 
         question_output = encoder_out
 
