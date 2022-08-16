@@ -93,10 +93,11 @@ class BlipCaption(BlipBase):
         min_length=10,
         top_p=0.9,
         repetition_penalty=1.0,
+        num_captions=1,
     ):
         # prepare inputs for decoder generation.
         encoder_out = self.forward_encoder(samples)
-        image_embeds = encoder_out
+        image_embeds = torch.repeat_interleave(encoder_out, num_captions, 0)
 
         prompt = [self.prompt] * image_embeds.size(0)
         prompt = self.tokenizer(prompt, return_tensors="pt").to(self.device)
