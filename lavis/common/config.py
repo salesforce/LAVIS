@@ -273,6 +273,11 @@ def create_runner_config_validator():
         type=float,
         help="Maximum number of iterations to run.",
     )
+    validator.add_argument(
+        "max_epoch",
+        type=int,
+        help="Maximum number of epochs to run.",
+    )
     # add arguments for iters_per_inner_epoch
     validator.add_argument(
         "iters_per_inner_epoch",
