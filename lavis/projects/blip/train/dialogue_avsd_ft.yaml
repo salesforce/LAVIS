@@ -1,24 +1,25 @@
 model:
-  arch: blip_caption
+  arch: blip_caption #TODO: change to gpt2_dialogue #blip_caption
   model_type: base
 
 datasets:
-  coco_caption: # name of the dataset builder
+  avsd_dialogue: # name of the dataset builder
     vis_processor:
         train:
-          name: "blip_image_train"
+          name: "avsd_video_train" #"blip_image_train"
         eval:
-          name: "blip_image_eval"
+          name: "avsd_video_eval" #"blip_image_eval"
     text_processor:
         train:
-          name: "blip_caption"
-          prompt: "a picture of "
+          name: "avsd_dialogue"
+          #prompt: "a picture of "
         eval:
-          name: "blip_caption"
+          name: "avsd_dialogue"
 
 run:
   # task: retrieval
-  task: captioning
+  #task: captioning
+  task: dialogue
   # optimizer
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 1e-5
@@ -34,7 +35,7 @@ run:
   num_beams: 3
 
   seed: 42
-  output_dir: "output/BLIP/Caption_coco"
+  output_dir: "output/gpt2/dialogue_avsd" #BLIP/Caption_coco"
 
   evaluate: False
   train_splits: ["train"]

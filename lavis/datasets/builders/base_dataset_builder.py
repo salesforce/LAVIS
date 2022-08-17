@@ -12,6 +12,7 @@ from lavis.processors.base_processor import BaseProcessor
 from omegaconf import OmegaConf
 from torchvision.datasets.utils import download_url
 
+import pdb 
 
 class BaseDatasetBuilder:
     train_dataset_cls, eval_dataset_cls = None, None
@@ -94,6 +95,7 @@ class BaseDatasetBuilder:
 
         Local annotation paths should be relative.
         """
+        pdb.set_trace()
         anns = self.config.build_info.annotations
 
         splits = anns.keys()

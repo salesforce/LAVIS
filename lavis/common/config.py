@@ -5,6 +5,7 @@ from typing import Dict
 from omegaconf import OmegaConf
 from lavis.common.registry import registry
 
+import pdb 
 
 class Config:
     def __init__(self, args):
@@ -26,7 +27,8 @@ class Config:
         # Validate the user-provided runner configuration
         # model and dataset configuration are supposed to be validated by the respective classes
         # [TODO] validate the model/dataset configuration
-        self._validate_runner_config(runner_config)
+        # [TOFIX]
+        #self._validate_runner_config(runner_config)
 
         # Override the default configuration with user options.
         self.config = OmegaConf.merge(

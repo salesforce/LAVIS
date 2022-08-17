@@ -1,0 +1,23 @@
+datasets:
+  avsd_dialogue: #coco_caption: # name of the dataset builder
+    dataset_card: dataset_card/avsd_dialogue.md #coco_caption.md
+    # data_dir: ${env.data_dir}/datasets
+    data_type: features #images # [images|videos|features]
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          #url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
+          #md5: aa31ac474cf6250ebb81d18348a07ed8
+          storage: avsd/annotations/train.json #coco/annotations/coco_karpathy_train.json
+        val:
+          #url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
+          #md5: b273847456ef5580e33713b1f7de52a0
+          storage: avsd/annotations/val.json #coco/annotations/coco_karpathy_val.json
+        test:
+          #url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
+          #md5: 3ff34b0ef2db02d01c37399f6a2a6cd1
+          storage: avsd/annotations/test.json #coco/annotations/coco_karpathy_test.json
+      images:
+        storage: avsd/videos/ #coco/images/

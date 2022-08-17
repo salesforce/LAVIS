@@ -25,6 +25,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.data.dataset import ChainDataset
 
+import pdb 
+
 
 @registry.register_runner("runner_base")
 class RunnerBase:
@@ -309,6 +311,7 @@ class RunnerBase:
         best_agg_metric = 0
         best_epoch = 0
 
+        pdb.set_trace()
         for cur_epoch in range(0, self.max_epoch):
             # training phase
             if not self.evaluate_only:
