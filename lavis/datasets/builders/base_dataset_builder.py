@@ -51,6 +51,7 @@ class BaseDatasetBuilder:
         return datasets
 
     def build_processors(self):
+        pdb.set_trae()
         vis_proc_cfg = self.config.get("vis_processor")
         txt_proc_cfg = self.config.get("text_processor")
 
@@ -95,7 +96,6 @@ class BaseDatasetBuilder:
 
         Local annotation paths should be relative.
         """
-        pdb.set_trace()
         anns = self.config.build_info.annotations
 
         splits = anns.keys()
@@ -111,7 +111,7 @@ class BaseDatasetBuilder:
                 urls = [urls]
             if isinstance(storage_paths, str):
                 storage_paths = [storage_paths]
-
+            
             assert len(urls) == len(storage_paths)
 
             for url_or_filename, storage_path in zip(urls, storage_paths):
