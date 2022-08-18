@@ -118,10 +118,9 @@ class BlipCaption(BlipBase):
             repetition_penalty=repetition_penalty,
         )
 
-        captions = []
-        for output in decoder_out:
-            caption = self.tokenizer.decode(output, skip_special_tokens=True)
-            captions.append(caption[len(self.prompt) :])
+        outputs = self.tokenizer.batch_decode(decoder_out, skip_special_tokens=True)
+        captions = [output[len(self.prompt) :] for output in outputs]
+
         return captions
 
     @classmethod
