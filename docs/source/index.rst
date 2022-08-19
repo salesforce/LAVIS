@@ -7,9 +7,37 @@ Welcome to LAVIS's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Introduction
 
+   intro
+   
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Getting Started
+
+   getting_started
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Training 
+
+   advanced_training
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Extending LAVIS 
+
+   extending
+
+
+
+
+Documentations
+===================
 
 
 Indices and tables
