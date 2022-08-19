@@ -18,7 +18,7 @@ def is_url(url_or_filename):
 
 
 def get_cache_path(rel_path):
-    return os.path.join(registry.get_path("cache_root"), rel_path)
+    return os.path.expanduser(os.path.join(registry.get_path("cache_root"), rel_path))
 
 
 def get_abs_path(rel_path):

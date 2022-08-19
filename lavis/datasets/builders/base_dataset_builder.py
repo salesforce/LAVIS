@@ -194,7 +194,7 @@ class BaseDatasetBuilder:
             abs_ann_paths = []
             for ann_path in ann_paths:
                 if not os.path.isabs(ann_path):
-                    ann_path = os.path.join(registry.get_path("cache_root"), ann_path)
+                    ann_path = utils.get_cache_path(ann_path)
                 abs_ann_paths.append(ann_path)
             ann_paths = abs_ann_paths
 
@@ -202,7 +202,8 @@ class BaseDatasetBuilder:
             vis_path = vis_info.storage
 
             if not os.path.isabs(vis_path):
-                vis_path = os.path.join(registry.get_path("cache_root"), vis_path)
+                # vis_path = os.path.join(utils.get_cache_path(), vis_path)
+                vis_path = utils.get_cache_path(vis_path)
 
             if not os.path.exists(vis_path):
                 raise ValueError("storage path {} does not exist.".format(vis_path))
