@@ -5,6 +5,7 @@ from lavis.common.registry import registry
 from lavis.models.base_model import BaseModel
 
 from lavis.models.albef_models.albef_classification import AlbefClassification
+from lavis.models.albef_models.albef_feature_extractor import AlbefFeatureExtractor
 from lavis.models.albef_models.albef_nlvr import AlbefNLVR
 from lavis.models.albef_models.albef_pretrain import AlbefPretrain
 from lavis.models.albef_models.albef_retrieval import AlbefRetrieval
@@ -24,10 +25,13 @@ from lavis.models.med import XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 from lavis.models.clip_models.model import CLIP
 
+from lavis.processors.base_processor import BaseProcessor
+
 
 __all__ = [
     "load_model",
     "AlbefClassification",
+    "AlbefFeatureExtractor",
     "AlbefNLVR",
     "AlbefVQA",
     "AlbefPretrain",
@@ -96,6 +100,17 @@ def load_model(name, model_type="base", is_eval=False, device="cpu"):
 def load_preprocess(config):
     """
     Load preprocessor configs and construct preprocessors.
+
+    If no preprocessor is specified, return BaseProcessor, which does not do any preprocessing.
+
+    Args:
+        config (dict): preprocessor configs.
+
+    Returns:
+        vis_processors (dict): preprocessors for visual inputs.
+        txt_processors (dict): preprocessors for text inputs.
+
+        Key is "train" or "eval" for processors used in training and evaluation respectively.
     """
 
     def _build_proc_from_cfg(cfg):
@@ -103,7 +118,7 @@ def load_preprocess(config):
         return (
             registry.get_processor_class(cfg.name).from_config(cfg)
             if cfg is not None
-            else None
+            else BaseProcessor()
         )
 
     vis_processors = dict()
@@ -115,16 +130,22 @@ def load_preprocess(config):
     if vis_proc_cfg is not None:
         vis_train_cfg = vis_proc_cfg.get("train")
         vis_eval_cfg = vis_proc_cfg.get("eval")
+    else:
+        vis_train_cfg = None
+        vis_eval_cfg = None
 
-        vis_processors["train"] = _build_proc_from_cfg(vis_train_cfg)
-        vis_processors["eval"] = _build_proc_from_cfg(vis_eval_cfg)
+    vis_processors["train"] = _build_proc_from_cfg(vis_train_cfg)
+    vis_processors["eval"] = _build_proc_from_cfg(vis_eval_cfg)
 
     if txt_proc_cfg is not None:
         txt_train_cfg = txt_proc_cfg.get("train")
         txt_eval_cfg = txt_proc_cfg.get("eval")
+    else:
+        txt_train_cfg = None
+        txt_eval_cfg = None
 
-        txt_processors["train"] = _build_proc_from_cfg(txt_train_cfg)
-        txt_processors["eval"] = _build_proc_from_cfg(txt_eval_cfg)
+    txt_processors["train"] = _build_proc_from_cfg(txt_train_cfg)
+    txt_processors["eval"] = _build_proc_from_cfg(txt_eval_cfg)
 
     return vis_processors, txt_processors
 

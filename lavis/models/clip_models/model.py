@@ -21,6 +21,7 @@ import torch.nn.functional as F
 from lavis.common.registry import registry
 from lavis.common.utils import get_abs_path
 from lavis.models.base_model import BaseModel
+from lavis.models.clip_models.clip_outputs import ClipOutput, ClipOutputFeatures
 from lavis.models.clip_models.timm_model import TimmModel
 from lavis.models.clip_models.transform import image_transform
 from lavis.models.clip_models.utils import freeze_batch_norm_2d
@@ -395,6 +396,7 @@ class CLIPTextCfg:
 
 
 @registry.register_model("clip")
+@registry.register_model("clip_feature_extractor")
 class CLIP(BaseModel):
     PRETRAINED_MODEL_CONFIG_DICT = {
         "ViT-B-32": "configs/models/clip_vit_base32.yaml",
@@ -558,9 +560,11 @@ class CLIP(BaseModel):
 
     # def forward(self, image, text):
     def forward(self, samples):
+        image = samples.get("image")
+        text = samples.get("text_input")
 
-        image = samples["image"]
-        text = self.tokenizer(samples["text_input"]).to(self.device)
+        if text is not None:
+            text = self.tokenizer(text).to(self.device)
 
         if image is None:
             return self.encode_text(text)
@@ -575,7 +579,51 @@ class CLIP(BaseModel):
         loss = self.loss(image_features, text_features, self.logit_scale.exp())
 
         # return image_features, text_features, self.logit_scale.exp()
-        return {"loss": loss}
+        # return {"loss": loss}
+        return ClipOutput(
+            intermediate_output=ClipOutputFeatures(
+                image_features=image_features, text_features=text_features
+            ),
+            loss=loss,
+            logit_scale_exp=self.logit_scale.exp(),
+        )
+
+    def extract_features(self, samples):
+        """
+        Extract features from the model for samples.
+
+        Keys allowed are "image" and "text_input" in samples.
+        If either key is missing, the corresponding features are not extracted.
+
+        Args:
+            samples: dict of samples to extract features from.
+
+        Returns:
+            ClipOutputFeatures object with features for the samples.
+        """
+        image = samples.get("image")
+        text = samples.get("text_input")
+
+        if text is not None:
+            text = self.tokenizer(text).to(self.device)
+
+        if image is None:
+            return self.encode_text(text)
+        elif text is None:
+            return self.encode_image(image)
+
+        image_embeds = self.encode_image(image)
+        image_features = F.normalize(image_embeds, dim=-1)
+
+        text_embeds = self.encode_text(text)
+        text_features = F.normalize(text_embeds, dim=-1)
+
+        return ClipOutputFeatures(
+            image_embeds=image_embeds,
+            image_features=image_features,
+            text_embeds=text_embeds,
+            text_features=text_features,
+        )
 
     def predict(self, samples):
         image = samples["image"]

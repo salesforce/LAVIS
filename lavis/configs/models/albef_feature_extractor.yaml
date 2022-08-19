@@ -1,0 +1,25 @@
+model:
+  arch: albef_retrieval
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+
+  # vit encoder
+  vit_type: "base"
+  image_size: 224
+  vit_ckpt_layer: 0
+  vit_drop_path_rate: 0
+  vit_layer_norm_epsilon: 1e-6
+  vit_grad_ckpt: False
+
+  # bert config
+  med_config_path: "configs/models/med_config_albef.json"
+
+  embed_dim: 256
+
+preprocess:
+  vis_processor:
+      eval:
+        name: "blip_image_eval"
+        image_size: 224
+  text_processor:
+      eval:
+        name: "blip_caption"
