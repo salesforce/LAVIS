@@ -1,4 +1,4 @@
-Introduction
+What is LAVIS?
 ####################################
 
 LAVIS is a Python deep learning library for LAnguage-and-VISion research and applications.

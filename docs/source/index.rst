@@ -29,11 +29,9 @@ Welcome to LAVIS's documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Extending LAVIS 
+   :caption: Tutorial 
 
-   extending
-
-
+   tutorial
 
 
 Documentations

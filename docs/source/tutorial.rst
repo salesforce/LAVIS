@@ -1,13 +1,12 @@
-Extending LAVIS
-===================
+In this tutorial, 
 
-.. _registry:
 
-Registry
+
+Adding New Datasets
 ####################################
 
 
-1. Overview of the design
+
 2. Tutorial: adding a new dataset
 3. Tutorial: adding a new task
 4. Tutorial: adding a new model

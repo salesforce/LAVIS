@@ -1,3 +1,60 @@
+Dataset Zoo
+##################
+LAVIS inherently supports a wide variety of common language-vision datasets by providing automatic download scripts to help download and organize these datasets; 
+and implements PyTorch datasets for these datasets. To view supported datasets, use the following code:
+
+.. code-block:: python
+
+    from lavis.datasets.builders import dataset_zoo
+    dataset_names = dataset_zoo.get_names()
+    print(dataset_names)
+    # ['aok_vqa', 'coco_caption', 'coco_retrieval', 'coco_vqa', 'conceptual_caption_12m',
+    #  'conceptual_caption_3m', 'didemo_retrieval', 'flickr30k', 'imagenet', 'laion2B_multi',
+    #  'msrvtt_caption', 'msrvtt_qa', 'msrvtt_retrieval', 'msvd_caption', 'msvd_qa', 'nlvr',
+    #  'nocaps', 'ok_vqa', 'sbu_caption', 'snli_ve', 'vatex_caption', 'vg_caption', 'vg_vqa']
+    print(len(dataset_names))
+    # 23
+
+
+Auto-Downloading and Loading Datasets
+######################################
+We now take COCO caption dataset as an example to demonstrate how to download and prepare the dataset.
+
+In ``lavis/datasets/download_scripts/``, we provide tools to download most common public language-vision datasets supported by LAVIS.
+The COCO caption dataset uses images from COCO dataset. Therefore, we first download COCO images via:
+
+.. code-block:: bash
+    
+    cd lavis/datasets/download_scripts/ && python download_coco.py
+
+This will automatically download and extract COCO images to the default LAVIS cache location.
+The default cache location is ``~/.cache/lavis``, defined in ``lavis/configs/default.yaml``.
+
+After downloading the images, we can use ``load_dataset()`` to obtain the dataset. On the first run, this will automatically download and cache annotation files.
+
+.. code-block:: python
+
+    from lavis.datasets.builders import load_dataset
+    coco_dataset = load_dataset("coco_caption")
+
+    print(coco_dataset.key())
+    # dict_keys(['train', 'val', 'test'])
+
+    print(len(coco_dataset["train"]))
+    # 566747
+
+    print(coco_dataset["train"][0])
+    # {'image': <PIL.Image.Image image mode=RGB size=640x480>,
+    #  'text_input': 'A woman wearing a net on her head cutting a cake. ',
+    #  'image_id': 0}
+
+If you already host a local copy of the dataset, you can pass in the ``vis_path`` argument to change the default location to load images.
+
+.. code-block:: python
+
+    coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
+
+
 Model Zoo
 ####################################
 LAVIS supports a growing list of pre-trained models for different tasks,
@@ -54,7 +111,7 @@ This example image shows `Merlion park <https://en.wikipedia.org/wiki/Merlion>`_
 Image Captioning
 *******************************
 We now use the BLIP model to generate a caption for the image. To make inference even easier, we also associate each
-pre-trained model with its preprocessors (transforms),  we use ``load_model_and_preprocess()`` with the following parameters:
+pre-trained model with its preprocessors (transforms),  we use ``load_model_and_preprocess()`` with the following arguments:
 
 - ``name``: The name of the model to load. This could be a pre-trained model, task model, or feature extractor. See ``model_zoo`` for a full list of model names.
 - ``model_type``: Each architecture has variants trained on different datasets and at different scale. See Types column in ``model_zoo`` for a full list of model types.
@@ -97,7 +154,7 @@ In BLIP, you can also generate diverse captions by turning nucleus sampling on.
 Visual question answering (VQA)
 *******************************
 BLIP model is able to answer free-form questions about images in natural language.
-To access the VQA model, simply replace the ``name`` and ``model_type`` parameters 
+To access the VQA model, simply replace the ``name`` and ``model_type`` arguments 
 passed to ``load_model_and_preprocess()``.
 
 .. code-block:: python
@@ -115,8 +172,58 @@ passed to ``load_model_and_preprocess()``.
     # ['singapore']
 
 
-Feature Extraction
-*******************************
+Evaluating Pre-trained Models on Task Datasets
+###############################################
+LAVIS provides pre-trained and finetuned model for off-the-shelf evaluation on task dataset. 
+Let's now see an example to evaluate BLIP model on the captioning task, using MSCOCO dataset.
+
+Preparing Datasets
+******************
+First, let's download the dataset. LAVIS provides `automatic downloading scripts` to help prepare 
+most of the public dataset, to download MSCOCO dataset, simply run
+
+.. code-block:: bash
+
+    cd lavis/datasets/download_scripts && bash download_coco.py
+
+This will put the downloaded dataset at a default cache location ``~/.cache/lavis`` used by LAVIS.
+
+Evaluating pre-trained models
+******************************
+
+To evaluate pre-trained model, simply run
+
+.. code-block:: bash
+
+    bash run_scripts/lavis/blip/eval/eval_coco_cap.sh
+
+Or to evaluate a large model:
+
+.. code-block:: bash
+
+    bash run_scripts/lavis/blip/eval/eval_coco_cap_large.sh
+
+Fine-tuning Pre-trained Models on Task Datasets
+###############################################
+LAVIS provides scripts to pre-train and finetune supported models on standard language-vision tasks, stored at ``lavis/run_scripts/``. 
+To replicate the experiments, just run these bash scripts. For example, to train BLIP model on the image-text retrieval task with MSCOCO dataset, we can run
+
+.. code-block::
+
+    bash run_scripts/lavis/blip/train/train_retrieval_coco.sh
+
+Inside the scripts, we can see 
+
+.. code-block:: bash
+
+    python -m torch.distributed.run --nproc_per_node=8 train.py --cfg-path lavis/projects/blip/train/retrieval_coco_ft.yaml
+
+where we start a pytorch distributed training on 8 GPUs (you may change according to your own hardware setup). The ``--cfg-path`` specifys a `runtime configuration file`, specifying
+the task, model, dataset and training recipes. 
+
+
+Unified Feature Extraction Interface
+####################################
 
 LAVIS provides a unified interface to extract multimodal features from each architecture.
 To extract features, we load the feature extractor variants of each model.
@@ -169,52 +276,3 @@ Similarly, to use CLIP as feature extractor:
     model, vis_processors, txt_processors = load_model_and_preprocess(name="clip_feature_extractor", model_type="base", is_eval=True, device=device)
     # model, vis_processors, txt_processors = load_model_and_preprocess(name="clip_feature_extractor", model_type="RN50", is_eval=True, device=device)
     # model, vis_processors, txt_processors = load_model_and_preprocess(name="clip_feature_extractor", model_type="ViT-L-14", is_eval=True, device=device)
-
-Evaluating Pre-trained Models on Task Datasets
-###############################################
-LAVIS provides pre-trained and finetuned model for off-the-shelf evaluation on task dataset. 
-Let's now see an example to evaluate BLIP model on the captioning task, using MSCOCO dataset.
-
-Preparing Datasets
-******************
-First, let's download the dataset. LAVIS provides `automatic downloading scripts` to help prepare 
-most of the public dataset, to download MSCOCO dataset, simply run
-
-.. code-block:: bash
-
-    cd lavis/datasets/download_scripts && bash download_coco.py
-
-This will put the downloaded dataset at a default cache location ``~/.cache/lavis`` used by LAVIS.
-
-Evaluating pre-trained models
-******************************
-
-To evaluate pre-trained model, simply run
-
-.. code-block:: bash
-
-    bash run_scripts/lavis/blip/eval/eval_coco_cap.sh
-
-Or to evaluate a large model:
-
-.. code-block:: bash
-
-    bash run_scripts/lavis/blip/eval/eval_coco_cap_large.sh
-
-Fine-tuning Pre-trained Models on Task Datasets
-###############################################
-LAVIS provides scripts to pre-train and finetune supported models on standard language-vision tasks, stored at ``lavis/run_scripts/``. 
-To replicate the experiments, just run these bash scripts. For example, to train BLIP model on the image-text retrieval task with MSCOCO dataset, we can run
-
-.. code-block::
-
-    bash run_scripts/lavis/blip/train/train_retrieval_coco.sh
-
-Inside the scripts, we can see 
-
-.. code-block:: bash
-
-    python -m torch.distributed.run --nproc_per_node=8 train.py --cfg-path lavis/projects/blip/train/retrieval_coco_ft.yaml
-
-where we start a pytorch distributed training on 8 GPUs (you may change according to your own hardware setup). The ``--cfg-path`` specifys a `runtime configuration file`, specifying
-the task, model, dataset and training recipes. 
