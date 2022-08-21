@@ -30,29 +30,29 @@ Other features include:
 
 - **Dataset Explorer**: help browse and understand language-vision datasets.
 
-Supported Tasks, Datasets and Models
+Supported Tasks, Models and Datasets
 ####################################
 
 The following table shows the supported models and language-vision tasks by LAVIS. Adapting existing models to more tasks is possible and next to come in future releases.
 
-========================================  ============ ============================================= ===========================
-Tasks                                      Modalities   Supported Datasets                            Supported Models
-========================================  ============ ============================================= ===========================
-Image-text Pre-training                   image, text   COCO, VisualGenome, SBU, ConceptualCaptions   ALBEF, BLIP
-Image-text Retrieval                      image, text   COCO, Flickr30k                               ALBEF, BLIP, CLIP
-Text-image Retrieval                      image, text   COCO, Flickr30k                               ALBEF, BLIP, CLIP 
-Visual Question Answering                 image, text   VQAv2, OKVQA, A-OKVQA                         ALBEF, BLIP
-Image Captioning                          image, text   COCO, NoCaps                                  BLIP
-Image Classification                      image         ImageNet                                      CLIP
-Natural Language Visual Reasoning (NLVR)  image, text   NLVR2                                         ALBEF, BLIP
-Visual Entailment (VE)                    image, text   SNLI-VE                                       ALBEF
-Visual Dialogue                           image, text   VisDial                                       BLIP
-Video-text Retrieval                      video, text   MSRVTT, DiDeMo                                BLIP, ALPRO
-Text-video Retrieval                      video, text   MSRVTT, DiDeMo                                BLIP, ALPRO
-Video Question Answering (VideoQA)        video, text   MSRVTT, MSVD                                  BLIP, ALPRO
-Video Dialogue                            video, text   
-Multimodal Feature Extraction             image, text   customized                                    ALBEF, CLIP, BLIP, ALPRO
-========================================  ============ ============================================= ===========================
+======================================== =========================== ============================================= ============ 
+Tasks                                     Supported Models            Supported Datasets                            Modalities  
+======================================== =========================== ============================================= ============ 
+Image-text Pre-training                   ALBEF, BLIP                 COCO, VisualGenome, SBU, ConceptualCaptions  image, text  
+Image-text Retrieval                      ALBEF, BLIP, CLIP           COCO, Flickr30k                              image, text  
+Text-image Retrieval                      ALBEF, BLIP, CLIP           COCO, Flickr30k                              image, text  
+Visual Question Answering                 ALBEF, BLIP                 VQAv2, OKVQA, A-OKVQA                        image, text  
+Image Captioning                          BLIP                        COCO, NoCaps                                 image, text  
+Image Classification                      CLIP                        ImageNet                                     image        
+Natural Language Visual Reasoning (NLVR)  ALBEF, BLIP                 NLVR2                                        image, text  
+Visual Entailment (VE)                    ALBEF                       SNLI-VE                                      image, text  
+Visual Dialogue                           BLIP                        VisDial                                      image, text  
+Video-text Retrieval                      BLIP, ALPRO                 MSRVTT, DiDeMo                               video, text  
+Text-video Retrieval                      BLIP, ALPRO                 MSRVTT, DiDeMo                               video, text  
+Video Question Answering (VideoQA)        BLIP, ALPRO                 MSRVTT, MSVD                                 video, text  
+Video Dialogue                                                                                                     video, text  
+Multimodal Feature Extraction             ALBEF, CLIP, BLIP, ALPRO    customized                                   image, text  
+======================================== =========================== ============================================= ============ 
 
 Library Design
 ####################################
