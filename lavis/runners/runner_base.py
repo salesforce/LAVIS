@@ -311,7 +311,6 @@ class RunnerBase:
         best_agg_metric = 0
         best_epoch = 0
 
-        pdb.set_trace()
         for cur_epoch in range(0, self.max_epoch):
             # training phase
             if not self.evaluate_only:

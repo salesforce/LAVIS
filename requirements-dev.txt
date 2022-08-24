@@ -21,3 +21,4 @@ torchvision==0.11.1
 tqdm
 transformers==4.15.0
 wheel
+webdataset

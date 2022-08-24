@@ -47,11 +47,10 @@ class BaseDatasetBuilder:
         # at this point, all the annotations and image/videos should be all downloaded to the specified locations.
         logging.info("Building datasets...")
         datasets = self.build()  # dataset['train'/'val'/'test']
-
+        
         return datasets
 
     def build_processors(self):
-        pdb.set_trae()
         vis_proc_cfg = self.config.get("vis_processor")
         txt_proc_cfg = self.config.get("text_processor")
 

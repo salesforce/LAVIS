@@ -6,15 +6,22 @@ datasets:
   avsd_dialogue: # name of the dataset builder
     vis_processor:
         train:
-          name: "avsd_video_train" #"blip_image_train"
+          name: "gpt_video_ft" #"blip_image_train"
+          visual_ft: "i3d_rgb" # set to "none" to skip visual features 
+          audio_ft: "none"   # set to "none" to skip audio features 
         eval:
-          name: "avsd_video_eval" #"blip_image_eval"
+          name: "gpt_video_ft" #"blip_image_eval"
+          visual_ft: "i3d_rgb" # set to "none" to skip visual features 
+          audio_ft: "none"   # set to "none" to skip audio features
     text_processor:
         train:
-          name: "avsd_dialogue"
-          #prompt: "a picture of "
+          name: "gpt_dialogue"
+          max_turns:  10
+          use_caption: True 
         eval:
-          name: "avsd_dialogue"
+          name: "gpt_dialogue"
+          max_turns:  10
+          use_caption: True 
 
 run:
   # task: retrieval
@@ -28,7 +35,7 @@ run:
   max_epoch: 5
   batch_size_train: 32
   batch_size_eval: 64
-  num_workers: 1 #4
+  num_workers: 0 #4
 
   max_len: 20
   min_len: 5

@@ -4,6 +4,7 @@ from typing import Iterable
 from torch.utils.data import Dataset, ConcatDataset
 from torch.utils.data.dataloader import default_collate
 
+import pdb 
 
 class BaseDataset(Dataset):
     def __init__(
@@ -45,6 +46,7 @@ class ConcatDataset(ConcatDataset):
 
     def collater(self, samples):
         # TODO For now only supports datasets with same underlying collater implementations
+        pdb.set_trace()
         all_keys = set()
         for s in samples:
             all_keys.update(s)
