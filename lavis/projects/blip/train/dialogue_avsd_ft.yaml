@@ -1,0 +1,54 @@
+model:
+  arch: blip_caption #TODO: change to gpt2_dialogue #blip_caption
+  model_type: base
+
+datasets:
+  avsd_dialogue: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "gpt_video_ft" #"blip_image_train"
+          visual_ft: ["i3d_flow", "i3d_rgb"]  
+          audio_ft: ["vggish"]    
+        eval:
+          name: "gpt_video_ft" #"blip_image_eval"
+          visual_ft: ["i3d_flow", "i3d_rgb"]  
+          audio_ft: ["vggish"]   
+    text_processor:
+        train:
+          name: "gpt_dialogue"
+          max_turns:  10
+          use_caption: True 
+        eval:
+          name: "gpt_dialogue"
+          max_turns:  10
+          use_caption: True 
+
+run:
+  # task: retrieval
+  #task: captioning
+  task: dialogue
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  weight_decay: 0.05
+  max_epoch: 5
+  batch_size_train: 32
+  batch_size_eval: 64
+  num_workers: 0 #4
+
+  max_len: 20
+  min_len: 5
+  num_beams: 3
+
+  seed: 42
+  output_dir: "output/gpt2/dialogue_avsd" #BLIP/Caption_coco"
+
+  evaluate: False
+  train_splits: ["train"]
+  valid_splits: ["val", "test"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True

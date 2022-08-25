@@ -7,6 +7,8 @@ from lavis.common.logger import MetricLogger, SmoothedValue
 from lavis.common.registry import registry
 from lavis.datasets.data_utils import prepare_sample
 
+import pdb 
+
 
 class BaseTask:
     def __init__(self, **kwargs):
@@ -183,7 +185,7 @@ class BaseTask:
                 break
 
             samples = next(data_loader)
-
+            
             samples = prepare_sample(samples, cuda_enabled=cuda_enabled)
             samples.update(
                 {
