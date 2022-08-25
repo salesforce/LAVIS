@@ -35,6 +35,7 @@ class DialogueDataset(BaseDataset, __DisplMixin):
 
         self.annotation = []
         for ann_path in ann_paths:
+            # TODO: change to use all dataset samples; currently use 10 
             dialogs = json.load(open(ann_path, "r"))['dialogs'][:10] 
             for dialog in dialogs: 
                 all_turns = dialog['dialog']

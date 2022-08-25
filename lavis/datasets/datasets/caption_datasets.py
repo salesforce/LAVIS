@@ -5,6 +5,7 @@ from PIL import Image
 
 from lavis.datasets.datasets.base_dataset import BaseDataset
 
+import pdb 
 
 class __DisplMixin:
     def displ_item(self, index):
@@ -45,7 +46,7 @@ class CaptionDataset(BaseDataset, __DisplMixin):
 
         image = self.vis_processor(image)
         caption = self.text_processor(ann["caption"])
-
+        
         return {
             "image": image,
             "text_input": caption,

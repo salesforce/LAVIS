@@ -7,12 +7,12 @@ datasets:
     vis_processor:
         train:
           name: "gpt_video_ft" #"blip_image_train"
-          visual_ft: "i3d_rgb" # set to "none" to skip visual features 
-          audio_ft: "none"   # set to "none" to skip audio features 
+          visual_ft: ["i3d_flow", "i3d_rgb"]  
+          audio_ft: ["vggish"]    
         eval:
           name: "gpt_video_ft" #"blip_image_eval"
-          visual_ft: "i3d_rgb" # set to "none" to skip visual features 
-          audio_ft: "none"   # set to "none" to skip audio features
+          visual_ft: ["i3d_flow", "i3d_rgb"]  
+          audio_ft: ["vggish"]   
     text_processor:
         train:
           name: "gpt_dialogue"
