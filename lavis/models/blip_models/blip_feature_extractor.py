@@ -34,6 +34,8 @@ class BlipFeatureExtractor(BlipBase):
 
         self.max_txt_len = max_txt_len
 
+        self.temp = nn.Parameter(0.07 * torch.ones([]))
+
     @torch.no_grad()
     def extract_features(self, samples, mode="multimodal"):
         image = samples.get("image")

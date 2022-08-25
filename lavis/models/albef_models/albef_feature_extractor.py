@@ -34,6 +34,8 @@ class AlbefFeatureExtractor(AlbefBase):
 
         self.max_txt_len = max_txt_len
 
+        self.temp = nn.Parameter(0.07 * torch.ones([]))
+
     @torch.no_grad()
     def extract_features(self, samples, mode="multimodal"):
         image = samples["image"]
@@ -59,9 +61,7 @@ class AlbefFeatureExtractor(AlbefBase):
             ), "image must be provided if mode is 'image' or 'multimodal'"
 
             image_embeds = self.visual_encoder.forward_features(image)
-            image_features = F.normalize(
-                self.vision_proj(image_embeds[:, 0, :]), dim=-1
-            )
+            image_features = F.normalize(self.vision_proj(image_embeds), dim=-1)
 
         if "text" in mode or "multimodal" in mode:
             assert (
@@ -83,7 +83,7 @@ class AlbefFeatureExtractor(AlbefBase):
                 mode="text",
             )
             text_embeds = text_output.last_hidden_state
-            text_features = F.normalize(self.text_proj(text_embeds[:, 0, :]), dim=-1)
+            text_features = F.normalize(self.text_proj(text_embeds), dim=-1)
 
         if "multimodal" in mode:
             image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(

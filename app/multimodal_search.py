@@ -12,7 +12,7 @@ from app.utils import (
     read_img,
     resize_img,
 )
-from lavis.models import BlipFeatureExtractor
+from lavis.models import BlipFeatureExtractor, load_model
 from lavis.processors import load_processor
 
 
@@ -48,10 +48,10 @@ def load_feat():
 )
 def load_feature_extractor_model(device):
     model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
-    model = BlipFeatureExtractor(pretrained=model_url)
 
-    model.eval()
-    model = model.to(device)
+    model = load_model("blip_feature_extractor", is_eval=True, device=device)
+    model.load_from_pretrained(model_url)
+
     return model
 
 
@@ -84,10 +84,12 @@ def app():
     feature_extractor = load_feature_extractor_model(device)
 
     # ======= ITC =========
+    sample = {"text_input": user_question}
+
     with torch.no_grad():
-        text_feature = feature_extractor(
-            torch.zeros(0), user_question, mode="text", normalized=True
-        )[0, 0, :]
+        text_feature = feature_extractor.extract_features(
+            sample, mode="text"
+        ).text_features[0, 0]
 
         path2feat, paths, all_img_feats = load_feat()
         all_img_feats.to(device)

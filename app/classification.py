@@ -30,17 +30,21 @@ def load_demo_image(img_url=None):
 )
 def load_model_cache(model_type, device):
     if model_type == "blip":
-        model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
-        model = BlipFeatureExtractor(pretrained=model_url)
-        model.eval()
-        model = model.to(device)
+        model = load_model("blip_feature_extractor", is_eval=True, device=device)
+    elif model_type == "albef":
+        model = load_model("albef_feature_extractor", is_eval=True, device=device)
     elif model_type == "CLIP_ViT-B-32":
-        # model = load_model("clip", "ViT-L-14-336", is_eval=True, device=device)
-        model = load_model("clip", "ViT-B-32", is_eval=True, device=device)
+        model = load_model(
+            "clip_feature_extractor", "ViT-B-32", is_eval=True, device=device
+        )
     elif model_type == "CLIP_ViT-B-16":
-        model = load_model("clip", "ViT-B-16", is_eval=True, device=device)
+        model = load_model(
+            "clip_feature_extractor", "ViT-B-16", is_eval=True, device=device
+        )
     elif model_type == "CLIP_ViT-L-14":
-        model = load_model("clip", "ViT-L-14", is_eval=True, device=device)
+        model = load_model(
+            "clip_feature_extractor", "ViT-L-14", is_eval=True, device=device
+        )
 
     return model
 
@@ -63,7 +67,8 @@ def load_blip_itm_model(device):
 
 def app():
     model_type = st.sidebar.selectbox(
-        "Model:", ["BLIP_Base", "CLIP_ViT-B-32", "CLIP_ViT-B-16", "CLIP_ViT-L-14"]
+        "Model:",
+        ["BLIP_Base", "CLIP_ViT-B-32", "CLIP_ViT-B-16", "CLIP_ViT-L-14"],
     )
     score_type = st.sidebar.selectbox("Score type:", ["Cosine", "Multimodal"])
 
@@ -118,15 +123,16 @@ def app():
 
                 feature_extractor = load_model_cache(model_type="blip", device=device)
 
-                with torch.no_grad():
-                    image_feature = feature_extractor(
-                        img, "", mode="image", apply_proj=True, normalized=True
-                    )[:, 0]
+                sample = {"image": img, "text_input": cls_prompt}
 
-                    text_feature = feature_extractor(
-                        img, cls_prompt, mode="text", apply_proj=True, normalized=True
-                    )[:, 0, :]
-                    sims = (image_feature @ text_feature.t())[
+                with torch.no_grad():
+                    image_features = feature_extractor.extract_features(
+                        sample, mode="image"
+                    ).image_features[:, 0]
+                    text_features = feature_extractor.extract_features(
+                        sample, mode="text"
+                    ).text_features[:, 0]
+                    sims = (image_features @ text_features.t())[
                         0
                     ] / feature_extractor.temp
 
@@ -141,6 +147,33 @@ def app():
 
             sims = torch.nn.Softmax(dim=0)(sims)
             inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
+
+        # elif model_type.startswith("ALBEF"):
+        #     vis_processor = load_processor("blip_image_eval").build(image_size=224)
+        #     img = vis_processor(raw_img).unsqueeze(0).to(device)
+
+        #     text_processor = BlipCaptionProcessor(prompt="A picture of ")
+        #     cls_prompt = [text_processor(cls_nm) for cls_nm in cls_names]
+
+        #     feature_extractor = load_model_cache(model_type="albef", device=device)
+
+        #     sample = {"image": img, "text_input": cls_prompt}
+
+        #     with torch.no_grad():
+        #         image_features = feature_extractor.extract_features(
+        #             sample, mode="image"
+        #         ).image_features[:, 0]
+        #         text_features = feature_extractor.extract_features(
+        #             sample, mode="text"
+        #         ).text_features[:, 0]
+
+        #         st.write(image_features.shape)
+        #         st.write(text_features.shape)
+
+        #         sims = (image_features @ text_features.t())[0] / 0.0106
+
+        #     sims = torch.nn.Softmax(dim=0)(sims)
+        #     inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
 
         elif model_type.startswith("CLIP"):
             if model_type == "CLIP_ViT-B-32":
@@ -157,15 +190,14 @@ def app():
                 image_preprocess = ClipImageEvalProcessor(image_size=224)
                 img = image_preprocess(raw_img).unsqueeze(0).to(device)
 
-                from lavis.models.clip_models.tokenizer import (
-                    tokenize as clip_tokenizer,
-                )
-
-                text = clip_tokenizer(cls_names).to(device)
+                sample = {"image": img, "text_input": cls_names}
 
                 with torch.no_grad():
-                    image_features = model.encode_image(img)
-                    text_features = model.encode_text(text)
+                    clip_features = model.extract_features(sample)
+
+                    image_features = clip_features.image_features
+                    text_features = clip_features.text_features
+
                     image_features /= image_features.norm(dim=-1, keepdim=True)
                     text_features /= text_features.norm(dim=-1, keepdim=True)
 
