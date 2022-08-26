@@ -106,7 +106,7 @@ def app():
     filenames = [os.path.join(file_root, p) for p in top_paths]
 
     # ========= ITM and GradCam ==========
-    bsz = 12  # max number of images to avoid cuda oom
+    bsz = 4  # max number of images to avoid cuda oom
     if model_type.startswith("BLIP"):
         blip_type = model_type.split("_")[1]
 
