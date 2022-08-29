@@ -1,5 +1,5 @@
 model:
-  arch: blip_caption #TODO: change to gpt2_dialogue #blip_caption
+  arch: gpt_dialogue #blip_caption
   model_type: base
 
 datasets:

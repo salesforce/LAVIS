@@ -1,3 +1,5 @@
+import pdb 
+
 class Registry:
     mapping = {
         "builder_name_mapping": {},
@@ -85,7 +87,6 @@ class Registry:
 
         def wrap(model_cls):
             from lavis.models import BaseModel
-
             assert issubclass(
                 model_cls, BaseModel
             ), "All models must inherit BaseModel class"

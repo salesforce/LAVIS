@@ -29,7 +29,8 @@ class AVSDDialDataset(DialogueDataset):
         
         # "image_id" is kept to stay compatible with the COCO evaluation format
         return {
-            "video_fts": video,
+            "video_fts": video['video_fts'],
+            "video_token_type_ids": video['token_type_ids'], 
             "input_ids": dialogue['input_ids'], 
             "token_type_ids": dialogue['token_type_ids'],
             "labels": dialogue['labels'], 
@@ -39,24 +40,29 @@ class AVSDDialDataset(DialogueDataset):
     
     def collater(self, samples):
         
-        input_ids, token_type_ids, labels, video_fts = [], [], [], []
+        input_ids, token_type_ids, labels, video_fts, video_token_type_ids = [], [], [], [], []
         
         for i in samples:
             input_ids.append(i['input_ids'])
             token_type_ids.append(i['token_type_ids'])
             labels.append(i['labels'])
             video_fts.append(i['video_fts'])
+            video_token_type_ids.append(i['video_token_type_ids'])
 
         input_ids = self.text_processor.padding(input_ids)
-        token_type_ids = self.text_processor.padding(token_type_ids)
-        labels = self.text_processor.padding(labels, -1)
+        
+        labels = self.text_processor.padding(labels, -1) # ignore token indice -1 by default 
         video_fts = self.vis_processor.padding(video_fts)
+        
+        token_type_ids = self.text_processor.padding(token_type_ids)
+        video_token_type_ids = self.text_processor.padding(video_token_type_ids)
+        token_type_ids = torch.cat([video_token_type_ids, token_type_ids], dim=1)
         
         attn_mask = self.text_processor.get_attention_mask(input_ids)
         video_mask = self.vis_processor.get_attention_mask(video_fts)
         attn_mask = torch.cat([video_mask, attn_mask], dim=1)
         
-        video_labels = torch.ones((video_fts.size(0), video_fts.size(1))).long() * -1
+        video_labels = torch.ones((video_fts.size(0), video_fts.size(1))).long() * -1 # ignore token indice -1 by default 
         #video_mask = torch.cat([torch.zeros((i3d.size(0), i3d.size(1))), torch.ones(lm_labels.size())], 1)
         #reply_mask = torch.zeros(video_mask.size())
         labels = torch.cat([video_labels, labels], dim=1)

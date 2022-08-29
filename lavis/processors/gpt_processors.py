@@ -94,6 +94,8 @@ class GPTVideoFeatureProcessor(GPTVideoFeatureBaseProcessor):
         self, visual_ft, audio_ft
     ):
         super().__init__(visual_ft, audio_ft)
+        self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        self.tokenizer.add_special_tokens(SPECIAL_TOKENS_DICT) 
                 
     def padding(self, seq):
         padded_seq = torch.nn.utils.rnn.pad_sequence(seq, batch_first=True, padding_value=1.0) 
@@ -118,7 +120,11 @@ class GPTVideoFeatureProcessor(GPTVideoFeatureBaseProcessor):
         # TODO: use other sampling method (e.g. uniform sampling) 
         sampled_ft = [ft[:min_len] for ft in all_ft]
         sampled_ft = np.concatenate(sampled_ft, axis=1)
-        item = torch.Tensor(sampled_ft) 
+        item = {} 
+        item['video_fts'] = torch.Tensor(sampled_ft) 
+        
+        video_type_token = self.tokenizer.convert_tokens_to_ids('<video>')
+        item['token_type_ids'] = torch.Tensor([video_type_token] * len(sampled_ft)).long() 
         
         return item 
 
