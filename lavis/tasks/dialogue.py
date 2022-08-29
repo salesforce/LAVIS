@@ -2,9 +2,12 @@ import json
 import os
 
 from lavis.common.dist_utils import main_process
+from lavis.common.logger import MetricLogger
 from lavis.common.registry import registry
 from lavis.tasks.base_task import BaseTask
+from lavis.datasets.data_utils import prepare_sample
 
+import numpy as np 
 import pdb 
 
 @registry.register_task("dialogue")
@@ -39,9 +42,11 @@ class DialogueTask(BaseTask):
         )
 
     def valid_step(self, model, samples):
-        results = []
-
-        # run_cfg = slf.cfg.run_cfg
+        results = []        
+        loss = model(samples)["loss"].item() 
+        
+        return [loss] 
+        '''
         responses = model.generate(
             samples,
             use_nucleus_sampling=False,
@@ -55,24 +60,46 @@ class DialogueTask(BaseTask):
             results.append({"caption": response, "image_id": int(img_id)})
 
         return results
+        '''
+        
+    def evaluation(self, model, data_loader, cuda_enabled=True):
+        metric_logger = MetricLogger(delimiter="  ")
+        header = "Evaluation"
+        # TODO make it configurable
+        print_freq = 10
 
+        results = []
+
+        for samples in metric_logger.log_every(data_loader, print_freq, header):
+            samples = prepare_sample(samples, cuda_enabled=cuda_enabled)
+
+            eval_output = self.valid_step(model=model, samples=samples)
+            results.extend(eval_output)
+
+        #dist.barrier()
+
+        return results
+        
     def after_evaluation(self, val_result, split_name, epoch, **kwargs):
-        eval_result_file = self.save_result(
-            result=val_result,
-            result_dir=registry.get_path("result_dir"),
-            filename="{}_epoch{}".format(split_name, epoch),
-            remove_duplicate="image_id",
-        )
+        
+        #eval_result_file = self.save_result(
+        #    result=val_result,
+        #    result_dir=registry.get_path("result_dir"),
+        #    filename="{}_epoch{}".format(split_name, epoch),
+        #)
 
         if self.report_metric:
-            metrics = self._report_metrics(
-                eval_result_file=eval_result_file, split_name=split_name
-            )
+            #metrics = self._report_metrics(
+            #    eval_result_file=eval_result_file, split_name=split_name
+            #)
+            avg_loss = np.mean(val_result)
+            metrics = {"agg_metrics": avg_loss}
         else:
             metrics = {"agg_metrics": 0.0}
 
         return metrics
-
+        
+        
     @main_process
     def _report_metrics(self, eval_result_file, split_name):
         pdb.set_trace()

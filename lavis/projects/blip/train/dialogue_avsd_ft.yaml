@@ -16,16 +16,14 @@ datasets:
     text_processor:
         train:
           name: "gpt_dialogue"
-          max_turns:  10
+          max_turns:  3
           use_caption: True 
         eval:
           name: "gpt_dialogue"
-          max_turns:  10
+          max_turns:  3
           use_caption: True 
 
 run:
-  # task: retrieval
-  #task: captioning
   task: dialogue
   # optimizer
   lr_sched: "linear_warmup_cosine_lr"
@@ -33,8 +31,8 @@ run:
   min_lr: 0
   weight_decay: 0.05
   max_epoch: 5
-  batch_size_train: 32
-  batch_size_eval: 64
+  batch_size_train: 4
+  batch_size_eval: 4
   num_workers: 0 #4
 
   max_len: 20
@@ -42,11 +40,11 @@ run:
   num_beams: 3
 
   seed: 42
-  output_dir: "output/gpt2/dialogue_avsd" #BLIP/Caption_coco"
+  output_dir: "output/gpt2/dialogue_avsd" 
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"] #, "test"]
 
   device: "cuda"
   world_size: 1

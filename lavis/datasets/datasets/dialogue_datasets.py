@@ -95,7 +95,7 @@ class DialogueEvalDataset(BaseDataset, __DisplMixin):
 
         self.annotation = []
         for ann_path in ann_paths:
-            dialogs = json.load(open(ann_path, "r"))['dialogs']
+            dialogs = json.load(open(ann_path, "r"))['dialogs'][:10] 
             for dialog in dialogs: 
                 all_turns = dialog['dialog']
                 dialogue_context = all_turns[:-1]
