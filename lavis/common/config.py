@@ -26,7 +26,7 @@ class Config:
         # Validate the user-provided runner configuration
         # model and dataset configuration are supposed to be validated by the respective classes
         # [TODO] validate the model/dataset configuration
-        self._validate_runner_config(runner_config)
+        # self._validate_runner_config(runner_config)
 
         # Override the default configuration with user options.
         self.config = OmegaConf.merge(
@@ -69,14 +69,16 @@ class Config:
         model_config = OmegaConf.create()
         # hiararchy override, customized config > default config
         model_config = OmegaConf.merge(
-            model_config, OmegaConf.load(default_model_config_path), config
+            model_config,
+            OmegaConf.load(default_model_config_path),
+            {"model": config["model"]},
         )
 
         return model_config
 
     @staticmethod
     def build_runner_config(config):
-        return config.run
+        return {"run": config.run}
 
     @staticmethod
     def build_dataset_config(config):
@@ -98,7 +100,9 @@ class Config:
 
             # hiararchy override, customized config > default config
             dataset_config = OmegaConf.merge(
-                dataset_config, OmegaConf.load(dataset_config_path), config
+                dataset_config,
+                OmegaConf.load(dataset_config_path),
+                {"datasets": {dataset_name: config["datasets"][dataset_name]}},
             )
 
         return dataset_config

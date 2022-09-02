@@ -313,10 +313,13 @@ class RunnerBase:
         best_agg_metric = 0
         best_epoch = 0
 
+        self.log_config()
+
         for cur_epoch in range(0, self.max_epoch):
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
+                # [NOTE] map-style dataset will be wrapped with IterLoader, which sets the epoch sampler internally
                 # if self.use_distributed:
                 #     self.train_loader.sampler.set_epoch(cur_epoch)
 
@@ -499,6 +502,9 @@ class RunnerBase:
 
     @main_process
     def save_checkpoint(self, cur_epoch, is_best=False):
+        """
+        Save the checkpoint at the current epoch.
+        """
         save_obj = {
             "model": self.unwrap_dist_model(self.model).state_dict(),
             "optimizer": self.optimizer.state_dict(),
@@ -520,3 +526,8 @@ class RunnerBase:
                 f.write(json.dumps(log_stats) + "\n")
         elif isinstance(stats, list):
             pass
+
+    @main_process
+    def log_config(self):
+        with open(os.path.join(self.output_dir, "log.txt"), "a") as f:
+            f.write(json.dumps(self.config.to_dict(), indent=4) + "\n")

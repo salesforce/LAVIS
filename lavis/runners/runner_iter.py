@@ -63,6 +63,8 @@ class RunnerIter(RunnerBase):
         best_agg_metric = 0
         best_iters = 0
 
+        self.log_config()
+
         for start_iters in range(0, self.max_iters, self.iters_per_inner_epoch):
             end_iters = start_iters + self.iters_per_inner_epoch
 
