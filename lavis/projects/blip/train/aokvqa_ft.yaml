@@ -1,6 +1,7 @@
 model:
   arch: blip_vqa
-  pretrained: https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_vqa.pth
+  model_type: vqav2
+  # pretrained: https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_vqa.pth
   image_size: 480
 
 datasets:
@@ -19,10 +20,10 @@ datasets:
           name: "blip_question"
 
 run:
-  task: vqa
+  task: aok_vqa
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 3e-5
+  init_lr: 2e-5
   min_lr: 1e-5
   weight_decay: 0.02
   max_epoch: 7

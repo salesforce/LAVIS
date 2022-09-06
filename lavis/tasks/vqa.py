@@ -60,21 +60,27 @@ class VQATask(BaseTask):
     def build_datasets(self, cfg):
         datasets = super().build_datasets(cfg)
 
-        for split in datasets:
-            if (
-                hasattr(datasets[split], "coco_fmt_qust_file")
-                and datasets[split].coco_fmt_qust_file is not None
-            ):
-                self.ques_files[split] = datasets[split].coco_fmt_qust_file
-                self.anno_files[split] = datasets[split].coco_fmt_anno_file
+        # get question file, annotation file and anwser list in COCO format
+        for dataset in datasets.values():
+            for split in dataset:
+                if (
+                    hasattr(dataset[split], "coco_fmt_qust_file")
+                    and dataset[split].coco_fmt_qust_file is not None
+                ):
+                    self.ques_files[split] = dataset[split].coco_fmt_qust_file
+                    self.anno_files[split] = dataset[split].coco_fmt_anno_file
 
-        assert (
-            "test" in datasets or "val" in datasets
-        ), "No testing or validation split is present."
-        try:
-            self.answer_list = datasets["test"].answer_list
-        except KeyError:
-            self.answer_list = datasets["val"].answer_list
+                try:
+                    self.answer_list = dataset[split].answer_list
+                except AttributeError:
+                    # if answer_list is not provided, then set it to None
+                    pass
+
+        if len(self.ques_files) > 0:
+            assert len(self.ques_files) == len(
+                self.anno_files
+            ), "Only support one split for evaluation."
+
         return datasets
 
     def valid_step(self, model, samples):
@@ -111,6 +117,9 @@ class VQATask(BaseTask):
 
     @dist_utils.main_process
     def _report_metrics(self, result_file, split):
+        """
+        Use official VQA evaluation script to report metrics.
+        """
         metrics = {}
 
         if split in self.ques_files and split in self.anno_files:
@@ -204,6 +213,23 @@ class AOKVQATask(VQATask):
 
         return metrics
 
-    @classmethod
-    def _save_result_leaderboard(results):
-        pass
+    @dist_utils.main_process
+    def _save_result_leaderboard(self, results):
+        """
+        Saving the results in the format required for leaderboard evaluation.
+
+        [TODO] add support for multi-choice.
+        """
+        result_leaderboard = dict()
+        for res in results:
+            result_leaderboard[res["question_id"]] = {
+                "direct_answer": res["pred_ans"],
+                "multiple_choice": "",
+            }
+
+        result_file = registry.get_path("result_dir") + "_leaderboard.json"
+
+        with open(result_file, "w") as f:
+            json.dump(result_leaderboard, f)
+
+        logging.info(f"Saved results for leaderboard evaluation at {result_file}")

@@ -199,7 +199,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         answer_ids = answer_candidates.input_ids
         answer_atts = answer_candidates.attention_mask
 
-        question_output, _ = self.forward_encoder(samples)
+        question_output, _, _, _ = self.forward_encoder(samples)
         question_states = question_output.last_hidden_state
 
         tokenized_question = samples["tokenized_text"]
