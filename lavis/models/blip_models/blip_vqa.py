@@ -13,10 +13,24 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_vqa")
 class BlipVQA(BlipBase):
+    """
+    BLIP VQA models.
+
+    Supported model types:
+        - base: vqa model initialized with pre-trained BLIP base model on 115M image-text pairs after CapFilt; not fine-tuned.
+        - vqav2: fine-tuned BLIP base model on VQA v2.0 dataset.
+
+    Usage:
+    ```python
+    >>> from lavis.models import load_model
+    >>> model = load_model("blip_vqa", "base")
+    >>> model = load_model("blip_vqa", "vqav2")
+    ```
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_vqa_base.yaml",
         "vqav2": "configs/models/blip_vqav2.yaml",
-        # "large": "configs/models/blip_vqa_large.yaml"
     }
 
     def __init__(self, image_encoder, text_encoder, text_decoder, max_txt_len=35):
@@ -31,6 +45,40 @@ class BlipVQA(BlipBase):
         self.max_txt_len = max_txt_len
 
     def forward(self, samples):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). Default H=480, W=480.
+                - text_input (list): A list of strings, each string is a question
+                - answer (list): A list of strings, each string is an answer
+                - weight (torch.Tensor): A tensor used to weigh each answer in the loss computation.
+                   The shape of the tensor is (sum(n_answers),)
+                - n_answers (torch.Tensor): A tensor shape (batch_size,) containing the number of answers
+                     for each question in the batch.
+
+        Returns:
+            A BlipOutput object containing loss and intermediate outputs,
+            see :class:`lavis.models.blip_outputs.BlipOutput` for more details.
+
+        Examples:
+        ```python
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("blip_vqa")
+            >>> samples = {
+            ...     "image": torch.rand(2, 3, 480, 480),
+            ...     "text_input": ["What is this?", "What is that?"],
+            ...     "answer": ["cat", "cat", "dog"],
+            ...     "weight": torch.tensor([1.0, 1.0, 1.0]),
+            ...     "n_answers": torch.tensor([2, 1]),
+            ... }
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['intermediate_output', 'loss'])
+            >>> output.intermediate_output.keys()
+            odict_keys(['image_embeds', 'encoder_output', 'decoder_output', 'decoder_labels'])
+        ```
+        """
         encoder_output, image_embeds = self.forward_encoder(samples)
         loss, decoder_output, decoder_targets = self.forward_decoder(
             samples=samples, encoder_out=encoder_output
@@ -115,11 +163,59 @@ class BlipVQA(BlipBase):
         answer_list=None,
         **kwargs
     ):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). Default H=480, W=480.
+                - text_input (list): A list of strings, each string is a question
+            num_beams (int): Number of beams for beam search. 1 means no beam search.
+            inference_method (str): Inference method. One of "rank", "generate".
+                - If "rank", the model will return answers with the highest probability from the answer list.
+                - If "generate", the model will generate answers.
+            max_len (int): Maximum length of generated answers.
+            min_len (int): Minimum length of generated answers.
+            num_ans_candidates (int): Number of answer candidates, used to filter out answers with low probability.
+            answer_list (list): A list of strings, each string is an answer.
+
+        Returns:
+            List: A list of strings, each string is an answer.
+
+        Examples:
+        ```python
+            >>> from PIL import Image
+            >>> from lavis.models import load_model_and_preprocess
+            >>> model, vis_processors, txt_processors = load_model_and_preprocess("blip_vqa", "vqav2")
+            >>> raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+            >>> question = "Which city is this photo taken?"
+            >>> image = vis_processors["eval"](raw_image).unsqueeze(0)
+            >>> question = txt_processors["eval"](question)
+            >>> samples = {"image": image, "text_input": [question]}
+            >>> answers = model.predict_answers(samples)
+            >>> answers
+            ['singapore']
+            >>> answer_list = ["Singapore", "London", "Palo Alto", "Tokyo"]
+            >>> answers = model.predict_answers(samples, answer_list=answer_list)
+            >>> answers
+            ['Singapore']
+        ```
+        """
+        assert inference_method in [
+            "rank",
+            "generate",
+        ], "Inference method must be one of 'rank' or 'generate', got {}.".format(
+            inference_method
+        )
+
         if inference_method == "generate":
             return self.generate_answers(
                 samples, num_beams=num_beams, max_length=max_len, min_length=min_len
             )
-        else:
+        elif inference_method == "rank":
+            assert answer_list is not None, "answer_list must be provided for ranking"
+
+            if num_ans_candidates is None:
+                num_ans_candidates = min(128, len(answer_list))
+
             return self.rank_answers(
                 samples, answer_list=answer_list, num_ans_candidates=num_ans_candidates
             )

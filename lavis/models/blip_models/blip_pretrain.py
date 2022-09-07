@@ -18,6 +18,13 @@ from torch import nn
 
 @registry.register_model("blip_pretrain")
 class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
+    """
+    BLIP pretrain model.
+
+    Supported model types:
+        - base: BLIP base model before pretraining.
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_pretrain_base.yaml",
         # "large": "configs/models/blip_pretrain_large.yaml",
@@ -35,7 +42,6 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
         tie_enc_dec_weights=True,
         max_txt_len=30,
     ):
-        """ """
         super().__init__()
 
         self.tokenizer = self.init_tokenizer()
@@ -99,6 +105,64 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples):
+
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). The input images. Default: H=224, W=224.
+                - text_input (list): A list of length batch_size, each element is a string of text/caption.
+                - epoch (int): The current epoch.
+                - iters (int): The current iteration.
+                - num_iters_per_epoch (int): The number of iterations per epoch.
+
+        Returns:
+            BlipOutput: A BlipOutput object containing loss and intermediate output. See ``lavis.models.blip_models.blip_outputs.BlipOutput`` for more details.
+
+        Examples:
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("blip_pretrain", "base")
+            >>> images = torch.randn(4, 3, 224, 224)
+            >>> text_input = ["caption of image 1", "another caption of image 1", "caption of image 2", "caption of image 3"]
+            >>> samples = {"image": images, "text_input": text_input, "epoch": 0, "iters": 0, "num_iters_per_epoch": 100}
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['sims', 'intermediate_output', 'loss', 'loss_itc', 'loss_itm', 'loss_lm'])
+
+            >>> output.intermediate_output.keys()
+            odict_keys(['image_embeds', 'text_embeds', 'image_embeds_m', 'text_embeds_m', 'encoder_output', 'encoder_output_neg', 'itm_logits', 'itm_labels', 'decoder_output', 'decoder_labels'])
+            >>> output.intermediate_output.image_embeds.shape
+            >>> # shape: (batch_size, num_patches, embed_dim)
+            torch.Size([4, 197, 768])
+            >>> output.intermediate_output.text_embeds.shape
+            >>> # shape: (batch_size, max_txt_len, embed_dim)
+            torch.Size([4, 30, 768])
+            >>> output.intermediate_output.image_embeds_m.shape
+            >>> # shape: (batch_size, num_patches, embed_dim)
+            torch.Size([4, 197, 768])
+            >>> output.intermediate_output.text_embeds_m.shape
+            >>> # shape: (batch_size, max_txt_len, embed_dim)
+            torch.Size([4, 30, 768])
+            >>> output.intermediate_output.itm_logits.shape
+            >>> # shape: (batch_size * 3, 2)
+            torch.Size([12, 2])
+            >>> output.intermediate_output.itm_labels.shape
+            >>> # shape: (batch_size * 3,)
+            torch.Size([12])
+            >>> output.intermediate_output.encoder_output.last_hidden_state.shape
+            >>> # shape: (batch_size, max_txt_len, embed_dim)
+            torch.Size([4, 30, 768])
+            >>> output.intermediate_output.encoder_output_m.last_hidden_state.shape
+            >>> # shape: (batch_size, max_txt_len, embed_dim)
+            torch.Size([4, 30, 768])
+            >>> output.intermediate_output.decoder_output.logits.shape
+            >>> # shape: (batch_size, max_txt_len, vocab_size)
+            torch.Size([4, 30, 30524])
+            >>> output.intermediate_output.decoder_labels.shape
+            >>> # shape: (batch_size, max_txt_len)
+            torch.Size([4, 30])
+        """
+
         image = samples["image"]
         caption = samples["text_input"]
 
@@ -302,7 +366,7 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
         momentum = cfg.get("momentum", 0.995)
         alpha = cfg.get("alpha", 0.4)
         max_txt_len = cfg.get("max_txt_len", 30)
-        queue_size = cfg.get("queue_size", 0)
+        queue_size = cfg.get("queue_size", 57600)
 
         model = cls(
             image_encoder=image_encoder,

@@ -23,6 +23,25 @@ class BlipSimilarity(ModelOutput):
 
 @dataclass
 class BlipIntermediateOutput(ModelOutput):
+    """
+    Data class for intermediate outputs of BLIP models.
+
+    image_embeds (torch.FloatTensor): Image embeddings, shape (batch_size, num_patches, embed_dim).
+    text_embeds (torch.FloatTensor): Text embeddings, shape (batch_size, seq_len, embed_dim).
+
+    image_embeds_m (torch.FloatTensor): Image embeddings from momentum visual encoder, shape (batch_size, num_patches, embed_dim).
+    text_embeds_m (torch.FloatTensor): Text embeddings from momentum text encoder, shape (batch_size, seq_len, embed_dim).
+
+    encoder_output (BaseModelOutputWithPoolingAndCrossAttentions): output from the image-grounded text encoder.
+    encoder_output_neg (BaseModelOutputWithPoolingAndCrossAttentions): output from the image-grounded text encoder for negative pairs.
+
+    decoder_output (CausalLMOutputWithCrossAttentions): output from the image-grounded text decoder.
+    decoder_labels (torch.LongTensor): labels for the captioning loss.
+
+    itm_logits (torch.FloatTensor): logits for the image-text matching loss, shape (batch_size * 3, 2).
+    itm_labels (torch.LongTensor): labels for the image-text matching loss, shape (batch_size * 3,)
+    """
+
     # uni-modal features
     image_embeds: torch.FloatTensor = None
     text_embeds: Optional[torch.FloatTensor] = None

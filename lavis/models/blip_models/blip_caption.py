@@ -12,6 +12,25 @@ from lavis.models.vit import VisionTransformerEncoder
 
 @registry.register_model("blip_caption")
 class BlipCaption(BlipBase):
+    """
+    BLIP captioning model.
+
+    Supported model types:
+        - base: caption model initialized with pre-trained BLIP base model on 115M image-text pairs after CapFilt; not fine-tuned.
+        - large: caption model initialized with pre-trained BLIP large model on 115M image-text pairs; not fine-tuned.
+        - base_coco: fine-tuned BLIP base model on COCO caption dataset.
+        - large_coco: fine-tuned BLIP large model on COCO caption dataset.
+
+    Usage:
+    ```python
+    >>> from lavis.models import load_model
+    >>> model = load_model("blip_caption", "base")
+    >>> model = load_model("blip_caption", "large")
+    >>> model = load_model("blip_caption", "base_coco")
+    >>> model = load_model("blip_caption", "large_coco")
+    ```
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_caption_base.yaml",
         "base_coco": "configs/models/blip_caption_base_coco.yaml",
@@ -70,6 +89,37 @@ class BlipCaption(BlipBase):
         return decoder_output, decoder_targets
 
     def forward(self, samples):
+        r"""
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W)
+                - text_input (list): A list of strings of length batch_size.
+        Returns:
+            output (BlipOutput): A BlipOutput object containing the following
+                attributes:
+                - loss (torch.Tensor): A scalar tensor containing the total loss. For BlipCaption, this is the same as the LM loss.
+                - loss_lm (torch.Tensor): A scalar tensor containing the LM loss.
+                - intermediate_outputs (BlipIntermediateOutput): A BlipIntermediateOutput object containing intermediate outputs.
+                  see :class:`lavis.models.blip_models.blip_outputs.BlipOutput` for more details.
+
+        Example:
+        ```python
+        >>> from PIL import Image
+        >>> from lavis.models import load_model_and_preprocess
+        >>> model, vis_processors, txt_processors = load_model_and_preprocess("blip_caption")
+        >>> raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+        >>> image = vis_processors["eval"](raw_image).unsqueeze(0)
+        >>> text_input = ["a large statue of a person spraying water from a fountain"]
+        >>> samples = {"image": image, "text_input": text_input}
+        >>> output = model(samples)
+        >>> output.keys()
+        odict_keys(['intermediate_output', 'loss', 'loss_lm'])
+        >>> output.intermediate_output.image_embeds.shape
+        torch.Size([1, 577, 768])
+        >>> output.intermediate_output.decoder_labels.shape
+        torch.Size([1, 13])
+        ```"""
+
         image_embeds = self.forward_encoder(samples)
         decoder_output, decoder_targets = self.forward_decoder(samples, image_embeds)
 
@@ -95,6 +145,37 @@ class BlipCaption(BlipBase):
         repetition_penalty=1.0,
         num_captions=1,
     ):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W)
+            use_nucleus_sampling (bool): Whether to use nucleus sampling. If False, use top-k sampling.
+            num_beams (int): Number of beams for beam search. 1 means no beam search.
+            max_length (int): The maximum length of the sequence to be generated.
+            min_length (int): The minimum length of the sequence to be generated.
+            top_p (float): The cumulative probability for nucleus sampling.
+            repetition_penalty (float): The parameter for repetition penalty. 1.0 means no penalty.
+            num_captions (int): Number of captions to be generated for each image.
+        Returns:
+            captions (list): A list of strings of length batch_size * num_captions.
+
+        Example:
+        ```python
+        >>> from PIL import Image
+        >>> from lavis.models import load_model_and_preprocess
+        >>> model, vis_processors, txt_processors = load_model_and_preprocess("blip_caption")
+        >>> raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+        >>> image = vis_processors["eval"](raw_image).unsqueeze(0)
+        >>> samples = {"image": image}
+        >>> captions = model.generate(samples)
+        >>> captions
+        ['a large statue of a person spraying water from a fountain']
+        >>> captions = model.generate(samples, use_nucleus_sampling=True, num_captions=3)
+        >>> captions # example output, results may vary due to randomness
+        ['singapore showing the view of some building',
+        'the singapore harbor in twilight, as the weather is going down',
+        'the famous singapore fountain at sunset']
+        """
         # prepare inputs for decoder generation.
         encoder_out = self.forward_encoder(samples)
         image_embeds = torch.repeat_interleave(encoder_out, num_captions, 0)
