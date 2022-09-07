@@ -19,8 +19,22 @@ from transformers import BertConfig
 
 @registry.register_model("blip_nlvr")
 class BlipNLVR(BlipBase, MomentumDistilationMixin):
+    """
+    Class for BLIP NLVR model.
+
+    Supported model types:
+        - base: model with pre-trained BLIP weights, used as initialization for fine-tuning.
+        - nlvr: finetuned model on NLVR2 dataset.
+
+    Usage:
+        >>> from lavis.models import load_model
+        >>> model = load_model("blip_nlvr", "base")
+        >>> model = load_model("blip_nlvr", "nlvr")
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_nlvr_base.yaml",
+        "nlvr": "configs/models/blip_nlvr.yaml",
     }
 
     def __init__(self, image_encoder, text_encoder, num_classes):
@@ -38,6 +52,33 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
         )
 
     def forward(self, samples, is_train=True):
+        """
+        Forward function for training and evaluation.
+
+        Args:
+            samples (dict): a dict of input samples, which contains the following keys:
+                - image0 (torch.Tensor): input image 0, shape (batch_size, 3, H, W), default H=384, W=384.
+                - image1 (torch.Tensor): input image 1, shape (batch_size, 3, H, W), default H=384, W=384.
+                - text_input (list): list of strings, each string is a natural language sentence.
+                - label (torch.LongTensor): ground truth label with shape (batch_size,).
+            is_train (bool): whether the model is in training mode.
+                If True, the model will return the loss;
+                If False, the model will return the prediction.
+
+        Examples:
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("blip_nlvr", "nlvr")
+            >>> samples = {
+            ...     "image0": torch.randn(2, 3, 384, 384),
+            ...     "image1": torch.randn(2, 3, 384, 384),
+            ...     "text_input": ["there is a ferret in tall grass", "there are lips in one of the images"],
+            ...     "label": torch.tensor([0, 1]),
+            ... }
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['intermediate_output', 'loss'])
+        """
         text = samples["text_input"]
         text = self.tokenizer(text, padding="longest", return_tensors="pt").to(
             self.device

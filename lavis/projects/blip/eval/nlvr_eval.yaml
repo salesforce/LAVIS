@@ -1,5 +1,6 @@
 model:
   arch: blip_nlvr
+  model_type: nlvr
 
 datasets:
   nlvr: # name of the dataset builder

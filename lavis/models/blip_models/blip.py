@@ -5,10 +5,8 @@ import torch
 import torch.nn.functional as F
 from lavis.common.utils import get_abs_path, is_url
 from lavis.models.base_model import BaseModel
-from lavis.models.blip_models.blip_outputs import BlipOutputFeatures
 from lavis.models.med import BertModel
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
-from lavis.processors import load_processor
 from timm.models.hub import download_cached_file
 from torch import nn
 from transformers import BertConfig, BertTokenizer
@@ -55,123 +53,6 @@ class BlipBase(BaseModel):
         logging.info("load checkpoint from %s" % url_or_filename)
 
         return msg
-
-
-class BlipFeatureExtractor(BlipBase):
-    def __init__(
-        self,
-        med_config="configs/models/med_config.json",
-        image_size=224,
-        vit="base",
-        vit_grad_ckpt=False,
-        vit_ckpt_layer=0,
-        pretrained="",
-    ):
-        """
-        Args:
-            med_config (str): path for the mixture of encoder-decoder model's configuration file
-            image_size (int): input image size
-            vit (str): model size of vision transformer
-        """
-        DeprecationWarning(
-            "BlipFeatureExtractor is deprecated, use lavis.models.blip_models.blip_feature_extractor.BlipFeatureExtractor instead"
-        )
-
-        super().__init__()
-
-        if vit == "base":
-            vision_width = 768
-            self.visual_encoder = VisionTransformerEncoder(
-                img_size=image_size,
-                patch_size=16,
-                embed_dim=vision_width,
-                depth=12,
-                num_heads=12,
-                use_grad_checkpointing=vit_grad_ckpt,
-                ckpt_layer=vit_ckpt_layer,
-                drop_path_rate=0,
-            )
-        else:
-            raise NotImplementedError("")
-
-        self.tokenizer = self.init_tokenizer()
-        med_config = BertConfig.from_json_file(get_abs_path(med_config))
-        med_config.encoder_width = vision_width
-        self.text_encoder = BertModel(config=med_config, add_pooling_layer=False)
-
-        embed_dim = 256
-        text_width = vision_width
-
-        self.vision_proj = nn.Linear(vision_width, embed_dim)
-        self.text_proj = nn.Linear(text_width, embed_dim)
-
-        self.temp = nn.Parameter(0.07 * torch.ones([]))
-
-        if pretrained:
-            msg = self.load_from_pretrained(pretrained)
-            assert len(msg.missing_keys) == 0
-
-    def forward(self, image=None, caption=None, mode="multimodal", normalized=True):
-
-        assert mode in [
-            "image",
-            "text",
-            "multimodal",
-        ], "mode parameter must be image, text, or multimodal, but got {}".format(mode)
-
-        text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
-            self.device
-        )
-
-        if mode == "image":
-            # return image features
-            image_embeds = self.visual_encoder.forward_features(image)
-
-            image_features = self.vision_proj(image_embeds)
-            if normalized:
-                image_features = F.normalize(image_features, dim=-1)
-
-            return BlipOutputFeatures(
-                image_embeds=image_embeds, image_features=image_features
-            )
-
-        elif mode == "text":
-            # return text features
-            text_output = self.text_encoder(
-                text.input_ids,
-                attention_mask=text.attention_mask,
-                return_dict=True,
-                mode="text",
-            )
-            text_embeds = text_output.last_hidden_state
-
-            text_features = self.text_proj(text_embeds)
-            if normalized:
-                text_features = F.normalize(text_features, dim=-1)
-
-            return BlipOutputFeatures(
-                text_embeds=text_embeds, text_features=text_features
-            )
-
-        elif mode == "multimodal":
-            # return multimodel features
-            image_embeds = self.visual_encoder.forward_features(image)
-            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-                self.device
-            )
-
-            text.input_ids[:, 0] = self.tokenizer.enc_token_id
-            output = self.text_encoder(
-                text.input_ids,
-                attention_mask=text.attention_mask,
-                encoder_hidden_states=image_embeds,
-                encoder_attention_mask=image_atts,
-                return_dict=True,
-            )
-
-            multimodal_embeds = output.last_hidden_state
-
-            return BlipOutputFeatures(multimodal_embeds=multimodal_embeds)
 
 
 class BlipITM(BlipBase):
@@ -278,19 +159,3 @@ class BlipITM(BlipBase):
 
             sim = image_feat @ text_feat.t()
             return sim
-
-
-def load_feature_extractor(device, model_path_or_url=None, prompt="", max_words=50):
-    if model_path_or_url is None:
-        model_path_or_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
-
-    model = BlipFeatureExtractor(pretrained=model_path_or_url)
-    model.eval()
-    model = model.to(device)
-
-    vis_processor = load_processor("blip_image_eval").build(image_size=224)
-    text_processor = load_processor("blip_caption").build(
-        prompt=prompt, max_words=max_words
-    )
-
-    return model, vis_processor, text_processor

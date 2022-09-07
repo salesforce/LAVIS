@@ -40,6 +40,7 @@ class BlipIntermediateOutput(ModelOutput):
 
     itm_logits (torch.FloatTensor): logits for the image-text matching loss, shape (batch_size * 3, 2).
     itm_labels (torch.LongTensor): labels for the image-text matching loss, shape (batch_size * 3,)
+
     """
 
     # uni-modal features
@@ -89,10 +90,10 @@ class BlipOutputFeatures(ModelOutput):
     Data class of features from BlipFeatureExtractor.
 
     Args:
-        image_embeds: `torch.FloatTensor` of shape `(batch_size, num_patches+1, embed_dim)`, `optional`
-        image_features: `torch.FloatTensor` of shape `(batch_size, num_patches+1, feature_dim)`, `optional`
-        text_embeds: `torch.FloatTensor` of shape `(batch_size, sequence_length+1, embed_dim)`, `optional`
-        text_features: `torch.FloatTensor` of shape `(batch_size, sequence_length+1, feature_dim)`, `optional`
+        image_embeds: (torch.FloatTensor) of shape (batch_size, num_patches+1, embed_dim), optional
+        image_features: (torch.FloatTensor) of shape (batch_size, num_patches+1, feature_dim), optional
+        text_embeds: (torch.FloatTensor) of shape (batch_size, sequence_length+1, embed_dim), optional
+        text_features: (torch.FloatTensor) of shape (batch_size, sequence_length+1, feature_dim), optional
 
         The first embedding or feature is for the [CLS] token.
 

@@ -3,25 +3,14 @@ model:
 
   model_type: ViT-L-14-336
 
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
-  # pretrained: "/export/home/workspace/LAVIS/lavis/output/Retrieval_COCO/202205211551/checkpoint_best.pth"
-
-  # queue_size: 57600
-  # alpha: 0.4
-
-  # negative_all_rank: True
-
 datasets:
   coco_retrieval: # name of the dataset builder
     vis_processor:
         train:
           name: "clip_image_train"
-          # image_size: 224
           image_size: 336
         eval:
           name: "clip_image_eval"
-          # image_size: 224
           image_size: 336
     text_processor:
         train:
@@ -37,8 +26,6 @@ run:
   batch_size_train: 32
   batch_size_eval: 128
 
-  train_splits: ["train"]
-  valid_splits: ["val"]
   test_splits: ["test"]
 
   # distribution

@@ -1,6 +1,6 @@
 model:
   arch: blip_nlvr
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+  model_type: base
 
 datasets:
   nlvr: # name of the dataset builder
