@@ -16,6 +16,21 @@ from timm.models.hub import download_cached_file
 
 @registry.register_model("albef_vqa")
 class AlbefVQA(AlbefBase, MomentumDistilationMixin):
+    """
+    ALBEF VQA models.
+
+    Supported model types:
+        - base: vqa model initialized with pre-trained ALBEF base model on 115M image-text pairs after CapFilt; not fine-tuned.
+        - vqav2: fine-tuned ALBEF base model on VQA v2.0 dataset.
+
+    Usage:
+    ```python
+    >>> from lavis.models import load_model
+    >>> model = load_model("albef_vqa", "base")
+    >>> model = load_model("albef_vqa", "vqav2")
+    ```
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_vqa.yaml",
         "vqav2": "configs/models/albef_vqav2.yaml",
@@ -63,6 +78,39 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / num_iters_per_epoch)
 
     def forward(self, samples):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). Default H=480, W=480.
+                - text_input (list): A list of strings, each string is a question
+                - answer (list): A list of strings, each string is an answer
+                - weight (torch.Tensor): A tensor used to weigh each answer in the loss computation.
+                   The shape of the tensor is (sum(n_answers),)
+                - n_answers (torch.Tensor): A tensor shape (batch_size,) containing the number of answers
+                     for each question in the batch.
+
+        Returns:
+            An AlbefOutput object containing loss and intermediate outputs;
+            see lavis/models/albef_models/albef_outputs.py for more details.
+
+        Examples:
+        ```python
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("albef_vqa")
+            >>> samples = {
+            ...     "image": torch.rand(2, 3, 384, 384),
+            ...     "text_input": ["What is this?", "What is that?"],
+            ...     "answer": ["cat", "cat", "dog"],
+            ...     "weight": torch.tensor([1.0, 1.0, 1.0]),
+            ...     "n_answers": torch.tensor([2, 1]),
+            ...     "epoch": 0, "iters": 0, "num_iters_per_epoch": 1000,
+            ... }
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['intermediate_output', 'loss'])
+        ```
+        """
         (
             encoder_output,
             encoder_output_m,
@@ -176,9 +224,37 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
 
         return loss, answer_output, answer_targets
 
-    def predict_answers(
-        self, samples, num_ans_candidates=None, answer_list=None, **kwargs
-    ):
+    def predict_answers(self, samples, answer_list, num_ans_candidates=None, **kwargs):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). Default H=480, W=480.
+                - text_input (list): A list of strings, each string is a question
+            num_ans_candidates (int): Number of answer candidates, used to filter out answers with low probability.
+            answer_list (list): A list of strings, each string is an answer.
+
+        Returns:
+            List: A list of strings, each string is an answer.
+
+        Examples:
+        ```python
+            >>> from PIL import Image
+            >>> from lavis.models import load_model_and_preprocess
+            >>> model, vis_processors, txt_processors = load_model_and_preprocess("albef_vqa", "vqav2")
+            >>> raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+            >>> question = "Which city is this photo taken?"
+            >>> image = vis_processors["eval"](raw_image).unsqueeze(0)
+            >>> question = txt_processors["eval"](question)
+            >>> samples = {"image": image, "text_input": [question]}
+            >>> answer_list = ["Singapore", "London", "Palo Alto", "Tokyo"]
+            >>> answers = model.predict_answers(samples, answer_list=answer_list)
+            >>> answers
+            ['Singapore']
+        ```
+        """
+        if num_ans_candidates is None:
+            num_ans_candidates = min(128, len(answer_list))
+
         return self.rank_answers(
             samples, answer_list=answer_list, num_ans_candidates=num_ans_candidates
         )

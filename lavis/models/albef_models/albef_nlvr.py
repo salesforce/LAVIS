@@ -17,6 +17,7 @@ from transformers import BertConfig
 class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_nlvr_base.yaml",
+        "nlvr": "configs/models/albef_nlvr.yaml",
     }
 
     def __init__(
@@ -70,6 +71,33 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples, is_train=True):
+        """
+        Forward function for training and evaluation.
+
+        Args:
+            samples (dict): a dict of input samples, which contains the following keys:
+                - image0 (torch.Tensor): input image 0, shape (batch_size, 3, H, W), default H=384, W=384.
+                - image1 (torch.Tensor): input image 1, shape (batch_size, 3, H, W), default H=384, W=384.
+                - text_input (list): list of strings, each string is a natural language sentence.
+                - label (torch.LongTensor): ground truth label with shape (batch_size,).
+            is_train (bool): whether the model is in training mode.
+                If True, the model will return the loss;
+                If False, the model will return the prediction.
+
+        Examples:
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("albef_nlvr")
+            >>> samples = {
+            ...     "image0": torch.randn(2, 3, 384, 384),
+            ...     "image1": torch.randn(2, 3, 384, 384),
+            ...     "text_input": ["there is a ferret in tall grass", "there are lips in one of the images"],
+            ...     "label": torch.tensor([0, 1]),
+            ... }
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['intermediate_output', 'loss'])
+        """
         text = samples["text_input"]
         text = self.tokenizer(
             text,

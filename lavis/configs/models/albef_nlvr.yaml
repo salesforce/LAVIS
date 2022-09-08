@@ -1,6 +1,6 @@
 model:
   arch: albef_nlvr
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/pretrain_model_nlvr.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_nlvr_lavis.pt"
   num_classes: 2
 
   use_distill: True

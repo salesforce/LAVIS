@@ -1,11 +1,7 @@
 model:
-  arch: albef_nlvr
-  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/pretrain_model_nlvr.pth"
+  arch: blip_nlvr
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_nlvr.pth"
   num_classes: 2
-
-  use_distill: True
-  momentum: 0.995
-  alpha: 0.4
 
   # vit encoder
   vit_type: "base"
@@ -16,7 +12,7 @@ model:
   image_size: 384
 
   # bert config
-  med_config_path: "configs/models/med_config_albef.json"
+  med_config_path: "configs/models/med_config.json"
 
 preprocess:
   vis_processor:

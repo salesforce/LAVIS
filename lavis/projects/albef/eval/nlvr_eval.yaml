@@ -1,5 +1,6 @@
 model:
   arch: albef_nlvr
+  model_type: nlvr
 
 datasets:
   nlvr: # name of the dataset builder

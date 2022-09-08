@@ -1,9 +1,11 @@
 model:
-  arch: albef_nlvr
-  model_type: base
+  arch: albef_vqa
+  model_type: vqav2
+
+  image_size: 384
 
 datasets:
-  nlvr: # name of the dataset builder
+  ok_vqa: # name of the dataset builder
     vis_processor:
         train:
           name: "blip_image_train"
@@ -13,28 +15,35 @@ datasets:
           image_size: 384
     text_processor:
         train:
-          name: "blip_caption"
+          name: "blip_question"
         eval:
-          name: "blip_caption"
+          name: "blip_question"
 
 run:
-  task: multimodal_classification
+  task: vqa
   # optimization-specific
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
   min_lr: 1e-6
-  weight_decay: 0.05
-  max_epoch: 10
+  weight_decay: 0.02
+  max_epoch: 6
   batch_size_train: 16
-  batch_size_eval: 64
+  batch_size_eval: 16
   num_workers: 4
 
+  # inference-specific
+  max_len: 10
+  min_len: 1
+  num_beams: 256
+  num_ans_candidates: 128
+  inference_method: "rank"
+
   seed: 42
-  output_dir: "output/ALBEF/NLVR"
+  output_dir: "output/BLIP/OKVQA"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
   test_splits: ["test"]
 
   # distribution-specific

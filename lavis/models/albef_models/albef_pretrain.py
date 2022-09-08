@@ -20,6 +20,13 @@ from transformers import BertConfig
 
 @registry.register_model("albef_pretrain")
 class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
+    """
+    ALBEF pretrain model.
+
+    Supported model types:
+        - base: ALBEF base model used for pretraining.
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_pretrain_base.yaml",
     }
@@ -89,6 +96,29 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). The input images. Default: H=224, W=224.
+                - text_input (list): A list of length batch_size, each element is a string of text/caption.
+                - epoch (int): The current epoch.
+                - iters (int): The current iteration.
+                - num_iters_per_epoch (int): The number of iterations per epoch.
+
+        Returns:
+            BlipOutput: A BlipOutput object containing loss and intermediate output. See ``lavis.models.blip_models.blip_outputs.BlipOutput`` for more details.
+
+        Examples:
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("albef_pretrain")
+            >>> images = torch.randn(4, 3, 224, 224)
+            >>> text_input = ["caption of image 1", "another caption of image 1", "caption of image 2", "caption of image 3"]
+            >>> samples = {"image": images, "text_input": text_input, "epoch": 0, "iters": 0, "num_iters_per_epoch": 100}
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['sims', 'intermediate_output', 'loss', 'loss_itc', 'loss_itm', 'loss_mlm'])
+        """
         image = samples["image"]
         caption = samples["text_input"]
 
@@ -310,6 +340,9 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         masked_indices=None,
         probability_matrix=None,
     ):
+        """
+        Prepare masked tokens inputs/labels for masked language modeling: 80% MASK, 10% random, 10% original.
+        """
         if masked_indices is None:
             masked_indices = torch.bernoulli(probability_matrix).bool()
 
@@ -359,7 +392,7 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         mlm_mask_prob = cfg.get("mlm_mask_prob", 0.15)
         temp = cfg.get("temp", 0.07)
         max_txt_len = cfg.get("max_txt_len", 30)
-        queue_size = cfg.get("queue_size", 0)
+        queue_size = cfg.get("queue_size", 65536)
 
         return cls(
             image_encoder=image_encoder,

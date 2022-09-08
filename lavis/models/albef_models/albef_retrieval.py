@@ -17,6 +17,23 @@ from torch import nn
 
 @registry.register_model("albef_retrieval")
 class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
+    """
+    ALBEF retrieval model.
+
+    Supported model types:
+        - base: retrieval model initialized with pre-trained ALBEF base model on 115M image-text pairs after CapFilt; not fine-tuned.
+        - coco: fine-tuned ALBEF base model on COCO dataset.
+        - flickr: fine-tuned ALBEF base model on Flickr30k dataset.
+
+    Usage:
+    ```python
+    >>> from lavis.models import load_model
+    >>> model = load_model("albef_retrieval", "base")
+    >>> model = load_model("albef_retrieval", "coco")
+    >>> model = load_model("albef_retrieval", "flickr")
+    ```
+    """
+
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/albef_retrieval.yaml",
         "coco": "configs/models/albef_retrieval_coco.yaml",
@@ -86,6 +103,31 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         return min(1, (epoch * num_iters_per_epoch + iters) / (2 * num_iters_per_epoch))
 
     def forward(self, samples):
+        """
+        Args:
+            samples (dict): A dictionary containing the following keys:
+                - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). The input images.
+                - text_input (list): A list of length batch_size, each element is a string of text/caption.
+                - image_id (torch.Tensor): A tensor of shape (batch_size, ). The image ids, used to identify same images in batch.
+                - epoch (int): The current epoch.
+                - iters (int): The current iteration.
+                - num_iters_per_epoch (int): The number of iterations per epoch.
+
+        Returns:
+            BlipOutput: A BlipOutput object. See ``lavis.models.blip_models.blip_outputs.BlipOutput`` for more details.
+
+        Examples:
+            >>> import torch
+            >>> from lavis.models import load_model
+            >>> model = load_model("albef_retrieval", "coco")
+            >>> images = torch.randn(4, 3, 384, 384)
+            >>> text_input = ["caption of image 1", "another caption of image 1", "caption of image 2", "caption of image 3"]
+            >>> image_id = torch.tensor([1, 1, 2, 3])
+            >>> samples = {"image": images, "text_input": text_input, "image_id": image_id, "epoch": 0, "iters": 0, "num_iters_per_epoch": 100}
+            >>> output = model(samples)
+            >>> output.keys()
+            odict_keys(['sims', 'intermediate_output', 'loss', 'loss_itc', 'loss_itm'])
+        """
         image = samples["image"]
         caption = samples["text_input"]
         idx = samples["image_id"]
