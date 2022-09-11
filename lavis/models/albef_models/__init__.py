@@ -7,11 +7,11 @@ import lavis.common.dist_utils as dist_utils
 import torch
 import torch.distributed as dist
 import torch.nn.functional as F
+from lavis.common.dist_utils import download_cached_file
 from lavis.common.logger import MetricLogger
 from lavis.common.utils import is_url
 from lavis.models.base_model import BaseModel
 from lavis.models.vit import interpolate_pos_embed
-from timm.models.hub import download_cached_file
 from transformers import BertTokenizer
 
 

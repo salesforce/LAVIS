@@ -1,12 +1,11 @@
 import logging
 import os
+
 import torch
 import torch.nn.functional as F
-
-from transformers import BertTokenizer
-
+from lavis.common.dist_utils import download_cached_file
 from lavis.common.utils import is_url
-from timm.models.hub import download_cached_file
+from transformers import BertTokenizer
 
 
 def init_tokenizer():

@@ -31,6 +31,8 @@ class BlipVQA(BlipBase):
     PRETRAINED_MODEL_CONFIG_DICT = {
         "base": "configs/models/blip_vqa_base.yaml",
         "vqav2": "configs/models/blip_vqav2.yaml",
+        "okvqa": "configs/models/blip_vqa_okvqa.yaml",
+        "aokvqa": "configs/models/blip_vqa_aokvqa.yaml",
     }
 
     def __init__(self, image_encoder, text_encoder, text_decoder, max_txt_len=35):

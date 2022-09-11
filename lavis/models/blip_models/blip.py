@@ -3,11 +3,11 @@ import os
 
 import torch
 import torch.nn.functional as F
+from lavis.common.dist_utils import download_cached_file
 from lavis.common.utils import get_abs_path, is_url
 from lavis.models.base_model import BaseModel
 from lavis.models.med import BertModel
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
-from timm.models.hub import download_cached_file
 from torch import nn
 from transformers import BertConfig, BertTokenizer
 

@@ -1,9 +1,28 @@
+import io
 import json
+import logging
 import os
+import pickle
+import re
+import shutil
+import urllib
+import urllib.error
+import urllib.request
+from typing import Optional
 from urllib.parse import urlparse
 
-from iopath.common.file_io import g_pathmgr
+import numpy as np
+import pandas as pd
+import yaml
+from iopath.common.download import download
+from iopath.common.file_io import file_lock, g_pathmgr
 from lavis.common.registry import registry
+from torch.utils.model_zoo import tqdm
+from torchvision.datasets.utils import (
+    check_integrity,
+    download_file_from_google_drive,
+    extract_archive,
+)
 
 
 def now():
@@ -30,11 +49,9 @@ def load_json(filename):
         return json.load(f)
 
 
-# ===== download utils =====
-# Copyright (c) Facebook, Inc. and its affiliates.
-
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
+# The following are adapted from torchvision and vissl
+# torchvision: https://github.com/pytorch/vision
+# vissl: https://github.com/facebookresearch/vissl/blob/main/vissl/utils/download.py
 
 
 def makedir(dir_path):
@@ -49,23 +66,6 @@ def makedir(dir_path):
     except BaseException:
         print(f"Error creating directory: {dir_path}")
     return is_success
-
-
-import io
-import os
-import re
-import urllib
-import urllib.error
-import urllib.request
-from typing import Optional
-from urllib.parse import urlparse
-
-from torch.utils.model_zoo import tqdm
-from torchvision.datasets.utils import (
-    check_integrity,
-    download_file_from_google_drive,
-    extract_archive,
-)
 
 
 def get_redirected_url(url: str):
@@ -131,8 +131,6 @@ def download_google_drive_url(url: str, output_path: str, output_file_name: str)
                         progress_bar.update(len(block))
 
 
-# The following methods are copied from torchvision, but we use g_pathmgr
-# instead of `os` lib to support multiple distributed file systems.
 def _get_google_drive_file_id(url: str) -> Optional[str]:
     parts = urlparse(url)
 
@@ -232,27 +230,6 @@ def download_and_extract_archive(
     archive = os.path.join(download_root, filename)
     print("Extracting {} to {}".format(archive, extract_root))
     extract_archive(archive, extract_root, remove_finished)
-
-
-# Copyright (c) Facebook, Inc. and its affiliates.
-
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
-
-import json
-import logging
-import os
-import pickle
-import re
-import shutil
-import time
-from urllib.parse import urlparse
-
-import numpy as np
-import pandas as pd
-import yaml
-from iopath.common.download import download
-from iopath.common.file_io import file_lock, g_pathmgr
 
 
 def cache_url(url: str, cache_dir: str) -> str:
