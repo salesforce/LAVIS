@@ -9,13 +9,6 @@ from lavis.processors.blip_processors import (
     BlipImageEvalProcessor,
     BlipCaptionProcessor,
 )
-from lavis.processors.blipv2_processors import (
-    BlipV2ImageBaseProcessor,
-    BlipV2ImageTrainProcessor,
-    BlipV2ImageEvalProcessor,
-    BlipV2QuestionProcessor,
-)
-from lavis.processors.clip_processors import ClipImageTrainProcessor
 
 from lavis.common.registry import registry
 
@@ -28,12 +21,6 @@ __all__ = [
     "BlipImageTrainProcessor",
     "BlipImageEvalProcessor",
     "BlipCaptionProcessor",
-    # BLIP_V2
-    "BlipV2ImageBaseProcessor",
-    "BlipV2ImageTrainProcessor",
-    "BlipV2ImageEvalProcessor",
-    "BlipV2QuestionProcessor",
-    "ClipImageTrainProcessor",
 ]
 
 
