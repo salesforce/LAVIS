@@ -38,7 +38,8 @@ run:
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
+  test_splits: ["test"]
 
   device: "cuda"
   world_size: 1

@@ -1,6 +1,7 @@
 model:
   arch: albef_classification
   model_type: base
+  num_classes: 3
 
 datasets:
   snli_ve: # name of the dataset builder

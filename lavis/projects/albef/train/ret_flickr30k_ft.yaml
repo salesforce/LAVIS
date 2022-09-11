@@ -1,6 +1,6 @@
 model:
   arch: albef_retrieval
-  model_type: base
+  model_type: flickr
 
   queue_size: 65536
 
@@ -34,7 +34,8 @@ run:
   batch_size_eval: 64
 
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
+  test_splits: ["test"]
 
   # distribution
   device: "cuda"

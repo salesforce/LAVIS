@@ -37,7 +37,8 @@ run:
   batch_size_eval: 128
 
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
+  test_splits: ["test"]
 
   # distribution
   device: "cuda"
