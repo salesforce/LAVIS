@@ -3,7 +3,7 @@ model:
   model_type: flickr
 
 datasets:
-  coco_retrieval: # name of the dataset builder
+  flickr30k: # name of the dataset builder
     vis_processor:
         eval:
           name: "blip_image_eval"
