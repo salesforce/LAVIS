@@ -319,10 +319,6 @@ class RunnerBase:
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
-                # [NOTE] map-style dataset will be wrapped with IterLoader, which sets the epoch sampler internally
-                # if self.use_distributed:
-                #     self.train_loader.sampler.set_epoch(cur_epoch)
-
                 train_stats = self.train_epoch(cur_epoch)
                 self.log_stats(split_name="train", stats=train_stats)
 
@@ -344,7 +340,7 @@ class RunnerBase:
                             if agg_metrics > best_agg_metric and split_name == "val":
                                 best_epoch, best_agg_metric = cur_epoch, agg_metrics
 
-                                self.save_checkpoint(cur_epoch, is_best=True)
+                                self._save_checkpoint(cur_epoch, is_best=True)
 
                             val_log.update({"best_epoch": best_epoch})
                             self.log_stats(val_log, split_name)
@@ -352,27 +348,28 @@ class RunnerBase:
             else:
                 # if no validation split is provided, we just save the checkpoint at the end of each epoch.
                 if not self.evaluate_only:
-                    self.save_checkpoint(cur_epoch, is_best=False)
+                    self._save_checkpoint(cur_epoch, is_best=False)
 
             if self.evaluate_only:
                 break
             dist.barrier()
 
         # testing phase
-        self.evaluate(cur_epoch=cur_epoch)
+        test_epoch = "best" if len(self.valid_splits) > 0 else cur_epoch
+        self.evaluate(cur_epoch=test_epoch)
 
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
         logging.info("Training time {}".format(total_time_str))
 
     def evaluate(self, cur_epoch="best"):
-        # TODO to load best validation checkpoint if provided
         test_logs = dict()
 
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
-                test_log = self.eval_epoch(split_name=split_name, cur_epoch=cur_epoch)
-                test_logs[split_name] = test_log
+                test_logs[split_name] = self.eval_epoch(
+                    split_name=split_name, cur_epoch=cur_epoch, skip_reload=True
+                )
 
             return test_logs
 
@@ -392,12 +389,25 @@ class RunnerBase:
         )
 
     @torch.no_grad()
-    def eval_epoch(self, split_name, cur_epoch):
+    def eval_epoch(self, split_name, cur_epoch, skip_reload=False):
+        """
+        Evaluate the model on a given split.
+
+        Args:
+            split_name (str): name of the split to evaluate on.
+            cur_epoch (int): current epoch.
+            skip_reload_best (bool): whether to skip reloading the best checkpoint.
+                During training, we will reload the best checkpoint for validation.
+                During testing, we will use provided weights and skip reloading the best checkpoint .
+        """
         data_loader = self.dataloaders.get(split_name, None)
         assert data_loader, "data_loader for split {} is None.".format(split_name)
 
         # TODO In validation, you need to compute loss as well as metrics
+        # TODO consider moving to model.before_evaluation()
         model = self.unwrap_dist_model(self.model)
+        if not skip_reload and cur_epoch == "best":
+            model = self._reload_model_checkpoint(model)
         model.eval()
 
         self.task.before_evaluation(
@@ -501,7 +511,7 @@ class RunnerBase:
         return loaders
 
     @main_process
-    def save_checkpoint(self, cur_epoch, is_best=False):
+    def _save_checkpoint(self, cur_epoch, is_best=False):
         """
         Save the checkpoint at the current epoch.
         """
@@ -517,6 +527,17 @@ class RunnerBase:
         )
         logging.info("Saving checkpoint at epoch {} to {}.".format(cur_epoch, save_to))
         torch.save(save_obj, save_to)
+
+    def _reload_model_checkpoint(self, model):
+        """
+        Load the best checkpoint for evaluation.
+        """
+        checkpoint_path = os.path.join(self.output_dir, "checkpoint_best.pth")
+
+        logging.info("Loading checkpoint from {}.".format(checkpoint_path))
+        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        model.load_state_dict(checkpoint["model"])
+        return model
 
     @main_process
     def log_stats(self, stats, split_name):

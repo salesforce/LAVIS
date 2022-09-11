@@ -97,7 +97,7 @@ class RunnerIter(RunnerBase):
                             if agg_metrics > best_agg_metric and split_name == "val":
                                 best_iters, best_agg_metric = end_iters, agg_metrics
 
-                                self.save_checkpoint(end_iters, is_best=True)
+                                self._save_checkpoint(end_iters, is_best=True)
 
                             val_log.update({"best_iters": best_iters})
                             self.log_stats(val_log, split_name)
@@ -105,7 +105,7 @@ class RunnerIter(RunnerBase):
             else:
                 # if no validation split is provided, we just save the checkpoint at the end of each inner epoch.
                 if not self.evaluate_only:
-                    self.save_checkpoint(end_iters, is_best=False)
+                    self._save_checkpoint(end_iters, is_best=False)
 
             if self.evaluate_only:
                 break
@@ -136,7 +136,7 @@ class RunnerIter(RunnerBase):
         )
 
     @main_process
-    def save_checkpoint(self, cur_iters, is_best=False):
+    def _save_checkpoint(self, cur_iters, is_best=False):
         save_obj = {
             "model": self.unwrap_dist_model(self.model).state_dict(),
             "optimizer": self.optimizer.state_dict(),
