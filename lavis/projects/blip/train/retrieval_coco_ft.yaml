@@ -26,7 +26,7 @@ run:
   task: retrieval
   # optimizer
   lr_sched: "linear_warmup_cosine_lr"
-  init_lr: 2e-5
+  init_lr: 1e-5
   min_lr: 0
   weight_decay: 0.05
   max_epoch: 6

@@ -6,8 +6,9 @@ import time
 import torch
 import torch.distributed as dist
 import webdataset as wds
-from lavis.common.dist_utils import is_main_process, main_process
+from lavis.common.dist_utils import download_cached_file, is_main_process, main_process
 from lavis.common.registry import registry
+from lavis.common.utils import is_url
 from lavis.datasets.data_utils import concat_datasets, reorg_datasets_by_split
 from lavis.runners.runner_base import RunnerBase
 from torch.utils.data.dataset import ChainDataset
@@ -32,6 +33,8 @@ class RunnerIter(RunnerBase):
 
     def __init__(self, cfg, task, model, datasets, job_id):
         super().__init__(cfg, task, model, datasets, job_id)
+
+        self.start_iters = 0
 
         self.max_iters = int(self.config.run_cfg.get("max_iters", -1))
         assert self.max_iters > 0, "max_iters must be greater than 0."
@@ -65,7 +68,13 @@ class RunnerIter(RunnerBase):
 
         self.log_config()
 
-        for start_iters in range(0, self.max_iters, self.iters_per_inner_epoch):
+        # resume from checkpoint if specified
+        if not self.evaluate_only and self.resume_ckpt_path is not None:
+            self._load_checkpoint(self.resume_ckpt_path)
+
+        for start_iters in range(
+            self.start_iters, self.max_iters, self.iters_per_inner_epoch
+        ):
             end_iters = start_iters + self.iters_per_inner_epoch
 
             # training phase
@@ -141,6 +150,7 @@ class RunnerIter(RunnerBase):
             "model": self.unwrap_dist_model(self.model).state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "config": self.config.to_dict(),
+            "scaler": self.scaler.state_dict() if self.scaler else None,
             "iters": cur_iters,
         }
         save_to = os.path.join(
@@ -149,6 +159,30 @@ class RunnerIter(RunnerBase):
         )
         logging.info("Saving checkpoint at iters {} to {}.".format(cur_iters, save_to))
         torch.save(save_obj, save_to)
+
+    def _load_checkpoint(self, url_or_filename):
+        """
+        Resume from a checkpoint.
+        """
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(
+                url_or_filename, check_hash=False, progress=True
+            )
+            checkpoint = torch.load(cached_file, map_location=self.device)
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location=self.device)
+        else:
+            raise RuntimeError("checkpoint url or path is invalid")
+
+        state_dict = checkpoint["model"]
+        self.unwrap_dist_model(self.model).load_state_dict(state_dict)
+
+        self.optimizer.load_state_dict(checkpoint["optimizer"])
+        if self.scaler and "scaler" in checkpoint:
+            self.scaler.load_state_dict(checkpoint["scaler"])
+
+        self.start_iters = checkpoint["iters"] + 1
+        logging.info("Resume checkpoint from {}".format(url_or_filename))
 
     @property
     def dataloaders(self) -> dict:

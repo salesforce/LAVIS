@@ -11,7 +11,7 @@ from lavis.models.albef_models.albef_outputs import AlbefIntermediateOutput, Alb
 from lavis.models.base_model import MomentumDistilationMixin, tile
 from lavis.models.med import BertConfig, BertLMHeadModel, XBertEncoder
 from lavis.models.vit import VisionTransformerEncoder, interpolate_pos_embed
-from timm.models.hub import download_cached_file
+from lavis.common.dist_utils import download_cached_file
 
 
 @registry.register_model("albef_vqa")

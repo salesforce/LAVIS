@@ -9,12 +9,14 @@ import torch
 import torch.distributed as dist
 import webdataset as wds
 from lavis.common.dist_utils import (
+    download_cached_file,
     get_rank,
     get_world_size,
     is_main_process,
     main_process,
 )
 from lavis.common.registry import registry
+from lavis.common.utils import is_url
 from lavis.datasets.data_utils import concat_datasets, reorg_datasets_by_split
 from lavis.datasets.datasets.dataloader_utils import (
     IterLoader,
@@ -47,8 +49,11 @@ class RunnerBase:
         self._wrapped_model = None
         self._device = None
         self._optimizer = None
+        self._scaler = None
         self._dataloaders = None
         self._lr_sched = None
+
+        self.start_epoch = 0
 
         # self.setup_seeds()
         self.setup_output_dir()
@@ -95,6 +100,16 @@ class RunnerBase:
             )
 
         return self._optimizer
+
+    @property
+    def scaler(self):
+        amp = self.config.run_cfg.get("amp", False)
+
+        if amp:
+            if self._scaler is None:
+                self._scaler = torch.cuda.amp.GradScaler()
+
+        return self._scaler
 
     @property
     def lr_scheduler(self):
@@ -288,6 +303,10 @@ class RunnerBase:
         return self.config.run_cfg.get("use_dist_eval_sampler", True)
 
     @property
+    def resume_ckpt_path(self):
+        return self.config.run_cfg.get("resume_ckpt_path", None)
+
+    @property
     def train_loader(self):
         train_dataloader = self.dataloaders["train"]
 
@@ -315,7 +334,11 @@ class RunnerBase:
 
         self.log_config()
 
-        for cur_epoch in range(0, self.max_epoch):
+        # resume from checkpoint if specified
+        if not self.evaluate_only and self.resume_ckpt_path is not None:
+            self._load_checkpoint(self.resume_ckpt_path)
+
+        for cur_epoch in range(self.start_epoch, self.max_epoch):
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
@@ -382,6 +405,7 @@ class RunnerBase:
             model=self.model,
             data_loader=self.train_loader,
             optimizer=self.optimizer,
+            scaler=self.scaler,
             lr_scheduler=self.lr_scheduler,
             cuda_enabled=self.cuda_enabled,
             log_freq=self.log_freq,
@@ -407,7 +431,7 @@ class RunnerBase:
         # TODO consider moving to model.before_evaluation()
         model = self.unwrap_dist_model(self.model)
         if not skip_reload and cur_epoch == "best":
-            model = self._reload_model_checkpoint(model)
+            model = self._reload_best_model(model)
         model.eval()
 
         self.task.before_evaluation(
@@ -519,6 +543,7 @@ class RunnerBase:
             "model": self.unwrap_dist_model(self.model).state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "config": self.config.to_dict(),
+            "scaler": self.scaler.state_dict() if self.scaler else None,
             "epoch": cur_epoch,
         }
         save_to = os.path.join(
@@ -528,16 +553,40 @@ class RunnerBase:
         logging.info("Saving checkpoint at epoch {} to {}.".format(cur_epoch, save_to))
         torch.save(save_obj, save_to)
 
-    def _reload_model_checkpoint(self, model):
+    def _reload_best_model(self, model):
         """
         Load the best checkpoint for evaluation.
         """
         checkpoint_path = os.path.join(self.output_dir, "checkpoint_best.pth")
 
         logging.info("Loading checkpoint from {}.".format(checkpoint_path))
-        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        checkpoint = torch.load(checkpoint_path, map_location=self.device)
         model.load_state_dict(checkpoint["model"])
         return model
+
+    def _load_checkpoint(self, url_or_filename):
+        """
+        Resume from a checkpoint.
+        """
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(
+                url_or_filename, check_hash=False, progress=True
+            )
+            checkpoint = torch.load(cached_file, map_location=self.device)
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location=self.device)
+        else:
+            raise RuntimeError("checkpoint url or path is invalid")
+
+        state_dict = checkpoint["model"]
+        self.unwrap_dist_model(self.model).load_state_dict(state_dict)
+
+        self.optimizer.load_state_dict(checkpoint["optimizer"])
+        if self.scaler and "scaler" in checkpoint:
+            self.scaler.load_state_dict(checkpoint["scaler"])
+
+        self.start_epoch = checkpoint["epoch"] + 1
+        logging.info("Resume checkpoint from {}".format(url_or_filename))
 
     @main_process
     def log_stats(self, stats, split_name):

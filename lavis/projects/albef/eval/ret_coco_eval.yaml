@@ -30,7 +30,7 @@ run:
   use_dist_eval_sampler: False
 
   # model specific
-  k_test: 256
+  k_test: 128
 
   # misc
   seed: 42

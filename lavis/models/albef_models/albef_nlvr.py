@@ -208,6 +208,15 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
         output = self.forward(samples, is_train=False)
         return output
 
+    def load_from_pretrained(self, url_or_filename, use_distill=True):
+        _, msg = super().load_from_pretrained(url_or_filename)
+
+        if use_distill and any(["_m" in k for k in msg.missing_keys]):
+            # this is required when initializing the model from TA pre-trained weights
+            self.copy_params()
+
+        return msg
+
     @classmethod
     def from_config(cls, cfg=None):
         image_encoder = VisionTransformerEncoder.from_config(cfg)
@@ -243,6 +252,8 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
         # load pre-trained weights
         pretrain_path = cfg.get("pretrained", None)
         if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+            msg = model.load_from_pretrained(
+                url_or_filename=pretrain_path, use_distill=use_distill
+            )
 
         return model

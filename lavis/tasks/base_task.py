@@ -1,6 +1,7 @@
 import logging
 import os
 
+import torch
 import torch.distributed as dist
 from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
 from lavis.common.logger import MetricLogger, SmoothedValue
@@ -93,6 +94,7 @@ class BaseTask:
         data_loader,
         optimizer,
         lr_scheduler,
+        scaler=None,
         cuda_enabled=False,
         log_freq=50,
         accum_grad_iters=1,
@@ -103,6 +105,7 @@ class BaseTask:
             model=model,
             data_loader=data_loader,
             optimizer=optimizer,
+            scaler=scaler,
             lr_scheduler=lr_scheduler,
             log_freq=log_freq,
             cuda_enabled=cuda_enabled,
@@ -118,6 +121,7 @@ class BaseTask:
         data_loader,
         optimizer,
         lr_scheduler,
+        scaler=None,
         cuda_enabled=False,
         log_freq=50,
         accum_grad_iters=1,
@@ -129,6 +133,7 @@ class BaseTask:
             model=model,
             data_loader=data_loader,
             optimizer=optimizer,
+            scaler=scaler,
             lr_scheduler=lr_scheduler,
             log_freq=log_freq,
             cuda_enabled=cuda_enabled,
@@ -143,6 +148,7 @@ class BaseTask:
         data_loader,
         optimizer,
         lr_scheduler,
+        scaler=None,
         start_iters=None,
         log_freq=50,
         cuda_enabled=False,
@@ -154,6 +160,8 @@ class BaseTask:
         When using epoch-based, training stops after one epoch; when using iter-based,
         training stops after #iters_per_epoch iterations.
         """
+        use_amp = scaler is not None
+
         if not hasattr(data_loader, "__next__"):
             # convert to iterator if not already
             data_loader = iter(data_loader)
@@ -195,10 +203,14 @@ class BaseTask:
 
             lr_scheduler.step(cur_epoch=inner_epoch, cur_step=i)
 
-            loss = self.train_step(model=model, samples=samples)
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                loss = self.train_step(model=model, samples=samples)
 
             # after_train_step()
-            loss.backward()
+            if use_amp:
+                scaler.scale(loss).backward()
+            else:
+                loss.backward()
 
             # update gradients every accum_grad_iters iterations
             if (i + 1) % accum_grad_iters == 0:

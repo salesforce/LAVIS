@@ -23,7 +23,9 @@ run:
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
   min_lr: 1e-6
-  weight_decay: 0.05
+  weight_decay: 0.02
+  warmup_lr: 1e-5
+  warmup_steps: 650
   max_epoch: 10
   batch_size_train: 16
   batch_size_eval: 64
