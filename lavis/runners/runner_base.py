@@ -379,19 +379,19 @@ class RunnerBase:
 
         # testing phase
         test_epoch = "best" if len(self.valid_splits) > 0 else cur_epoch
-        self.evaluate(cur_epoch=test_epoch)
+        self.evaluate(cur_epoch=test_epoch, skip_reload=self.evaluate_only)
 
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
         logging.info("Training time {}".format(total_time_str))
 
-    def evaluate(self, cur_epoch="best"):
+    def evaluate(self, cur_epoch="best", skip_reload=False):
         test_logs = dict()
 
         if len(self.test_splits) > 0:
             for split_name in self.test_splits:
                 test_logs[split_name] = self.eval_epoch(
-                    split_name=split_name, cur_epoch=cur_epoch, skip_reload=True
+                    split_name=split_name, cur_epoch=cur_epoch, skip_reload=skip_reload
                 )
 
             return test_logs
