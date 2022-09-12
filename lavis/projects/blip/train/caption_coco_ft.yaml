@@ -1,6 +1,8 @@
 model:
   arch: blip_caption
-  model_type: base
+
+  model_type: base_coco
+  from_finetuned: False
 
 datasets:
   coco_caption: # name of the dataset builder

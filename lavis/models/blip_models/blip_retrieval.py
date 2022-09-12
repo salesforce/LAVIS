@@ -27,21 +27,16 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
     BLIP retrieval model.
 
     Supported model types:
-        - base: retrieval model initialized with pre-trained BLIP base model on 115M image-text pairs after CapFilt; not fine-tuned.
-        - coco: fine-tuned BLIP base model on COCO dataset.
+        - coco: fine-tuned BLIP base model on COCO dataset (Karpathy split).
         - flickr: fine-tuned BLIP base model on Flickr30k dataset.
 
     Usage:
-    ```python
-    >>> from lavis.models import load_model
-    >>> model = load_model("blip_retrieval", "base")
-    >>> model = load_model("blip_retrieval", "coco")
-    >>> model = load_model("blip_retrieval", "flickr")
-    ```
+        >>> from lavis.models import load_model
+        >>> model = load_model("blip_retrieval", "coco")
+        >>> model = load_model("blip_retrieval", "flickr")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/blip_retrieval_base.yaml",
         "coco": "configs/models/blip_retrieval_coco.yaml",
         "flickr": "configs/models/blip_retrieval_flickr.yaml",
     }
@@ -380,13 +375,8 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
             max_txt_len=max_txt_len,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
-            # [IMPORTANT] to reset queue pointer to 0.
-            # Otherwise when updating last batch in the queue, the batch size and remaining queue length may be un-equal.
-            model.reset_queue_ptr()
+        model.load_from_finetuned_or_pretrained(cfg)
+        model.reset_queue_ptr()
 
         return model
 

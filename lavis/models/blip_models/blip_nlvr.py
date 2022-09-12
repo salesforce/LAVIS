@@ -25,12 +25,10 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
 
     Usage:
         >>> from lavis.models import load_model
-        >>> model = load_model("blip_nlvr", "base")
         >>> model = load_model("blip_nlvr", "nlvr")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/blip_nlvr_base.yaml",
         "nlvr": "configs/models/blip_nlvr.yaml",
     }
 

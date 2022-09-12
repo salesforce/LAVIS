@@ -3,6 +3,8 @@ model:
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
   image_size: 480
 
+  from_init: True
+
 datasets:
   coco_vqa: # name of the dataset builder
     vis_processor:

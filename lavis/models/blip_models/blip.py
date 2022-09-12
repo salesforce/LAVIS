@@ -54,6 +54,43 @@ class BlipBase(BaseModel):
 
         return msg
 
+    def load_from_finetuned(self, url_or_filename):
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(
+                url_or_filename, check_hash=False, progress=True
+            )
+            checkpoint = torch.load(cached_file, map_location="cpu")
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location="cpu")
+        else:
+            raise RuntimeError("checkpoint url or path is invalid")
+
+        if "model" in checkpoint.keys():
+            state_dict = checkpoint["model"]
+        else:
+            state_dict = checkpoint
+
+        msg = self.load_state_dict(state_dict, strict=False)
+
+        logging.info("Missing keys {}".format(msg.missing_keys))
+        logging.info("load checkpoint from %s" % url_or_filename)
+
+        return msg
+
+    def load_from_finetuned_or_pretrained(self, cfg):
+        from_finetuned = cfg.get("from_finetuned", True)
+        if from_finetuned:
+            finetune_path = cfg.get("finetuned", None)
+            assert (
+                finetune_path is not None
+            ), "Found from_finetuned is True, but finetune_path is None."
+            self.load_from_finetuned(url_or_filename=finetune_path)
+        else:
+            # load pre-trained weights
+            pretrain_path = cfg.get("pretrained", None)
+            assert "Found from_finetuned is False, but pretrain_path is None."
+            self.load_from_pretrained(url_or_filename=pretrain_path)
+
 
 class BlipITM(BlipBase):
     def __init__(

@@ -1,15 +1,17 @@
-# model:
-#   arch: blip_pretrain
+model:
+  arch: blip_pretrain
 
-#   # vit encoder
-#   vit_type: "large"
-#   vit_grad_ckpt: True
-#   vit_ckpt_layer: 5
+  # vit encoder
+  vit_type: "large"
+  vit_grad_ckpt: True
+  vit_ckpt_layer: 5
 
-#   image_size: 224
+  image_size: 224
 
-#   # bert config
-#   med_config_path: "configs/models/med_large_config.json"
+  # bert config
+  med_config_path: "configs/models/med_large_config.json"
 
-#   # generation configs
-#   prompt: "a picture of "
+  embed_dim: 256
+
+  # generation configs
+  prompt: "a picture of "

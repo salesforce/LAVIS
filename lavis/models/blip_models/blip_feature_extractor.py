@@ -19,10 +19,8 @@ class BlipFeatureExtractor(BlipBase):
         - base: BLIP base model with pre-trained weights from capfilt by BLIP large model.
 
     Usage:
-    ```python
-    >>> from lavis.models import load_model
-    >>> model = load_model("blip_feature_extractor", "base")
-
+        >>> from lavis.models import load_model
+        >>> model = load_model("blip_feature_extractor", "base")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {

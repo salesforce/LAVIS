@@ -1,7 +1,9 @@
 model:
   arch: blip_vqa
-  model_type: vqav2
-  # pretrained: https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_vqa.pth
+
+  model_type: aokvqa
+  from_finetuned: False
+
   image_size: 480
 
 datasets:
