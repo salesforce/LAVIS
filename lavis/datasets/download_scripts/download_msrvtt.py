@@ -64,20 +64,8 @@ if __name__ == "__main__":
     storage_dir = Path(get_cache_path(storage_dir))
 
     if storage_dir.exists():
-        # ask users to confirm
-        ans = input(
-            "{} exists. Do you want to delete it and re-download? [y/N] ".format(
-                storage_dir
-            )
-        )
-
-        if ans in ["y", "Y", "yes", "Yes"]:
-            cleanup_dir(storage_dir)
-            cleanup_dir(download_dir)
-            os.makedirs(download_dir)
-        else:
-            print("Aborting")
-            exit(0)
+        print(f"Dataset already exists at {storage_dir}. Aborting.")
+        exit(0)
 
     try:
         for k, v in DATA_URL.items():
