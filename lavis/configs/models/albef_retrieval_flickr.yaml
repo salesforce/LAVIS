@@ -1,6 +1,9 @@
 model:
   arch: albef_retrieval
-  pretrained: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_flickr_retrieval_lavis.pt
+  load_finetuned: True
+
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  finetuned: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_flickr_retrieval_lavis.pt
 
   queue_size: 65536
 

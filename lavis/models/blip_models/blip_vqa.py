@@ -21,15 +21,13 @@ class BlipVQA(BlipBase):
         - vqav2: fine-tuned BLIP base model on VQA v2.0 dataset.
 
     Usage:
-    ```python
-    >>> from lavis.models import load_model
-    >>> model = load_model("blip_vqa", "base")
-    >>> model = load_model("blip_vqa", "vqav2")
-    ```
+        >>> from lavis.models import load_model
+        >>> model = load_model("blip_vqa", "vqav2")
+        >>> model = load_model("blip_vqa", "okvqa")
+        >>> model = load_model("blip_vqa", "aokvqa")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/blip_vqa_base.yaml",
         "vqav2": "configs/models/blip_vqav2.yaml",
         "okvqa": "configs/models/blip_vqa_okvqa.yaml",
         "aokvqa": "configs/models/blip_vqa_aokvqa.yaml",
@@ -358,9 +356,6 @@ class BlipVQA(BlipBase):
             max_txt_len=max_txt_len,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        model.load_checkpoint_from_config(cfg)
 
         return model

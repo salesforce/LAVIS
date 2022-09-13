@@ -25,12 +25,10 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
 
     Usage:
         >>> from lavis.models import load_model
-        >>> model = load_model("blip_nlvr", "base")
         >>> model = load_model("blip_nlvr", "nlvr")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/blip_nlvr_base.yaml",
         "nlvr": "configs/models/blip_nlvr.yaml",
     }
 
@@ -144,10 +142,7 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
             num_classes=num_classes,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        model.load_checkpoint_from_config(cfg)
 
         return model
 

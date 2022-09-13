@@ -1,7 +1,8 @@
 model:
   arch: alpro_qa
+  model_type: msrvtt
+  load_finetuned: False
 
-  model_type: base
   num_classes: 1500
 
   timesformer:

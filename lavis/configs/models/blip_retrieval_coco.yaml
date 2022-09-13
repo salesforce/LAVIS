@@ -1,8 +1,9 @@
 model:
   arch: blip_retrieval
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP/blip_coco_retrieval.pth"
+  load_finetuned: True
+
+  finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP/blip_coco_retrieval.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
 
   queue_size: 57600
 

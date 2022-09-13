@@ -1,6 +1,9 @@
 model:
   arch: blip_pretrain
 
+  load_pretrained: True
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+
   # vit encoder
   vit_type: "base"
   vit_grad_ckpt: False
@@ -15,3 +18,12 @@ model:
 
   # generation configs
   prompt: "a picture of "
+
+preprocess:
+    vis_processor:
+        train:
+          name: "blip_image_train"
+          image_size: 224
+    text_processor:
+        train:
+          name: "blip_caption"

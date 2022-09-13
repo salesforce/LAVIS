@@ -394,7 +394,7 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
         max_txt_len = cfg.get("max_txt_len", 30)
         queue_size = cfg.get("queue_size", 65536)
 
-        return cls(
+        model = cls(
             image_encoder=image_encoder,
             text_encoder=text_encoder,
             queue_size=queue_size,
@@ -405,3 +405,13 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
             alpha=alpha,
             max_txt_len=max_txt_len,
         )
+
+        if cfg.get("load_pretrained", True):
+            pretrain_path = cfg.get("pretrained")
+            assert (
+                pretrain_path is not None
+            ), "load_pretrained is True but pretrained is None."
+
+            model.load_checkpoint(pretrain_path)
+
+        return model

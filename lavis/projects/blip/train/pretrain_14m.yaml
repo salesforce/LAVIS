@@ -2,6 +2,8 @@ model:
   arch: blip_pretrain
   queue_size: 57600
 
+  load_pretrained: False
+
   alpha: 0.4
 
 datasets:

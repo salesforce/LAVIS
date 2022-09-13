@@ -1,12 +1,12 @@
-from omegaconf import OmegaConf
+import logging
+import os
 
 import numpy as np
-
 import torch
 import torch.nn as nn
-from lavis.common.dist_utils import is_dist_avail_and_initialized
-
-from lavis.common.utils import get_abs_path
+from lavis.common.dist_utils import download_cached_file, is_dist_avail_and_initialized
+from lavis.common.utils import get_abs_path, is_url
+from omegaconf import OmegaConf
 
 
 class BaseModel(nn.Module):
@@ -15,38 +15,82 @@ class BaseModel(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward_features(self, *args, **kwargs):
-        """Similar to *forward* but only return features."""
-        raise NotImplementedError
-
-    def load_from_pretrained(self, url_or_filename):
-        raise NotImplementedError
-
-    @classmethod
-    def _from_config(cls, cfg=None, model_type="base"):
-        if not cfg:
-            # useful when building model without provided configuration file
-            cfg = OmegaConf.load(cls.default_config_path(model_type)).model
-
-        return cls.from_config(cfg)
-
-    @classmethod
-    def from_pretrained(cls, model_type="base"):
-        """
-        Build a pretrained model from default configuration file, specified by model_type.
-        """
-        return cls._from_config(cfg=None, model_type=model_type)
-
     @property
     def device(self):
         return list(self.parameters())[0].device
 
+    def load_checkpoint(self, url_or_filename):
+        """
+        Load from a finetuned checkpoint.
+
+        This should expect no mismatch in the model keys and the checkpoint keys.
+        """
+
+        if is_url(url_or_filename):
+            cached_file = download_cached_file(
+                url_or_filename, check_hash=False, progress=True
+            )
+            checkpoint = torch.load(cached_file, map_location="cpu")
+        elif os.path.isfile(url_or_filename):
+            checkpoint = torch.load(url_or_filename, map_location="cpu")
+        else:
+            raise RuntimeError("checkpoint url or path is invalid")
+
+        if "model" in checkpoint.keys():
+            state_dict = checkpoint["model"]
+        else:
+            state_dict = checkpoint
+
+        msg = self.load_state_dict(state_dict, strict=False)
+
+        logging.info("Missing keys {}".format(msg.missing_keys))
+        logging.info("load checkpoint from %s" % url_or_filename)
+
+        return msg
+
     @classmethod
-    def default_config_path(cls, model_type="base"):
+    def from_pretrained(cls, model_type):
+        """
+        Build a pretrained model from default configuration file, specified by model_type.
+
+        Args:
+            - model_type (str): model type, specifying architecture and checkpoints.
+
+        Returns:
+            - model (nn.Module): pretrained or finetuned model, depending on the configuration.
+        """
+        model_cfg = OmegaConf.load(cls.default_config_path(model_type)).model
+        model = cls.from_config(model_cfg)
+
+        return model
+
+    @classmethod
+    def default_config_path(cls, model_type):
         assert (
             model_type in cls.PRETRAINED_MODEL_CONFIG_DICT
         ), "Unknown model type {}".format(model_type)
         return get_abs_path(cls.PRETRAINED_MODEL_CONFIG_DICT[model_type])
+
+    def load_checkpoint_from_config(self, cfg, **kwargs):
+        """
+        Load checkpoint as specified in the config file.
+
+        If load_finetuned is True, load the finetuned model; otherwise, load the pretrained model.
+        When loading the pretrained model, each task-specific architecture may define their
+        own load_from_pretrained() method.
+        """
+        load_finetuned = cfg.get("load_finetuned", True)
+        if load_finetuned:
+            finetune_path = cfg.get("finetuned", None)
+            assert (
+                finetune_path is not None
+            ), "Found load_finetuned is True, but finetune_path is None."
+            self.load_checkpoint(url_or_filename=finetune_path)
+        else:
+            # load pre-trained weights
+            pretrain_path = cfg.get("pretrained", None)
+            assert "Found load_finetuned is False, but pretrain_path is None."
+            self.load_from_pretrained(url_or_filename=pretrain_path, **kwargs)
 
     def before_evaluation(self, **kwargs):
         pass

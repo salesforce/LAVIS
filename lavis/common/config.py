@@ -59,18 +59,15 @@ class Config:
             model_type = model.get("model_type", None)
         # else use the model type selected by user.
 
-        if model_type:
-            default_model_config_path = model_cls.default_config_path(
-                model_type=model_type
-            )
-        else:
-            default_model_config_path = model_cls.default_config_path()
+        assert model_type is not None, "Missing model_type."
+
+        model_config_path = model_cls.default_config_path(model_type=model_type)
 
         model_config = OmegaConf.create()
         # hiararchy override, customized config > default config
         model_config = OmegaConf.merge(
             model_config,
-            OmegaConf.load(default_model_config_path),
+            OmegaConf.load(model_config_path),
             {"model": config["model"]},
         )
 

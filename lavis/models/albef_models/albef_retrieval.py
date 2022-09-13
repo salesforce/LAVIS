@@ -21,21 +21,16 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
     ALBEF retrieval model.
 
     Supported model types:
-        - base: retrieval model initialized with pre-trained ALBEF base model on 115M image-text pairs after CapFilt; not fine-tuned.
-        - coco: fine-tuned ALBEF base model on COCO dataset.
+        - coco: fine-tuned ALBEF base model on COCO dataset (Karparthy split).
         - flickr: fine-tuned ALBEF base model on Flickr30k dataset.
 
     Usage:
-    ```python
-    >>> from lavis.models import load_model
-    >>> model = load_model("albef_retrieval", "base")
-    >>> model = load_model("albef_retrieval", "coco")
-    >>> model = load_model("albef_retrieval", "flickr")
-    ```
+        >>> from lavis.models import load_model
+        >>> model = load_model("albef_retrieval", "coco")
+        >>> model = load_model("albef_retrieval", "flickr")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/albef_retrieval.yaml",
         "coco": "configs/models/albef_retrieval_coco.yaml",
         "flickr": "configs/models/albef_retrieval_flickr.yaml",
     }
@@ -329,11 +324,7 @@ class AlbefRetrieval(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
             use_distill=use_distill,
         )
 
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(
-                url_or_filename=pretrain_path,
-            )
+        model.load_checkpoint_from_config(cfg)
 
         return model
 

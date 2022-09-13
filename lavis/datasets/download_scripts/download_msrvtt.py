@@ -12,8 +12,8 @@ from lavis.common.utils import (
 
 
 DATA_URL = {
-    "train": "https://download1079.mediafire.com/wohbpb72pvsg/x3rrbe4hwp04e6w/train_val_videos.zip",
-    "test": "https://download2390.mediafire.com/qci0911s7sgg/czh8sezbo9s4692/test_videos.zip",
+    "train": "https://download1602.mediafire.com/jslug277m67g/x3rrbe4hwp04e6w/train_val_videos.zip",
+    "test": "https://download2390.mediafire.com/wmqiujhca16g/czh8sezbo9s4692/test_videos.zip",
 }
 
 

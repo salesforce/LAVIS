@@ -1,6 +1,8 @@
 model:
   arch: blip_retrieval
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+
+  model_type: flickr
+  load_finetuned: False
 
   queue_size: 57600
 

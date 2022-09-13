@@ -16,25 +16,17 @@ class BlipCaption(BlipBase):
     BLIP captioning model.
 
     Supported model types:
-        - base: caption model initialized with pre-trained BLIP base model on 115M image-text pairs after CapFilt; not fine-tuned.
-        - large: caption model initialized with pre-trained BLIP large model on 115M image-text pairs; not fine-tuned.
-        - base_coco: fine-tuned BLIP base model on COCO caption dataset.
-        - large_coco: fine-tuned BLIP large model on COCO caption dataset.
+        - base_coco: fine-tuned BLIP base model on COCO caption dataset (Karparthy split).
+        - large_coco: fine-tuned BLIP large model on COCO caption dataset (Karparthy split).
 
     Usage:
-    ```python
-    >>> from lavis.models import load_model
-    >>> model = load_model("blip_caption", "base")
-    >>> model = load_model("blip_caption", "large")
-    >>> model = load_model("blip_caption", "base_coco")
-    >>> model = load_model("blip_caption", "large_coco")
-    ```
+        >>> from lavis.models import load_model
+        >>> model = load_model("blip_caption", "base_coco")
+        >>> model = load_model("blip_caption", "large_coco")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/blip_caption_base.yaml",
         "base_coco": "configs/models/blip_caption_base_coco.yaml",
-        "large": "configs/models/blip_caption_large.yaml",
         "large_coco": "configs/models/blip_caption_large_coco.yaml",
     }
 
@@ -215,10 +207,6 @@ class BlipCaption(BlipBase):
         max_txt_len = cfg.get("max_txt_len", 40)
 
         model = cls(image_encoder, text_decoder, prompt=prompt, max_txt_len=max_txt_len)
-
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        model.load_checkpoint_from_config(cfg)
 
         return model

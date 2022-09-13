@@ -1,6 +1,8 @@
 model:
   arch: blip_caption
-  model_type: large
+
+  model_type: large_coco
+  load_finetuned: False
 
 datasets:
   coco_caption: # name of the dataset builder

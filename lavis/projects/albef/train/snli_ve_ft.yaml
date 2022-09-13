@@ -1,6 +1,7 @@
 model:
   arch: albef_classification
-  model_type: base
+  model_type: ve
+  load_finetuned: False
   num_classes: 3
 
 datasets:

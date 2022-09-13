@@ -380,10 +380,13 @@ class BlipPretrain(BlipBase, SharedQueueMixin, MomentumDistilationMixin):
             max_txt_len=max_txt_len,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        if cfg.get("load_pretrained", True):
+            pretrain_path = cfg.get("pretrained")
+            assert (
+                pretrain_path is not None
+            ), "load_pretrained is True but pretrained is None."
+
+            model.load_checkpoint(pretrain_path)
             # [IMPORTANT] to reset queue pointer to 0.
             # Otherwise when updating last batch in the queue, the batch size and remaining queue length may be un-equal.
             model.reset_queue_ptr()

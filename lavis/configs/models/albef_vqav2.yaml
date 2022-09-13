@@ -1,8 +1,9 @@
 model:
   arch: albef_vqa
+  load_finetuned: True
 
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_vqav2_lavis.pt"
-  init_decoder_as_encoder: False # set to False if initialized from finetuned weights
+  pretrained: "https://storage.googleapis.com/sfr-pcl-data-research/ALBEF/ALBEF.pth"
+  finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALBEF/albef_vqav2_lavis.pt"
 
   use_distill: True
   momentum: 0.995

@@ -1,6 +1,7 @@
 model:
   arch: alpro_retrieval
-  model_type: base
+  model_type: msrvtt
+  load_finetuned: False
 
 datasets:
   msrvtt_retrieval: # name of the dataset builder
@@ -31,7 +32,7 @@ run:
   batch_size_eval: 8
   num_workers: 4
 
-  k_test: 256
+  k_test: 1000
 
   seed: 42
   output_dir: "output/ALPRO/msrvtt_retrieval"

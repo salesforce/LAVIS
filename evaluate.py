@@ -79,7 +79,7 @@ def main():
     runner = RunnerBase(
         cfg=cfg, job_id=job_id, task=task, model=model, datasets=datasets
     )
-    runner.evaluate()
+    runner.evaluate(skip_reload=True)
 
 
 if __name__ == "__main__":

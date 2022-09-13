@@ -1,7 +1,8 @@
 model:
   arch: alpro_retrieval
-  # pretrained: "/export/home/workspace/ALPRO/output/pretrain/alpro_pretrained_ckpt.pt"
-  pretrained: "/export/home/workspace/ALPRO/output/downstreams/didemo_ret/public/ckpt/model_step_best.pt"
+  model_type: didemo
+  load_finetuned: False
+
   max_txt_len: 50
 
   timesformer:
@@ -12,30 +13,41 @@ model:
 datasets:
   didemo_retrieval: # name of the dataset builder
     vis_processor:
+        train:
+          name: "alpro_video_train"
+          n_frms: 8
+          image_size: 224
         eval:
           name: "alpro_video_eval"
           n_frms: 8
           image_size: 224
     text_processor:
+        train:
+          name: "blip_caption"
         eval:
           name: "blip_caption"
 
 run:
   task: retrieval
   # optimization-specific
-  batch_size_train: 8
-  batch_size_eval: 64
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 3e-5
+  min_lr: 1e-6
+  weight_decay: 1e-4
+  max_epoch: 10
+  batch_size_train: 12
+  batch_size_eval: 32
   num_workers: 4
 
-  # k_test: 256
-  k_test: 1000
+  k_test: 256
+  # k_test: 1000
 
   seed: 42
   output_dir: "output/ALPRO/didemo_retrieval"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val", "test"]
+  valid_splits: ["val"]
   test_splits: ["test"]
 
   # distribution-specific
