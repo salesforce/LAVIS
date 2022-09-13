@@ -1,6 +1,7 @@
 model:
   arch: blip_nlvr
-  from_finetuned: True
+  model_type: nlvr
+  load_finetuned: True
 
   finetuned: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_nlvr.pth"
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"

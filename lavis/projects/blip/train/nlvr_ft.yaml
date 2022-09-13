@@ -2,7 +2,7 @@ model:
   arch: blip_nlvr
 
   model_type: nlvr
-  from_finetuned: False
+  load_finetuned: False
 
 datasets:
   nlvr: # name of the dataset builder

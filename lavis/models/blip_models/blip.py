@@ -54,41 +54,25 @@ class BlipBase(BaseModel):
 
         return msg
 
-    def load_from_finetuned(self, url_or_filename):
-        if is_url(url_or_filename):
-            cached_file = download_cached_file(
-                url_or_filename, check_hash=False, progress=True
-            )
-            checkpoint = torch.load(cached_file, map_location="cpu")
-        elif os.path.isfile(url_or_filename):
-            checkpoint = torch.load(url_or_filename, map_location="cpu")
-        else:
-            raise RuntimeError("checkpoint url or path is invalid")
+    def load_checkpoint_from_config(self, cfg):
+        """
+        Load checkpoint as specified in the config file.
 
-        if "model" in checkpoint.keys():
-            state_dict = checkpoint["model"]
-        else:
-            state_dict = checkpoint
-
-        msg = self.load_state_dict(state_dict, strict=False)
-
-        logging.info("Missing keys {}".format(msg.missing_keys))
-        logging.info("load checkpoint from %s" % url_or_filename)
-
-        return msg
-
-    def load_from_finetuned_or_pretrained(self, cfg):
-        from_finetuned = cfg.get("from_finetuned", True)
-        if from_finetuned:
+        If load_finetuned is True, load the finetuned model; otherwise, load the pretrained model.
+        When loading the pretrained model, each task-specific architecture may define their
+        own load_from_pretrained() method.
+        """
+        load_finetuned = cfg.get("load_finetuned", True)
+        if load_finetuned:
             finetune_path = cfg.get("finetuned", None)
             assert (
                 finetune_path is not None
-            ), "Found from_finetuned is True, but finetune_path is None."
+            ), "Found load_finetuned is True, but finetune_path is None."
             self.load_from_finetuned(url_or_filename=finetune_path)
         else:
             # load pre-trained weights
             pretrain_path = cfg.get("pretrained", None)
-            assert "Found from_finetuned is False, but pretrain_path is None."
+            assert "Found load_finetuned is False, but pretrain_path is None."
             self.load_from_pretrained(url_or_filename=pretrain_path)
 
 

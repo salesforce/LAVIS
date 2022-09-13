@@ -1,9 +1,10 @@
 model:
   arch: blip_vqa
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
-  image_size: 480
 
-  from_init: True
+  model_type: vqav2
+  load_finetuned: False
+
+  image_size: 480
 
 datasets:
   coco_vqa: # name of the dataset builder

@@ -18,7 +18,6 @@ from torch import nn
 @registry.register_model("albef_classification")
 class AlbefClassification(AlbefBase, MomentumDistilationMixin):
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/albef_classification.yaml",
         "ve": "configs/models/albef_classification_ve.yaml",
     }
 
@@ -171,9 +170,6 @@ class AlbefClassification(AlbefBase, MomentumDistilationMixin):
             max_txt_len=max_txt_len,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        model.load_checkpoint_from_config(cfg)
 
         return model

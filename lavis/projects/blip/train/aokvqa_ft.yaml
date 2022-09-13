@@ -2,7 +2,7 @@ model:
   arch: blip_vqa
 
   model_type: aokvqa
-  from_finetuned: False
+  load_finetuned: False
 
   image_size: 480
 

@@ -36,7 +36,7 @@ class TestAlbef:
         assert answers == ["Singapore"]
 
     def test_vqa_forward(self):
-        model = load_model("albef_vqa")
+        model = load_model("albef_vqa", model_type="vqav2", is_eval=True)
         samples = {
             "image": torch.rand(2, 3, 384, 384),
             "text_input": ["What is this?", "What is that?"],
@@ -141,76 +141,3 @@ class TestAlbef:
             output.intermediate_output.itm_labels
             == torch.LongTensor([1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]).to(device)
         )
-
-    # def test_feature_extractor(self):
-    #     from PIL import Image
-    #     from lavis.models import load_model_and_preprocess
-
-    #     raw_image = Image.open("docs/data/merlion.png").convert("RGB")
-    #     caption = "a large fountain spewing water into the air"
-
-    #     model, vis_processors, txt_processors = load_model_and_preprocess(
-    #         "albef_feature_extractor", is_eval=True
-    #     )
-
-    #     image = vis_processors["eval"](raw_image).unsqueeze(0)
-    #     text_input = txt_processors["eval"](caption)
-
-    #     sample = {"image": image, "text_input": [text_input]}
-
-    #     features_multimodal = model.extract_features(sample)
-    #     features_text = model.extract_features(sample, mode="text")
-    #     features_image = model.extract_features(sample, mode="image")
-
-    #     assert features_multimodal.image_embeds.shape == torch.Size([1, 197, 768])
-    #     assert features_multimodal.multimodal_embeds.shape == torch.Size([1, 12, 768])
-
-    #     assert features_text.text_embeds.shape == torch.Size([1, 12, 768])
-    #     assert features_text.text_features.shape == torch.Size([1, 12, 256])
-
-    #     assert features_image.image_embeds.shape == torch.Size([1, 197, 768])
-    #     assert features_image.image_features.shape == torch.Size([1, 197, 256])
-
-    # assert torch.sum(features_multimodal.image_embeds).item() == pytest.approx(
-    #     -3074.2212, precision
-    # )
-    # assert torch.sum(features_multimodal.multimodal_embeds).item() == pytest.approx(
-    #     -8.7235, precision
-    # )
-
-    # assert torch.sum(features_text.text_embeds).item() == pytest.approx(
-    #     -0.6083, precision
-    # )
-    # assert torch.sum(features_text.text_features).item() == pytest.approx(
-    #     -6.6052, precision
-    # )
-
-    # assert torch.sum(features_image.image_embeds).item() == pytest.approx(
-    #     -3074.2212, precision
-    # )
-    # assert torch.sum(features_image.image_features).item() == pytest.approx(
-    #     -116.0622, precision
-    # )
-
-    # def test_itm(self):
-    #     from lavis.processors.blip_processors import BlipCaptionProcessor
-
-    #     vis_processor = load_processor("blip_image_eval").build(image_size=384)
-
-    #     text_processor = BlipCaptionProcessor(prompt="A picture of ")
-    #     cls_prompt = [
-    #         text_processor(cls_nm)
-    #         for cls_nm in ["merlion", "elephant", "giraffe", "fountain", "marina bay"]
-    #     ]
-
-    #     image = vis_processor(raw_image).unsqueeze(0).to(device)
-
-    #     model = load_blip_itm_model(device)
-
-    #     output = model(image, cls_prompt, match_head="itm")
-    #     sims = output[:, 1]
-
-    #     sims = torch.nn.Softmax(dim=0)(sims)
-    #     inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
-
-    #     print(inv_sims)

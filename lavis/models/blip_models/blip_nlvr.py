@@ -142,10 +142,7 @@ class BlipNLVR(BlipBase, MomentumDistilationMixin):
             num_classes=num_classes,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(url_or_filename=pretrain_path)
+        model.load_checkpoint_from_config(cfg)
 
         return model
 

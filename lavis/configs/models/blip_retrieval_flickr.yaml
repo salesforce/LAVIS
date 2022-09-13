@@ -1,6 +1,6 @@
 model:
   arch: blip_retrieval
-  from_finetuned: True
+  load_finetuned: True
 
   finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP/blip_flickr_retrieval.pth"
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"

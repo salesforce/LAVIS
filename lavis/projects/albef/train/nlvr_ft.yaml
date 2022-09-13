@@ -1,6 +1,7 @@
 model:
   arch: albef_nlvr
-  model_type: base
+  model_type: nlvr
+  load_finetuned: False
 
 datasets:
   nlvr: # name of the dataset builder

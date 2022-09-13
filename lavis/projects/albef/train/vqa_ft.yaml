@@ -1,6 +1,7 @@
 model:
   arch: albef_vqa
-  model_type: base
+  model_type: vqav2
+  load_finetuned: False
 
   image_size: 384
 

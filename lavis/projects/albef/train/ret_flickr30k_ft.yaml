@@ -1,6 +1,7 @@
 model:
   arch: albef_retrieval
   model_type: flickr
+  load_finetuned: False
 
   queue_size: 65536
 

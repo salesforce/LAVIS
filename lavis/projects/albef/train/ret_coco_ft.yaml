@@ -1,6 +1,7 @@
 model:
   arch: albef_retrieval
-  model_type: base
+  model_type: coco
+  load_finetuned: False
 
   queue_size: 65536
 

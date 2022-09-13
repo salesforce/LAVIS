@@ -356,6 +356,6 @@ class BlipVQA(BlipBase):
             max_txt_len=max_txt_len,
         )
 
-        model.load_from_finetuned_or_pretrained(cfg)
+        model.load_checkpoint_from_config(cfg)
 
         return model

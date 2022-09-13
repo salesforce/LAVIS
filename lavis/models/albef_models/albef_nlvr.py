@@ -16,7 +16,6 @@ from transformers import BertConfig
 @registry.register_model("albef_nlvr")
 class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/albef_nlvr_base.yaml",
         "nlvr": "configs/models/albef_nlvr.yaml",
     }
 
@@ -249,11 +248,6 @@ class AlbefNLVR(AlbefBase, MomentumDistilationMixin):
             max_txt_len=max_txt_len,
         )
 
-        # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(
-                url_or_filename=pretrain_path, use_distill=use_distill
-            )
+        model.load_checkpoint_from_config(cfg)
 
         return model

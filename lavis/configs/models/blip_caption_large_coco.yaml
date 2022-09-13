@@ -1,6 +1,6 @@
 model:
   arch: blip_caption
-  from_finetuned: True
+  load_finetuned: True
 
   pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large.pth"
   finetuned: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth"

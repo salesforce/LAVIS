@@ -375,7 +375,7 @@ class BlipRetrieval(BlipBase, MomentumDistilationMixin, SharedQueueMixin):
             max_txt_len=max_txt_len,
         )
 
-        model.load_from_finetuned_or_pretrained(cfg)
+        model.load_checkpoint_from_config(cfg)
         model.reset_queue_ptr()
 
         return model

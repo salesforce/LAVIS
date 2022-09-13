@@ -207,6 +207,6 @@ class BlipCaption(BlipBase):
         max_txt_len = cfg.get("max_txt_len", 40)
 
         model = cls(image_encoder, text_decoder, prompt=prompt, max_txt_len=max_txt_len)
-        model.load_from_finetuned_or_pretrained(cfg)
+        model.load_checkpoint_from_config(cfg)
 
         return model

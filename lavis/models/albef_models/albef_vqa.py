@@ -24,15 +24,11 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         - vqav2: fine-tuned ALBEF base model on VQA v2.0 dataset.
 
     Usage:
-    ```python
-    >>> from lavis.models import load_model
-    >>> model = load_model("albef_vqa", "base")
-    >>> model = load_model("albef_vqa", "vqav2")
-    ```
+        >>> from lavis.models import load_model
+        >>> model = load_model("albef_vqa", "vqav2")
     """
 
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/albef_vqa.yaml",
         "vqav2": "configs/models/albef_vqav2.yaml",
     }
 
@@ -94,7 +90,6 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             see lavis/models/albef_models/albef_outputs.py for more details.
 
         Examples:
-        ```python
             >>> import torch
             >>> from lavis.models import load_model
             >>> model = load_model("albef_vqa")
@@ -109,7 +104,6 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             >>> output = model(samples)
             >>> output.keys()
             odict_keys(['intermediate_output', 'loss'])
-        ```
         """
         (
             encoder_output,
@@ -237,7 +231,6 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             List: A list of strings, each string is an answer.
 
         Examples:
-        ```python
             >>> from PIL import Image
             >>> from lavis.models import load_model_and_preprocess
             >>> model, vis_processors, txt_processors = load_model_and_preprocess("albef_vqa", "vqav2")
@@ -250,7 +243,6 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             >>> answers = model.predict_answers(samples, answer_list=answer_list)
             >>> answers
             ['Singapore']
-        ```
         """
         if num_ans_candidates is None:
             num_ans_candidates = min(128, len(answer_list))
@@ -356,8 +348,6 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         use_distill = cfg.get("use_distill", True)
         max_txt_len = cfg.get("max_txt_len", 25)
 
-        init_decoder_as_encoder = cfg["init_decoder_as_encoder"]
-
         model = cls(
             image_encoder=image_encoder,
             text_encoder=text_encoder,
@@ -369,16 +359,11 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         )
 
         # load pre-trained weights
-        pretrain_path = cfg.get("pretrained", None)
-        if pretrain_path is not None:
-            msg = model.load_from_pretrained(
-                url_or_filename=pretrain_path,
-                init_decoder_as_encoder=init_decoder_as_encoder,
-            )
+        model.load_checkpoint_from_config(cfg)
 
         return model
 
-    def load_from_pretrained(self, url_or_filename, init_decoder_as_encoder):
+    def load_from_pretrained(self, url_or_filename):
         if is_url(url_or_filename):
             cached_file = download_cached_file(
                 url_or_filename, check_hash=False, progress=True
@@ -411,25 +396,24 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
                 state_dict[encoder_key] = state_dict[key]
 
             # intialize text decoder as multimodal encoder (last 6 layers of model.text_encoder)
-            if init_decoder_as_encoder:
-                if "text_encoder" in key:
-                    if "layer" in key:
-                        encoder_keys = key.split(".")
-                        layer_num = int(encoder_keys[4])
+            if "text_encoder" in key:
+                if "layer" in key:
+                    encoder_keys = key.split(".")
+                    layer_num = int(encoder_keys[4])
 
-                        if layer_num < 6:
-                            del state_dict[key]
-                            continue
-                        else:
-                            decoder_layer_num = layer_num - 6
-                            encoder_keys[4] = str(decoder_layer_num)
-                            encoder_key = ".".join(encoder_keys)
+                    if layer_num < 6:
+                        del state_dict[key]
+                        continue
                     else:
-                        encoder_key = key
-                    decoder_key = encoder_key.replace("text_encoder", "text_decoder")
-                    state_dict[decoder_key] = state_dict[key]
+                        decoder_layer_num = layer_num - 6
+                        encoder_keys[4] = str(decoder_layer_num)
+                        encoder_key = ".".join(encoder_keys)
+                else:
+                    encoder_key = key
+                decoder_key = encoder_key.replace("text_encoder", "text_decoder")
+                state_dict[decoder_key] = state_dict[key]
 
-                    del state_dict[key]
+                del state_dict[key]
 
         for key in self.state_dict().keys():
             if key in state_dict.keys():
