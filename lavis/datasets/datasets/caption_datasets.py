@@ -5,8 +5,6 @@ from PIL import Image
 
 from lavis.datasets.datasets.base_dataset import BaseDataset
 
-import pdb 
-
 class __DisplMixin:
     def displ_item(self, index):
         sample, ann = self.__getitem__(index), self.annotation[index]

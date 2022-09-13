@@ -5,8 +5,6 @@ from lavis.datasets.datasets.dialogue_datasets import DialogueDataset, DialogueE
 
 import torch 
 
-import pdb 
-
 class AVSDDialDataset(DialogueDataset):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         """
@@ -62,8 +60,6 @@ class AVSDDialDataset(DialogueDataset):
         attn_mask = torch.cat([video_mask, attn_mask], dim=1)
         
         video_labels = torch.ones((video_fts.size(0), video_fts.size(1))).long() * -1 # ignore token indice -1 by default 
-        #video_mask = torch.cat([torch.zeros((i3d.size(0), i3d.size(1))), torch.ones(lm_labels.size())], 1)
-        #reply_mask = torch.zeros(video_mask.size())
         labels = torch.cat([video_labels, labels], dim=1)
         
         samples = {}
@@ -131,8 +127,6 @@ class AVSDDialEvalDataset(DialogueEvalDataset):
         attn_mask = torch.cat([video_mask, attn_mask], dim=1)
         
         video_labels = torch.ones((video_fts.size(0), video_fts.size(1))).long() * -1 # ignore token indice -1 by default 
-        #video_mask = torch.cat([torch.zeros((i3d.size(0), i3d.size(1))), torch.ones(lm_labels.size())], 1)
-        #reply_mask = torch.zeros(video_mask.size())
         labels = torch.cat([video_labels, labels], dim=1)
         
         samples = {}

@@ -7,7 +7,6 @@ from lavis.datasets.datasets.base_dataset import BaseDataset
 
 import json 
 import copy 
-import pdb 
 
 class __DisplMixin:
     def displ_item(self, index):
@@ -29,14 +28,11 @@ class DialogueDataset(BaseDataset, __DisplMixin):
         ann_root (string): directory to store the annotation file
         """
         
-        #super().__init__(vis_processor, text_processor, vis_root, ann_paths)
-
         self.vis_root = vis_root
 
         self.annotation = []
         for ann_path in ann_paths:
-            # TODO: change to use all dataset samples; currently use 10 
-            dialogs = json.load(open(ann_path, "r"))['dialogs'][:10] 
+            dialogs = json.load(open(ann_path, "r"))['dialogs']
             for dialog in dialogs: 
                 all_turns = dialog['dialog']
                 dialogue_context = [] 
@@ -66,7 +62,6 @@ class DialogueDataset(BaseDataset, __DisplMixin):
         
     def __getitem__(self, index):
 
-        # TODO this assumes image input, not general enough
         ann = self.annotation[index]
 
         image_path = os.path.join(self.vis_root, ann["image"])
@@ -88,14 +83,12 @@ class DialogueEvalDataset(BaseDataset, __DisplMixin):
         ann_root (string): directory to store the annotation file
         split (string): val or test
         """
-        
-        #super().__init__(vis_processor, text_processor, vis_root, ann_paths)
-        
+                
         self.vis_root = vis_root
 
         self.annotation = []
         for ann_path in ann_paths:
-            dialogs = json.load(open(ann_path, "r"))['dialogs'][:10] 
+            dialogs = json.load(open(ann_path, "r"))['dialogs']
             for dialog in dialogs: 
                 all_turns = dialog['dialog']
                 dialogue_context = all_turns[:-1]

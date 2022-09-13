@@ -8,7 +8,6 @@ from lavis.tasks.base_task import BaseTask
 from lavis.datasets.data_utils import prepare_sample
 
 import numpy as np 
-import pdb 
 
 @registry.register_task("dialogue")
 class DialogueTask(BaseTask):
@@ -46,21 +45,6 @@ class DialogueTask(BaseTask):
         loss = model(samples)["loss"].item() 
         
         return [loss] 
-        '''
-        responses = model.generate(
-            samples,
-            use_nucleus_sampling=False,
-            num_beams=self.num_beams,
-            max_length=self.max_len,
-            min_length=self.min_len,
-        )
-
-        img_ids = samples["image_id"]
-        for response, img_id in zip(responses, img_ids):
-            results.append({"caption": response, "image_id": int(img_id)})
-
-        return results
-        '''
         
     def evaluation(self, model, data_loader, cuda_enabled=True):
         metric_logger = MetricLogger(delimiter="  ")

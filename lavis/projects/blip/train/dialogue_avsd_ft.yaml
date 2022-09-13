@@ -1,16 +1,16 @@
 model:
-  arch: gpt_dialogue #blip_caption
+  arch: gpt_dialogue 
   model_type: base
 
 datasets:
   avsd_dialogue: # name of the dataset builder
     vis_processor:
         train:
-          name: "gpt_video_ft" #"blip_image_train"
+          name: "gpt_video_ft" 
           visual_ft: ["i3d_flow", "i3d_rgb"]  
           audio_ft: ["vggish"]    
         eval:
-          name: "gpt_video_ft" #"blip_image_eval"
+          name: "gpt_video_ft" 
           visual_ft: ["i3d_flow", "i3d_rgb"]  
           audio_ft: ["vggish"]   
     text_processor:
@@ -30,21 +30,21 @@ run:
   init_lr: 1e-5
   min_lr: 0
   weight_decay: 0.05
-  max_epoch: 5
-  batch_size_train: 4
-  batch_size_eval: 4
-  num_workers: 0 #4
+  max_epoch: 20
+  batch_size_train: 16
+  batch_size_eval: 16
+  num_workers: 0
 
   max_len: 20
   min_len: 5
-  num_beams: 3
+  num_beams: 5
 
   seed: 42
   output_dir: "output/gpt2/dialogue_avsd" 
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val"] #, "test"]
+  valid_splits: ["val"] 
 
   device: "cuda"
   world_size: 1

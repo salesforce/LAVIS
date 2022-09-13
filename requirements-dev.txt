@@ -22,4 +22,3 @@ tqdm
 transformers==4.15.0
 webdataset
 wheel
-webdataset

@@ -9,8 +9,6 @@ import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
 
-import pdb
-
 @registry.register_model("gpt_dialogue")
 class GPTDialogue(GPT2LMHeadModel, BaseModel):
     
@@ -22,13 +20,8 @@ class GPTDialogue(GPT2LMHeadModel, BaseModel):
         
         super().__init__(config)
         
-        #self.transformer = GPT2Model(config)
-        #self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.video_ff = nn.Linear(len_video_ft, config.n_embd)
-        self.video_inverse_ff = nn.Linear(config.n_embd, len_video_ft)
-
-        #self.init_weights()
-        #self.tie_weights()
+        self.video_ff_out = nn.Linear(config.n_embd, len_video_ft)
 
         # Model parallel
         self.model_parallel = False
@@ -51,7 +44,7 @@ class GPTDialogue(GPT2LMHeadModel, BaseModel):
         input_embs = self.transformer.wte(samples['input_ids'])
         video_embs = self.video_ff(samples['video_fts'])
         input_embs = torch.cat([video_embs, input_embs], dim=1)
-                
+            
         transformer_outputs = self.transformer(
             attention_mask=samples['attn_mask'],
             token_type_ids=samples['token_type_ids'],
@@ -77,6 +70,21 @@ class GPTDialogue(GPT2LMHeadModel, BaseModel):
             # Flatten the tokens
             loss_fct = CrossEntropyLoss(ignore_index=-1)
             loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
+            
+        if samples['video_fts'] is not None:             
+            len_video_fts = samples['video_fts'].shape[1] 
+            video_logits = self.video_ff_out(hidden_states[:, :len_video_fts, :])
+            # Shift so that tokens < n predict n
+            shift_logits = video_logits[..., :-1, :].contiguous()
+            shift_labels = samples['video_fts'][..., 1:, :].contiguous()
+            # Flatten the tokens
+            loss_fct = MSELoss(reduction="mean")
+            video_loss = loss_fct(shift_logits, shift_labels)
+            
+            if loss is not None: 
+                loss = loss + video_loss
+            else:
+                loss = video_loss 
             
         return CausalLMOutputWithCrossAttentions(
             loss=loss,

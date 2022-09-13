@@ -24,9 +24,6 @@ from lavis.processors import *
 from lavis.runners import *
 from lavis.tasks import *
 
-import pdb 
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Training")
 
@@ -82,8 +79,7 @@ def main():
     # set after init_distributed_mode() to only log on master.
     setup_logger()
 
-    #[TOFIX] uncomment below line 
-    #cfg.pretty_print()
+    cfg.pretty_print()
     
     task = tasks.setup_task(cfg)
     datasets = task.build_datasets(cfg)

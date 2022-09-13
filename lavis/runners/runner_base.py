@@ -25,8 +25,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.data.dataset import ChainDataset
 
-import pdb 
-
 
 @registry.register_runner("runner_base")
 class RunnerBase:
