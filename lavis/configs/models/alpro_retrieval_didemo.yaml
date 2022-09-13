@@ -1,6 +1,11 @@
 model:
   arch: alpro_retrieval
 
+  load_finetuned: True
+
+  finetuned: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_didemo_retrieval.pt
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
+
   timesformer:
     n_frms: 8
     image_size: 224

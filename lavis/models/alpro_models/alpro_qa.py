@@ -1,23 +1,22 @@
 from warnings import warn
+
 import torch
 import torch.nn.functional as F
-from torch import nn
-from lavis.common.registry import registry
 from lavis.common.config import node_to_dict
-from lavis.models.alpro_models import init_tokenizer, load_from_pretrained
+from lavis.common.registry import registry
+from lavis.models.alpro_models import AlproBase
 from lavis.models.alpro_models.alpro_outputs import (
     AlproIntermediateOutput,
     AlproOutputWithLogits,
 )
-from lavis.models.base_model import BaseModel
 from lavis.models.med import XBertEncoder
 from lavis.models.timesformer.vit import TimeSformer
+from torch import nn
 
 
 @registry.register_model("alpro_qa")
-class AlproQA(BaseModel):
+class AlproQA(AlproBase):
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/alpro_qa.yaml",
         "msrvtt": "configs/models/alpro_qa_msrvtt.yaml",
         "msvd": "configs/models/alpro_qa_msvd.yaml",
     }
@@ -27,7 +26,7 @@ class AlproQA(BaseModel):
     ):
         super().__init__()
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = visual_encoder
 
@@ -123,18 +122,13 @@ class AlproQA(BaseModel):
             num_classes=num_classes,
         )
 
-        pretrain_path = cfg.get("pretrained")
         num_patches = (
             visual_encoder_config["image_size"] // visual_encoder_config["patch_size"]
         ) ** 2
         num_frames = visual_encoder_config["n_frms"]
 
-        if pretrain_path is not None:
-            model, msg = load_from_pretrained(
-                model=model,
-                url_or_filename=pretrain_path,
-                num_frames=num_frames,
-                num_patches=num_patches,
-            )
+        model.load_checkpoint_from_config(
+            cfg, num_frames=num_frames, num_patches=num_patches
+        )
 
         return model

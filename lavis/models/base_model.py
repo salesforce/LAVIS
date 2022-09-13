@@ -19,7 +19,7 @@ class BaseModel(nn.Module):
     def device(self):
         return list(self.parameters())[0].device
 
-    def load_from_finetuned(self, url_or_filename):
+    def load_checkpoint(self, url_or_filename):
         """
         Load from a finetuned checkpoint.
 
@@ -65,11 +65,32 @@ class BaseModel(nn.Module):
         return model
 
     @classmethod
-    def default_config_path(cls, model_type="base"):
+    def default_config_path(cls, model_type):
         assert (
             model_type in cls.PRETRAINED_MODEL_CONFIG_DICT
         ), "Unknown model type {}".format(model_type)
         return get_abs_path(cls.PRETRAINED_MODEL_CONFIG_DICT[model_type])
+
+    def load_checkpoint_from_config(self, cfg, **kwargs):
+        """
+        Load checkpoint as specified in the config file.
+
+        If load_finetuned is True, load the finetuned model; otherwise, load the pretrained model.
+        When loading the pretrained model, each task-specific architecture may define their
+        own load_from_pretrained() method.
+        """
+        load_finetuned = cfg.get("load_finetuned", True)
+        if load_finetuned:
+            finetune_path = cfg.get("finetuned", None)
+            assert (
+                finetune_path is not None
+            ), "Found load_finetuned is True, but finetune_path is None."
+            self.load_checkpoint(url_or_filename=finetune_path)
+        else:
+            # load pre-trained weights
+            pretrain_path = cfg.get("pretrained", None)
+            assert "Found load_finetuned is False, but pretrain_path is None."
+            self.load_from_pretrained(url_or_filename=pretrain_path, **kwargs)
 
     def before_evaluation(self, **kwargs):
         pass

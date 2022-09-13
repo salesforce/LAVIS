@@ -1,7 +1,11 @@
 model:
   arch: alpro_qa
   num_classes: 1500
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_qa.pth"
+
+  load_finetuned: True
+
+  finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_msrvtt_qa.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/ALPRO/alpro_pretrain.pt"
 
   timesformer:
     n_frms: 16

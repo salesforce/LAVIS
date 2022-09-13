@@ -54,42 +54,30 @@ __all__ = [
 ]
 
 
-def get_model_config(model_name, model_type="base"):
-    import json
-
-    from omegaconf import OmegaConf
-
-    config_path = registry.get_model_class(model_name).PRETRAINED_MODEL_CONFIG_DICT[
-        model_type
-    ]
-
-    config = OmegaConf.load(config_path)
-    config = OmegaConf.to_container(config)
-
-    print(json.dumps(config, indent=4, sort_keys=True))
-
-    return config
-
-
-def load_model(name, model_type="base", is_eval=False, device="cpu"):
+def load_model(name, model_type, is_eval=False, device="cpu", checkpoint=None):
     """
     Load supported models.
 
-    List all available models and types in registry:
+    To list all available models and types in registry:
     >>> from lavis.models import model_zoo
     >>> print(model_zoo)
 
     Args:
         name (str): name of the model.
-        model_type (str): type of the model. Default: "base".
+        model_type (str): type of the model.
         is_eval (bool): whether the model is in eval mode. Default: False.
         device (str): device to use. Default: "cpu".
+        checkpoint (str): path or to checkpoint. Default: None.
+            Note that expecting the checkpoint to have the same keys in state_dict as the model.
 
     Returns:
         model (torch.nn.Module): model.
     """
 
     model = registry.get_model_class(name).from_pretrained(model_type=model_type)
+
+    if checkpoint is not None:
+        model.load_checkpoint(checkpoint)
 
     if is_eval:
         model.eval()
@@ -150,7 +138,7 @@ def load_preprocess(config):
     return vis_processors, txt_processors
 
 
-def load_model_and_preprocess(name, model_type="base", is_eval=False, device="cpu"):
+def load_model_and_preprocess(name, model_type, is_eval=False, device="cpu"):
     """
     Load model and its related preprocessors.
 
@@ -160,7 +148,7 @@ def load_model_and_preprocess(name, model_type="base", is_eval=False, device="cp
 
     Args:
         name (str): name of the model.
-        model_type (str): type of the model. Default: "base".
+        model_type (str): type of the model.
         is_eval (bool): whether the model is in eval mode. Default: False.
         device (str): device to use. Default: "cpu".
 

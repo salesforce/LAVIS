@@ -30,7 +30,7 @@ run:
   lr_sched: "linear_warmup_cosine_lr"
   init_lr: 2e-5
   min_lr: 0
-  weight_decay: 0.05
+  weight_decay: 0.04
   max_epoch: 6
 
   # dataloading
@@ -54,6 +54,6 @@ run:
 
   # misc
   seed: 42
-  output_dir: "output/Retrieval_COCO"
+  output_dir: "output/BLIP/Retrieval_COCO"
 
   evaluate: False

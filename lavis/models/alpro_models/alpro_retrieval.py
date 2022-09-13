@@ -11,18 +11,17 @@ from lavis.common.config import node_to_dict
 from lavis.common.dist_utils import get_rank
 from lavis.common.logger import MetricLogger
 from lavis.common.registry import registry
-from lavis.models.alpro_models import init_tokenizer, load_from_pretrained
+from lavis.models.alpro_models import AlproBase
 from lavis.models.alpro_models.alpro_outputs import AlproIntermediateOutput, AlproOutput
-from lavis.models.base_model import BaseModel, all_gather_with_grad
+from lavis.models.base_model import all_gather_with_grad
 from lavis.models.med import XBertEncoder
 from lavis.models.timesformer.vit import TimeSformer
 from torch import nn
 
 
 @registry.register_model("alpro_retrieval")
-class AlproRetrieval(BaseModel):
+class AlproRetrieval(AlproBase):
     PRETRAINED_MODEL_CONFIG_DICT = {
-        "base": "configs/models/alpro_retrieval.yaml",
         "msrvtt": "configs/models/alpro_retrieval_msrvtt.yaml",
         "didemo": "configs/models/alpro_retrieval_didemo.yaml",
     }
@@ -41,7 +40,7 @@ class AlproRetrieval(BaseModel):
 
         self.temp = nn.Parameter(torch.ones([]) * temp)
 
-        self.tokenizer = init_tokenizer()
+        self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder = visual_encoder
         self.text_encoder = text_encoder
@@ -404,18 +403,13 @@ class AlproRetrieval(BaseModel):
             max_txt_len=max_txt_len,
         )
 
-        pretrain_path = cfg.get("pretrained")
         num_patches = (
             visual_encoder_config["image_size"] // visual_encoder_config["patch_size"]
         ) ** 2
         num_frames = visual_encoder_config["n_frms"]
 
-        if pretrain_path is not None:
-            model, msg = load_from_pretrained(
-                model=model,
-                url_or_filename=pretrain_path,
-                num_frames=num_frames,
-                num_patches=num_patches,
-            )
+        model.load_checkpoint_from_config(
+            cfg, num_frames=num_frames, num_patches=num_patches
+        )
 
         return model
