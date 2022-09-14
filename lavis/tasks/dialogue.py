@@ -7,7 +7,8 @@ from lavis.common.registry import registry
 from lavis.tasks.base_task import BaseTask
 from lavis.datasets.data_utils import prepare_sample
 
-import numpy as np 
+import numpy as np
+
 
 @registry.register_task("dialogue")
 class DialogueTask(BaseTask):
@@ -41,25 +42,23 @@ class DialogueTask(BaseTask):
         )
 
     def valid_step(self, model, samples):
-        results = []        
-        loss = model(samples)["loss"].item() 
-        
-        return [loss] 
-                
+        results = []
+        loss = model(samples)["loss"].item()
+
+        return [loss]
+
     def after_evaluation(self, val_result, split_name, epoch, **kwargs):
 
-        if self.report_metric
+        if self.report_metric:
             avg_loss = np.mean(val_result)
             metrics = {"agg_metrics": avg_loss}
         else:
             metrics = {"agg_metrics": 0.0}
 
         return metrics
-        
-        
+
     @main_process
     def _report_metrics(self, eval_result_file, split_name):
-        
         # TODO better way to define this
         coco_gt_root = os.path.join(registry.get_path("cache_root"), "coco_gt")
         coco_val = coco_dialogue_eval(coco_gt_root, eval_result_file, split_name)
@@ -85,7 +84,7 @@ from torchvision.datasets.utils import download_url
 
 
 def coco_dialogue_eval(coco_gt_root, results_file, split):
-    
+
     urls = {
         "val": "https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val_gt.json",
         "test": "https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test_gt.json",
