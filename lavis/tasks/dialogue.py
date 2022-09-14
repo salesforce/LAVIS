@@ -45,37 +45,10 @@ class DialogueTask(BaseTask):
         loss = model(samples)["loss"].item() 
         
         return [loss] 
-        
-    def evaluation(self, model, data_loader, cuda_enabled=True):
-        metric_logger = MetricLogger(delimiter="  ")
-        header = "Evaluation"
-        # TODO make it configurable
-        print_freq = 10
-
-        results = []
-
-        for samples in metric_logger.log_every(data_loader, print_freq, header):
-            samples = prepare_sample(samples, cuda_enabled=cuda_enabled)
-
-            eval_output = self.valid_step(model=model, samples=samples)
-            results.extend(eval_output)
-
-        #dist.barrier()
-
-        return results
-        
+                
     def after_evaluation(self, val_result, split_name, epoch, **kwargs):
-        
-        #eval_result_file = self.save_result(
-        #    result=val_result,
-        #    result_dir=registry.get_path("result_dir"),
-        #    filename="{}_epoch{}".format(split_name, epoch),
-        #)
 
-        if self.report_metric:
-            #metrics = self._report_metrics(
-            #    eval_result_file=eval_result_file, split_name=split_name
-            #)
+        if self.report_metric
             avg_loss = np.mean(val_result)
             metrics = {"agg_metrics": avg_loss}
         else:
@@ -86,7 +59,7 @@ class DialogueTask(BaseTask):
         
     @main_process
     def _report_metrics(self, eval_result_file, split_name):
-        pdb.set_trace()
+        
         # TODO better way to define this
         coco_gt_root = os.path.join(registry.get_path("cache_root"), "coco_gt")
         coco_val = coco_dialogue_eval(coco_gt_root, eval_result_file, split_name)
@@ -112,7 +85,7 @@ from torchvision.datasets.utils import download_url
 
 
 def coco_dialogue_eval(coco_gt_root, results_file, split):
-    pdb.set_trace()
+    
     urls = {
         "val": "https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val_gt.json",
         "test": "https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test_gt.json",
