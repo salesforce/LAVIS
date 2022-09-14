@@ -354,7 +354,7 @@ class RunnerBase:
             if self.evaluate_only:
                 break
                 
-            #dist.barrier()
+            dist.barrier()
 
         # testing phase
         self.evaluate(cur_epoch=cur_epoch)
