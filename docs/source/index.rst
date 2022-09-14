@@ -11,7 +11,7 @@ Welcome to LAVIS's documentation!
    :caption: Introduction
 
    intro
-   
+
 
 .. toctree::
    :maxdepth: 1
@@ -20,16 +20,15 @@ Welcome to LAVIS's documentation!
    getting_started
 
 
+..    :maxdepth: 1
+..    :caption: Advanced Training
+
+..    advanced_training
+
+
 .. toctree::
    :maxdepth: 1
-   :caption: Advanced Training 
-
-   advanced_training
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Tutorial 
+   :caption: Tutorial
 
    tutorial
 
