@@ -7,13 +7,13 @@ datasets:
       # Be careful not to append minus sign (-) before split to avoid itemizing
       annotations:
         train:
-          url: /export/home/data/avsd/train_set4DSTC7-AVSD.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_train.json
           storage: avsd/annotations/train.json 
         val:
-          url: /export/home/data/avsd/valid_set4DSTC7-AVSD.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_val.json
           storage: avsd/annotations/val.json 
         test:
-          url: /export/home/data/avsd/test_set4DSTC7-AVSD.json
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_test.json
           storage: avsd/annotations/test.json 
       features:
-        storage: /export/home/data/avsd/features/ 
+        storage: avsd/features/ 
