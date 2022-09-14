@@ -10,6 +10,7 @@ model:
   vit_ckpt_layer: 0
 
   image_size: 224
+  alpha: 0.4
 
   # bert config
   med_config_path: "configs/models/bert_config.json"

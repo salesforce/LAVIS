@@ -8,9 +8,8 @@ datasets:
       annotations:
         train:
           url:
-              - /export/share/dongxuli/data/lavis/conceptual_captions/annotation/cc12m.json
+              - /export/home/workspace/datasets/cc12m.json
           storage:
               - conceptual_caption/annotations/cc12m.json
       images:
           storage: conceptual_caption/images_12m
-          # storage: /export/share/datasets/vision_language/cc12m_resize

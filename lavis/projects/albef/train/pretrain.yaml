@@ -1,5 +1,7 @@
 model:
   arch: albef_pretrain
+
+  model_type: base
   load_pretrained: False
 
   queue_size: 65536

@@ -39,7 +39,7 @@ run:
   batch_size_eval: 128
 
   train_splits: ["train"]
-  valid_splits: ["val"]
+  valid_splits: ["val", "test"]
   test_splits: ["test"]
 
   # distribution

@@ -44,7 +44,7 @@ run:
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val"]
+  valid_splits: ["val", "test"]
   test_splits: ["test"]
 
   # distribution-specific
