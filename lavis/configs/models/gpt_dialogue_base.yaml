@@ -1,0 +1,20 @@
+model:
+  arch: gpt_dialogue
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_caption_capfilt_large.pth"
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_capfilt_large.pth"
+
+  len_tokenizer: 50264 # 50257 tokens from gpt2 default tokenizer + additional special tokens 
+  
+  len_video_ft: 4224 # i3d_rgb: 2048 i3d_flow: 2048 vggish: 128
+
+preprocess:
+    vis_processor:
+        train:
+          name: "gpt_video_ft"
+        eval:
+          name: "gpt_video_ft"
+    text_processor:
+        train:
+          name: "gpt_dialogue"
+        eval:
+          name: "gpt_dialogue"

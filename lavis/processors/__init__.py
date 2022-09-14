@@ -9,6 +9,11 @@ from lavis.processors.blip_processors import (
     BlipImageEvalProcessor,
     BlipCaptionProcessor,
 )
+from lavis.processors.gpt_processors import (
+    GPTVideoFeatureProcessor,
+    GPTDialogueProcessor,
+)
+from lavis.processors.clip_processors import ClipImageTrainProcessor
 
 from lavis.common.registry import registry
 
@@ -21,6 +26,10 @@ __all__ = [
     "BlipImageTrainProcessor",
     "BlipImageEvalProcessor",
     "BlipCaptionProcessor",
+    "ClipImageTrainProcessor",
+    # GPT
+    "GPTVideoFeatureProcessor",
+    "GPTDialogueProcessor",
 ]
 
 

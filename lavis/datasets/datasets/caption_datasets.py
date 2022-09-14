@@ -1,9 +1,8 @@
 import os
 from collections import OrderedDict
 
-from PIL import Image
-
 from lavis.datasets.datasets.base_dataset import BaseDataset
+from PIL import Image
 
 
 class __DisplMixin:

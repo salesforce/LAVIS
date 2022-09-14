@@ -4,7 +4,6 @@ import shutil
 
 import lavis.common.utils as utils
 import torch.distributed as dist
-
 from lavis.common.dist_utils import is_dist_avail_and_initialized, is_main_process
 from lavis.common.registry import registry
 from lavis.datasets.data_utils import extract_archive

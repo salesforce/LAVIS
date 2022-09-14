@@ -28,6 +28,9 @@ from lavis.datasets.builders.retrieval_builder import (
     COCORetrievalBuilder,
     Flickr30kBuilder,
 )
+from lavis.datasets.builders.dialogue_builder import (
+    AVSDDialBuilder
+)
 
 from lavis.common.registry import registry
 
@@ -52,6 +55,7 @@ __all__ = [
     "VATEXCapBuilder",
     "VGCaptionBuilder",
     "VGVQABuilder",
+    "AVSDDialBuilder"
 ]
 
 

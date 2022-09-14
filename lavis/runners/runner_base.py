@@ -375,6 +375,7 @@ class RunnerBase:
 
             if self.evaluate_only:
                 break
+
             dist.barrier()
 
         # testing phase

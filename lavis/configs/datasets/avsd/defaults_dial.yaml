@@ -1,0 +1,19 @@
+datasets:
+  avsd_dialogue: # name of the dataset builder
+    dataset_card: dataset_card/avsd_dialogue.md 
+    data_type: features #extracted features of videos (I3D, VGGish) # [images|videos|features]
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_train.json
+          storage: avsd/annotations/train.json 
+        val:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_val.json
+          storage: avsd/annotations/val.json 
+        test:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_test.json
+          storage: avsd/annotations/test.json 
+      features:
+        storage: avsd/features/ 

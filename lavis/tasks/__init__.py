@@ -7,7 +7,7 @@ from lavis.tasks.multimodal_classification import (
 )
 from lavis.tasks.retrieval import RetrievalTask
 from lavis.tasks.vqa import VQATask, AOKVQATask
-
+from lavis.tasks.dialogue import DialogueTask
 
 def setup_task(cfg):
     assert "task" in cfg.run_cfg, "Task name must be provided."
@@ -29,4 +29,5 @@ __all__ = [
     # "VideoQATask",
     # "VisualEntailmentTask",
     "ImageTextPretrainTask",
+    "DialogueTask"
 ]
