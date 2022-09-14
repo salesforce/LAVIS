@@ -7,13 +7,22 @@
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## Table of Contents
-1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Getting Started](#getting-started)
-4. [Documentation]()
-5. [GUI Demo]()
-<!-- 7. [How to Contribute](https://opensource.salesforce.com/OmniXAI/latest/omnixai.html#how-to-contribute) -->
-<!-- 8. [Technical Report and Citing OmniXAI](#technical-report-and-citing-omnixai) -->
+- [LAVIS - A Library for Language-Vision Intelligence](#lavis---a-library-for-language-vision-intelligence)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Installation](#installation)
+  - [Getting Started](#getting-started)
+    - [Model Zoo](#model-zoo)
+    - [Image Captioning](#image-captioning)
+    - [Visual question answering (VQA)](#visual-question-answering-vqa)
+    - [Load Datasets](#load-datasets)
+  - [GUI Demo](#gui-demo)
+  - [Benchmarks](#benchmarks)
+  - [Dataset Download and Browsing](#dataset-download-and-browsing)
+  - [How to Contribute](#how-to-contribute)
+  - [Technical Report and Citing LAVIS](#technical-report-and-citing-lavis)
+  - [Contact Us](#contact-us)
+  - [License](#license)
 
 ## Introduction
 LAVIS is a Python deep learning library for LAnguage-and-VISion research and applications.
@@ -31,7 +40,7 @@ scenarios, and benchmark them across standard and customized datasets.
 
 Key features of LAVIS include:
 
-- **Modular and Extensible Library Design**: facilitating to easily utilize and repurpose existing modules (datasets, models, preprocessors), also to add new modules.
+- **Unified and Modular Interface**: facilitating to easily leverage and repurpose existing modules (datasets, models, preprocessors), also to add new modules.
 
 - **Easy Off-the-shelf Inference and Feature Extraction**: readily available pre-trained models let you take advantage of state-of-the-art multimodal understanding and generation capabilities on your own data.
 
@@ -56,7 +65,7 @@ The following table shows the supported tasks, datasets and models in our librar
 |           Video-text Retrieval           |       BLIP, ALPRO        |               MSRVTT, DiDeMo               |
 |           Text-video Retrieval           |       BLIP, ALPRO        |               MSRVTT, DiDeMo               |
 |    Video Question Answering (VideoQA)    |       BLIP, ALPRO        |                MSRVTT, MSVD                |
-|              Video Dialogue              |                          |                    AVSD                    |
+|              Video Dialogue              |         VGD-GPT          |                    AVSD                    |
 |      Multimodal Feature Extraction       | ALBEF, CLIP, BLIP, ALPRO |                 customized                 |
 
 ## Installation
@@ -82,15 +91,59 @@ pip install -e .
 ```
 
 ## Getting Started
-We first show examples of using LAVIS to run inference on customized data.
+### Model Zoo
+Model zoo summarizes supported models in LAVIS, to view:
+```python
+from lavis.models import model_zoo
+print(model_zoo)
+# ==================================================
+# Architectures                  Types
+# ==================================================
+# albef_classification           ve
+# albef_feature_extractor        base
+# albef_nlvr                     nlvr
+# albef_pretrain                 base
+# albef_retrieval                coco, flickr
+# albef_vqa                      vqav2
+# alpro_qa                       msrvtt, msvd
+# alpro_retrieval                msrvtt, didemo
+# blip_caption                   base_coco, large_coco
+# blip_classification            base
+# blip_feature_extractor         base
+# blip_nlvr                      nlvr
+# blip_pretrain                  base
+# blip_retrieval                 coco, flickr
+# blip_vqa                       vqav2, okvqa, aokvqa
+# clip_feature_extractor         ViT-B-32, ViT-B-16, ViT-L-14, ViT-L-14-336, RN50
+# clip                           ViT-B-32, ViT-B-16, ViT-L-14, ViT-L-14-336, RN50
+# gpt_dialogue                   base
+```
+
+Let’s see how to use models in LAVIS to perform inference on example data. We first load a sample image from local.
+
+```python
+from PIL import Image
+
+# setup device to use
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# load sample image
+raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+```
+
+This example image shows [Merlion park](https://en.wikipedia.org/wiki/Merlion) ([source](https://theculturetrip.com/asia/singapore/articles/what-exactly-is-singapores-merlion-anyway/)), a landmark in Singapore.
+
 
 ### Image Captioning
-*******************************
 In this example, we use the BLIP model to generate a caption for the image. To make inference even easier, we also associate each
 pre-trained model with its preprocessors (transforms), accessed via ``load_model_and_preprocess()``.
 
 ```python
+import torch
 from lavis.models import load_model_and_preprocess
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # loads BLIP caption base model, with finetuned checkpoints on MSCOCO captioning dataset.
 # this also loads the associated image processors
 model, vis_processors, _ = load_model_and_preprocess(name="blip_caption", model_type="base_coco", is_eval=True, device=device)
@@ -104,25 +157,7 @@ model.generate({"image": image}
 # ['a large fountain spewing water into the air']
 ```
 
-You may also load models and their preprocessors separately via ``load_model()`` and ``load_processor()``.
-In BLIP, you can also generate diverse captions by turning nucleus sampling on.
-
-```python
-from lavis.processors import load_processor
-from lavis.models import load_model
-
-# load image preprocesser used for BLIP
-vis_processor = load_processor("blip_image_eval").build(image_size=384)
-model = load_model(name="blip_caption", model_type="base_coco", is_eval=True, device=device)
-
-image = vis_processor(image).unsqueeze(0).to(device)
-model.generate({"image": raw_image}, use_nucleus_sampling=True)
-# one generated random sample: ['some very pretty buildings and some water jets']
-```
-
-
 ### Visual question answering (VQA)
-*******************************
 BLIP model is able to answer free-form questions about images in natural language.
 To access the VQA model, simply replace the ``name`` and ``model_type`` arguments
 passed to ``load_model_and_preprocess()``.
@@ -164,34 +199,14 @@ print(features_multimodal.multimodal_embeds.shape)
 features_image = model(sample, mode="image")
 print(features_image.image_embeds.shape)
 # torch.Size([1, 197, 768])
-print(features_image.image_features.shape)
-# torch.Size([1, 197, 256])
 
 features_text = model(sample, mode="text")
 print(features_text.text_embeds.shape)
 # torch.Size([1, 197, 768])
-print(features_text.text_features.shape)
-# torch.Size([1, 197, 256])
 ```
 
-Since LAVIS supports a unified feature extraction interface, minimal changes are necessary to use a different model as feature extractor. For example,
-to use ALBEF as the feature extractor, one only needs to change the following line:
-
-```python
-model, vis_processors, txt_processors = load_model_and_preprocess(name="albef_feature_extractor", model_type="base", is_eval=True, device=device)
-```
-
-Similarly, to use CLIP as feature extractor:
-
-```python
-model, vis_processors, txt_processors = load_model_and_preprocess(name="clip_feature_extractor", model_type="base", is_eval=True, device=device)
-# model, vis_processors, txt_processors = load_model_and_preprocess(name="clip_feature_extractor", model_type="RN50", is_eval=True, device=device)
-# model, vis_processors, txt_processors = load_model_and_preprocess(name="clip_feature_extractor", model_type="ViT-L-14", is_eval=True, device=device)
-```
-
-### Dataset Zoo
-LAVIS inherently supports a wide variety of common language-vision datasets by providing automatic download scripts to help download and organize these datasets;
-and implements PyTorch datasets for these datasets. To view supported datasets, use the following code:
+### Load Datasets
+LAVIS inherently supports a wide variety of common language-vision datasets by providing [automatic download tools](markdown/instructions.md) to help download and organize these datasets. To load supported datasets, use the following code:
 
 ```python
 from lavis.datasets.builders import dataset_zoo
@@ -201,11 +216,8 @@ print(dataset_names)
 #  'conceptual_caption_3m', 'didemo_retrieval', 'flickr30k', 'imagenet', 'laion2B_multi',
 #  'msrvtt_caption', 'msrvtt_qa', 'msrvtt_retrieval', 'msvd_caption', 'msvd_qa', 'nlvr',
 #  'nocaps', 'ok_vqa', 'sbu_caption', 'snli_ve', 'vatex_caption', 'vg_caption', 'vg_vqa']
-print(len(dataset_names))
-# 23
 ```
-After downloading the images, we can use ``load_dataset()`` to obtain the dataset. On the first run, this will automatically download and cache annotation files.
-
+After downloading the images, we can use ``load_dataset()`` to obtain the dataset.
 ```python
 from lavis.datasets.builders import load_dataset
 coco_dataset = load_dataset("coco_caption")
@@ -229,16 +241,24 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ```
 
 ## GUI Demo
+To run the demo locally, try the following and then follow the instruction on the prompts to view in browser.
+```bash
+bash run_scripts/run_demo.sh
+```
 
+## Benchmarks
+See [Benchmark](markdown/benchmark.md) for instructions to evaluate and train supported models.
+
+## Dataset Download and Browsing
+See [Dataset Download](markdown/instructions.md) for instructions and automatic tools on download common language-vision datasets.
 
 ## How to Contribute
-
-We welcome the contribution from the open-source community to improve the library!
+We welcome the contribution from the open-source community to improve the library.
 
 To add a new tasks, datasets and models into the library, please follow the template and steps demonstrated in this
 [documentation]().
 
-## Technical Report and Citing OmniXAI
+## Technical Report and Citing LAVIS
 You can find more details in our technical report: [TBD]()
 
 If you're using LAVIS in your research or applications, please cite using this BibTeX:
