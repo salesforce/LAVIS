@@ -8,8 +8,8 @@
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Installation](#installation)
+2. [Installation](#installation)
+3. [Getting Started](#getting-started)
 4. [Documentation]()
 5. [GUI Demo]()
 <!-- 7. [How to Contribute](https://opensource.salesforce.com/OmniXAI/latest/omnixai.html#how-to-contribute) -->
@@ -42,34 +42,52 @@ Key features of LAVIS include:
 
 The following table shows the supported tasks, datasets and models in our library. This is a continuing effort and we are working on further growing the list.
 
-|                  Tasks                   |     Supported Models     |             Supported Datasets             | Modalities  |
-| :--------------------------------------: | :----------------------: | :----------------------------------------: | :---------: |
-|         Image-text Pre-training          |       ALBEF, BLIP        | COCO, VisualGenome, SBU ConceptualCaptions | image, text |
-|           Image-text Retrieval           |    ALBEF, BLIP, CLIP     |              COCO, Flickr30k               | image, text |
-|           Text-image Retrieval           |    ALBEF, BLIP, CLIP     |              COCO, Flickr30k               | image, text |
-|        Visual Question Answering         |       ALBEF, BLIP        |           VQAv2, OKVQA, A-OKVQA            | image, text |
-|             Image Captioning             |           BLIP           |                COCO, NoCaps                | image, text |
-|           Image Classification           |           CLIP           |                  ImageNet                  | image, text |
-| Natural Language Visual Reasoning (NLVR) |       ALBEF, BLIP        |                   NLVR2                    | image, text |
-|          Visual Entailment (VE)          |          ALBEF           |                  SNLI-VE                   | image, text |
-|             Visual Dialogue              |           BLIP           |                  VisDial                   | image, text |
-|           Video-text Retrieval           |       BLIP, ALPRO        |               MSRVTT, DiDeMo               | video, text |
-|           Text-video Retrieval           |       BLIP, ALPRO        |               MSRVTT, DiDeMo               | video, text |
-|    Video Question Answering (VideoQA)    |       BLIP, ALPRO        |                MSRVTT, MSVD                | video, text |
-|              Video Dialogue              |                          |                                            | video, text |
-|      Multimodal Feature Extraction       | ALBEF, CLIP, BLIP, ALPRO |                 customized                 | image, text |
+|                  Tasks                   |     Supported Models     |             Supported Datasets             |
+| :--------------------------------------: | :----------------------: | :----------------------------------------: |
+|         Image-text Pre-training          |       ALBEF, BLIP        | COCO, VisualGenome, SBU ConceptualCaptions |
+|           Image-text Retrieval           |    ALBEF, BLIP, CLIP     |              COCO, Flickr30k               |
+|           Text-image Retrieval           |    ALBEF, BLIP, CLIP     |              COCO, Flickr30k               |
+|        Visual Question Answering         |       ALBEF, BLIP        |           VQAv2, OKVQA, A-OKVQA            |
+|             Image Captioning             |           BLIP           |                COCO, NoCaps                |
+|           Image Classification           |           CLIP           |                  ImageNet                  |
+| Natural Language Visual Reasoning (NLVR) |       ALBEF, BLIP        |                   NLVR2                    |
+|          Visual Entailment (VE)          |          ALBEF           |                  SNLI-VE                   |
+|             Visual Dialogue              |           BLIP           |                  VisDial                   |
+|           Video-text Retrieval           |       BLIP, ALPRO        |               MSRVTT, DiDeMo               |
+|           Text-video Retrieval           |       BLIP, ALPRO        |               MSRVTT, DiDeMo               |
+|    Video Question Answering (VideoQA)    |       BLIP, ALPRO        |                MSRVTT, MSVD                |
+|              Video Dialogue              |                          |                    AVSD                    |
+|      Multimodal Feature Extraction       | ALBEF, CLIP, BLIP, ALPRO |                 customized                 |
+
+## Installation
+
+1. (Optional) Creating conda environment
+
+```bash
+conda create -n lavis python=3.8
+conda activate lavis
+```
+
+2. Cloning and building from source
+
+```bash
+git clone https://github.com/MetaMind/LAVIS.git
+cd LAVIS
+pip install .
+```
+
+If you would like to develop on LAVIS, it is recommended to install in editable mode:
+```bash
+pip install -e .
+```
 
 ## Getting Started
+We first show examples of using LAVIS to run inference on customized data.
 
 ### Image Captioning
 *******************************
-We now use the BLIP model to generate a caption for the image. To make inference even easier, we also associate each
-pre-trained model with its preprocessors (transforms),  we use ``load_model_and_preprocess()`` with the following arguments:
-
-- ``name``: The name of the model to load. This could be a pre-trained model, task model, or feature extractor. See ``model_zoo`` for a full list of model names.
-- ``model_type``: Each architecture has variants trained on different datasets and at different scale. See Types column in ``model_zoo`` for a full list of model types.
-- ``is_eval``: if `True`, set the model to evaluation mode. This is desired for inference or feature extraction.
-- ``devce``: device to load the model to.
+In this example, we use the BLIP model to generate a caption for the image. To make inference even easier, we also associate each
+pre-trained model with its preprocessors (transforms), accessed via ``load_model_and_preprocess()``.
 
 ```python
 from lavis.models import load_model_and_preprocess
@@ -207,30 +225,11 @@ print(coco_dataset["train"][0])
 If you already host a local copy of the dataset, you can pass in the ``vis_path`` argument to change the default location to load images.
 
 ```python
-    coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
+coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ```
 
-## Installation
+## GUI Demo
 
-1. (Optional) Creating conda environment
-
-```bash
-conda create -n lavis python=3.8
-conda activate lavis
-```
-
-2. Cloning and building from source
-
-```bash
-git clone https://github.com/MetaMind/LAVIS.git
-cd LAVIS
-pip install .
-```
-
-If you would like to develop on LAVIS, it is recommended to install in editable mode:
-```bash
-pip install -e .
-```
 
 ## How to Contribute
 
