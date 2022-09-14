@@ -1,3 +1,10 @@
+"""
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+"""
+
 import argparse
 import os
 import random
@@ -23,6 +30,7 @@ from lavis.models import *
 from lavis.processors import *
 from lavis.runners import *
 from lavis.tasks import *
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Training")
@@ -80,7 +88,7 @@ def main():
     setup_logger()
 
     cfg.pretty_print()
-    
+
     task = tasks.setup_task(cfg)
     datasets = task.build_datasets(cfg)
     model = task.build_model(cfg)

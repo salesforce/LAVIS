@@ -1,11 +1,10 @@
 """
- * Copyright (c) 2022, salesforce.com, inc.
- * All rights reserved.
- * SPDX-License-Identifier: BSD-3-Clause
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- * By Junnan Li
- * Based on huggingface code base
- * https://github.com/huggingface/transformers/blob/v4.15.0/src/transformers/models/bert
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ Based on huggingface code base
+ https://github.com/huggingface/transformers/blob/v4.15.0/src/transformers/models/bert
 """
 
 import math

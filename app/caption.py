@@ -1,3 +1,10 @@
+"""
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+"""
+
 import streamlit as st
 from app import device, load_demo_image
 from app.utils import load_model_cache

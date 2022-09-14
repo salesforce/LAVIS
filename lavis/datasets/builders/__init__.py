@@ -1,3 +1,10 @@
+"""
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+"""
+
 from lavis.datasets.builders.base_dataset_builder import load_dataset_config
 from lavis.datasets.builders.caption_builder import (
     COCOCapBuilder,
@@ -28,9 +35,7 @@ from lavis.datasets.builders.retrieval_builder import (
     COCORetrievalBuilder,
     Flickr30kBuilder,
 )
-from lavis.datasets.builders.dialogue_builder import (
-    AVSDDialBuilder
-)
+from lavis.datasets.builders.dialogue_builder import AVSDDialBuilder
 
 from lavis.common.registry import registry
 
@@ -55,7 +60,7 @@ __all__ = [
     "VATEXCapBuilder",
     "VGCaptionBuilder",
     "VGVQABuilder",
-    "AVSDDialBuilder"
+    "AVSDDialBuilder",
 ]
 
 

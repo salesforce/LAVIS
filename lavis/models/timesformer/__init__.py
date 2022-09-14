@@ -1,5 +1,8 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+"""
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
-# from .build import MODEL_REGISTRY, build_model  # noqa
-# from .custom_video_model_builder import *  # noqa
-# from .video_model_builder import ResNet, SlowFast # noqa
+ Based on https://github.com/facebookresearch/TimeSformer
+"""

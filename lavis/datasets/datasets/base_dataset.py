@@ -1,8 +1,16 @@
+"""
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+"""
+
 import json
 from typing import Iterable
 
 from torch.utils.data import Dataset, ConcatDataset
 from torch.utils.data.dataloader import default_collate
+
 
 class BaseDataset(Dataset):
     def __init__(
@@ -56,5 +64,5 @@ class ConcatDataset(ConcatDataset):
         samples_shared_keys = []
         for s in samples:
             samples_shared_keys.append({k: s[k] for k in s.keys() if k in shared_keys})
-        
+
         return self.datasets[0].collater(samples_shared_keys)

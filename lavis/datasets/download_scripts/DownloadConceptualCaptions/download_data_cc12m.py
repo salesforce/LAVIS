@@ -1,3 +1,10 @@
+"""
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+"""
+
 import time
 from PIL import Image
 from lavis.common.utils import get_abs_path, get_cache_path

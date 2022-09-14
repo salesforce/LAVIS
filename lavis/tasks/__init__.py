@@ -1,3 +1,10 @@
+"""
+ Copyright (c) 2022, salesforce.com, inc.
+ All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause
+ For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+"""
+
 from lavis.common.registry import registry
 from lavis.tasks.base_task import BaseTask
 from lavis.tasks.captioning import CaptionTask
@@ -8,6 +15,7 @@ from lavis.tasks.multimodal_classification import (
 from lavis.tasks.retrieval import RetrievalTask
 from lavis.tasks.vqa import VQATask, AOKVQATask
 from lavis.tasks.dialogue import DialogueTask
+
 
 def setup_task(cfg):
     assert "task" in cfg.run_cfg, "Task name must be provided."
@@ -29,5 +37,5 @@ __all__ = [
     # "VideoQATask",
     # "VisualEntailmentTask",
     "ImageTextPretrainTask",
-    "DialogueTask"
+    "DialogueTask",
 ]
