@@ -1,27 +1,27 @@
 model:
-  arch: gpt_dialogue 
+  arch: gpt_dialogue
   model_type: base
 
 datasets:
   avsd_dialogue: # name of the dataset builder
     vis_processor:
         train:
-          name: "gpt_video_ft" 
-          visual_ft: ["i3d_flow", "i3d_rgb"]  
-          audio_ft: ["vggish"]    
+          name: "gpt_video_ft"
+          visual_ft: ["i3d_flow", "i3d_rgb"]
+          audio_ft: ["vggish"]
         eval:
-          name: "gpt_video_ft" 
-          visual_ft: ["i3d_flow", "i3d_rgb"]  
-          audio_ft: ["vggish"]   
+          name: "gpt_video_ft"
+          visual_ft: ["i3d_flow", "i3d_rgb"]
+          audio_ft: ["vggish"]
     text_processor:
         train:
           name: "gpt_dialogue"
           max_turns:  3
-          use_caption: True 
+          use_caption: True
         eval:
           name: "gpt_dialogue"
           max_turns:  3
-          use_caption: True 
+          use_caption: True
 
 run:
   task: dialogue
@@ -40,11 +40,11 @@ run:
   num_beams: 5
 
   seed: 42
-  output_dir: "output/gpt2/dialogue_avsd" 
+  output_dir: "output/gpt2/dialogue_avsd"
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val"] 
+  valid_splits: ["val"]
 
   device: "cuda"
   world_size: 1
