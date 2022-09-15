@@ -1,0 +1,7 @@
+GitPython
+ipykernel
+nbsphinx==0.8.7
+pandoc
+sphinx
+sphinx_autodoc_typehints
+sphinx_rtd_theme

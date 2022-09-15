@@ -28,13 +28,13 @@ Welcome to LAVIS's documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Tutorial
+   :caption: Advanced Usage
 
    tutorial
 
 
-Documentations
-===================
+.. Documentations
+.. ===================
 
 
 Indices and tables

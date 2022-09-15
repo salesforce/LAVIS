@@ -38,7 +38,7 @@ run:
   seed: 42
   output_dir: "output/ALBEF/VQA"
 
-  evaluate: False
+  evaluate: True
   test_splits: ["val"]
 
   # distribution-specific

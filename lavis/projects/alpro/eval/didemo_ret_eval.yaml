@@ -38,7 +38,7 @@ run:
   seed: 42
   output_dir: "output/ALPRO/didemo_retrieval"
 
-  evaluate: False
+  evaluate: True
   train_splits: ["train"]
   valid_splits: ["val", "test"]
   test_splits: ["test"]

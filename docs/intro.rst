@@ -69,8 +69,8 @@ LAVIS has six key modules.
 - ``lavis.processors`` handles preprocessing of text and images/videos before feeding the model. For images and videos, a processor can be thought as transfroms in torchvision; for text input, this may include lowering case, truncation etc.
 - ``lavis.common`` module contains shared classes and methods used by multiple other modules. For example,
 
-   - ``lavis.common.config`` contains classes to store and manipulate configuration files used by LAVIS. In particular, we use a hierarchical configuration design, to allow highly customizable training and evaluation. See :ref:`hierarchical configuration` for details.
-   - ``lavis.common.registry``  serves as a centralized place to manage modules that share the same functionalities. It allows building datasets, models, tasks, and learning rate schedulers during runtime, by specifying their names as string in the configuration file. See :ref:`registry` for details.
+   - ``lavis.common.config`` contains classes to store and manipulate configuration files used by LAVIS. In particular, we use a hierarchical configuration design, to allow highly customizable training and evaluation.
+   - ``lavis.common.registry``  serves as a centralized place to manage modules that share the same functionalities. It allows building datasets, models, tasks, and learning rate schedulers during runtime, by specifying their names as string in the configuration file.
    - ``lavis.common.optims`` contains definitions of learning rate schedulers.
    - ``lavis.common.dist_utils`` contains utilities for distributed training and evaluation.
    - ``lavis.common.utils`` contains miscellaneous utilities, mostly IO-related helper functions.

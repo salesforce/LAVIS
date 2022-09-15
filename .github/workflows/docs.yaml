@@ -1,0 +1,38 @@
+name: docs
+
+on:
+  push:
+    branches: [ 20220915-docs-local ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        sudo apt-get update
+        sudo apt-get install openjdk-11-jdk
+        sudo apt-get install pandoc
+    - name: Build Sphinx docs
+      run: |
+        docs/build_docs.sh
+    - name: Deploy to gh-pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.ref == 'refs/heads/main' || github.event_name == 'release' }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/_build/html
