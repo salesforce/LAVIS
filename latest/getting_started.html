@@ -142,7 +142,7 @@ The default cache location is <code class="docutils literal notranslate"><span c
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.datasets.builders</span> <span class="kn">import</span> <span class="n">load_dataset</span>
 <span class="n">coco_dataset</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;coco_caption&quot;</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">coco_dataset</span><span class="o">.</span><span class="n">key</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">coco_dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># dict_keys([&#39;train&#39;, &#39;val&#39;, &#39;test&#39;])</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coco_dataset</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]))</span>
@@ -200,7 +200,7 @@ load a sample image from local.</p>
 <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 
 <span class="c1"># load sample image</span>
-<span class="n">raw_image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;docs/data/merlion.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
+<span class="n">raw_image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;docs/_static/merlion.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This example image shows <a class="reference external" href="https://en.wikipedia.org/wiki/Merlion">Merlion park</a> (<a class="reference external" href="https://theculturetrip.com/asia/singapore/articles/what-exactly-is-singapores-merlion-anyway/">image credit</a>), a landmark in Singapore.</p>
