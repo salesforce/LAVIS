@@ -2,7 +2,7 @@ name: docs
 
 on:
   push:
-    branches: [ 20220915-docs-local ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   release:
