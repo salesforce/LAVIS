@@ -74,7 +74,10 @@ run:
   seed: 42
   output_dir: "output/BLIP/Pretrain"
 
-  evaluate: False
+  amp: False
+  resume_ckpt_path: null
+
+  evaluate: False 
   train_splits: ["train"]
 
   device: "cuda"

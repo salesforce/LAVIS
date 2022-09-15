@@ -42,7 +42,10 @@ run:
   seed: 42
   output_dir: "output/ALPRO/msrvtt_retrieval"
 
-  evaluate: False
+  amp: False
+  resume_ckpt_path: null
+
+  evaluate: False 
   train_splits: ["train"]
   valid_splits: ["val"]
   test_splits: ["test"]

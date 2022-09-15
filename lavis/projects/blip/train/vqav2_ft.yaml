@@ -56,7 +56,10 @@ run:
   seed: 42
   output_dir: "output/BLIP/VQA"
 
-  evaluate: False
+  amp: False
+  resume_ckpt_path: null
+
+  evaluate: False 
   train_splits: ["train"]
   test_splits: ["test"]
 

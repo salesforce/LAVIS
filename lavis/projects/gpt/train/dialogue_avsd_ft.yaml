@@ -47,7 +47,10 @@ run:
   seed: 42
   output_dir: "output/gpt2/dialogue_avsd"
 
-  evaluate: False
+  amp: False
+  resume_ckpt_path: null
+
+  evaluate: False 
   train_splits: ["train"]
   valid_splits: ["val"]
 
