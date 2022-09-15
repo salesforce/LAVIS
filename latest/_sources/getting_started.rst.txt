@@ -130,7 +130,7 @@ pre-trained model with its preprocessors (transforms),  we use ``load_model_and_
     image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
 
     # generate caption
-    model.generate({"image": image}
+    model.generate({"image": image})
     # ['a large fountain spewing water into the air']
 
 
@@ -194,9 +194,9 @@ To extract features, we load the feature extractor variants of each model.
     print(features_multimodal.keys())
     # odict_keys(['image_embeds', 'multimodal_embeds'])
     print(features_multimodal.multimodal_embeds.shape)
-    # torch.Size([1, 12, 768])
+    # torch.Size([1, 9, 768])
 
-    features_image = model(sample, mode="image")
+    features_image = model.extract_features(sample, mode="image")
     print(features_image.keys())
     # odict_keys(['image_embeds', 'image_features'])
     print(features_image.image_embeds.shape)
@@ -204,13 +204,13 @@ To extract features, we load the feature extractor variants of each model.
     print(features_image.image_features.shape)
     # torch.Size([1, 197, 256])
 
-    features_text = model(sample, mode="text")
+    features_text = model.extract_features(sample, mode="text")
     print(features_text.keys())
     # odict_keys(['text_embeds', 'text_features'])
     print(features_text.text_embeds.shape)
-    # torch.Size([1, 197, 768])
+    # torch.Size([1, 9, 768])
     print(features_text.text_features.shape)
-    # torch.Size([1, 197, 256])
+    # torch.Size([1, 9, 256])
 
 Since LAVIS supports a unified feature extraction interface, minimal changes are necessary to use a different model as feature extractor. For example,
 to use ALBEF as the feature extractor, one only needs to change the following line:

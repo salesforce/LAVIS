@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Benchmark &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorial.html" />
+    <link rel="prev" title="Dataset Zoo" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Benchmark</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#albef">ALBEF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#blip">BLIP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clip">CLIP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpro">ALPRO</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Benchmark</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/benchmark.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="benchmark">
+<h1>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this heading"></a></h1>
+<p>We provide scripts for evaluating and training models on task datasets. The following benchmark results are included for reference.</p>
+<section id="albef">
+<h2>ALBEF<a class="headerlink" href="#albef" title="Permalink to this heading"></a></h2>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 62%" />
+<col style="width: 15%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Pretraining</strong></p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/pretrain.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>Visual Genome (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_vg.py">download</a>)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>SBU (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_sbu.py">download</a>)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CC3M (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/DownloadConceptualCaptions/download_data_cc3m.py">download</a>)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>CC12M (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/DownloadConceptualCaptions/download_data_cc12m.py">download</a>)</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 21%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p><strong>Retrieval</strong></p></th>
+<th class="head"><p><strong>R1</strong></p></th>
+<th class="head"><p><strong>R5</strong></p></th>
+<th class="head"><p><strong>R10</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>77.6</p></td>
+<td><p>94.1</p></td>
+<td><p>97.2</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_coco_retrieval_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/eval_coco_retrieval.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>IR</p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>61.0</p></td>
+<td><p>84.5</p></td>
+<td><p>90.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_coco_retrieval_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/eval_coco_retrieval.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>Flickr30k (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_flickr.py">download</a>)</p></td>
+<td><p>77.6</p></td>
+<td><p>94.1</p></td>
+<td><p>97.2</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_flickr30k_retrieval_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/eval_flickr30k_retrieval.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>IR</p></td>
+<td><p>Flickr30k (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_flickr.py">download</a>)</p></td>
+<td><p>61.0</p></td>
+<td><p>84.5</p></td>
+<td><p>90.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_flickr30k_retrieval_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/eval_flickr30k_retrieval.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>VQA</strong></p></th>
+<th class="head"><p><strong>test-dev</strong></p></th>
+<th class="head"><p><strong>test-std/test</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>VQAv2 (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>76.35</p></td>
+<td><p>76.54</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_vqa_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/test_albef_vqa.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>OKVQA (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>NA</p></td>
+<td><p>54.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_okvqa_albef.sh">script</a></p></td>
+<td><p>NA</p></td>
+</tr>
+<tr class="row-even"><td><p>AOKVQA (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>54.5</p></td>
+<td><p>NA</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_aokvqa_albef.sh">script</a></p></td>
+<td><p>NA</p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Multimodal Classification</strong></p></th>
+<th class="head"><p><strong>val</strong></p></th>
+<th class="head"><p><strong>test</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SNLI-VE (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>80.60</p></td>
+<td><p>81.04</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_ve_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/eval_albef_ve.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>NLVR2 (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>82.47</p></td>
+<td><p>82.91</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_nlvr_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/eval_albef_nlvr.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="blip">
+<h2>BLIP<a class="headerlink" href="#blip" title="Permalink to this heading"></a></h2>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 62%" />
+<col style="width: 15%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>Pretraining (14M)</strong></p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/pretrain.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>Visual Genome (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_vg.py">download</a>)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>SBU (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_sbu.py">download</a>)</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CC3M (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/DownloadConceptualCaptions/download_data_cc3m.py">download</a>)</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>CC12M (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/DownloadConceptualCaptions/download_data_cc12m.py">download</a>)</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 21%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Tasks</strong></p></th>
+<th class="head"><p><strong>Retrieval</strong></p></th>
+<th class="head"><p><strong>R1</strong></p></th>
+<th class="head"><p><strong>R5</strong></p></th>
+<th class="head"><p><strong>R10</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>82.0</p></td>
+<td><p>95.8</p></td>
+<td><p>98.1</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_retrieval_coco.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_ret_coco.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>IR</p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>64.5</p></td>
+<td><p>86.0</p></td>
+<td><p>91.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_retrieval_coco.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_ret_coco.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>Flickr30k (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_flickr.py">download</a>)</p></td>
+<td><p>96.9</p></td>
+<td><p>99.9</p></td>
+<td><p>100.0</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_retrieval_flickr.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_ret_flickr.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>IR</p></td>
+<td><p>Flickr30k (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_flickr.py">download</a>)</p></td>
+<td><p>87.5</p></td>
+<td><p>97.6</p></td>
+<td><p>98.9</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_retrieval_flickr.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_ret_flickr.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>VQA</strong></p></th>
+<th class="head"><p><strong>test-dev</strong></p></th>
+<th class="head"><p><strong>test-std/test</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>VQAv2 (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>78.23</p></td>
+<td><p>78.29</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/train/train_vqa_albef.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/albef/eval/test_albef_vqa.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>OKVQA (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>NA</p></td>
+<td><p>55.4</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_okvqa.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_okvqa.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td><p>AOKVQA (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>56.2</p></td>
+<td><p>50.1</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_aokvqa.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_aokvqa.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Image Captioning</strong></p></th>
+<th class="head"><p><strong>BLEU&#64;4</strong></p></th>
+<th class="head"><p><strong>CIDEr</strong></p></th>
+<th class="head"><p><strong>SPICE</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>39.9</p></td>
+<td><p>133.5</p></td>
+<td><p>23.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_caption_coco.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_coco_cap.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>NoCaps (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_nocaps.py">download</a>)</p></td>
+<td><p>31.9</p></td>
+<td><p>109.1</p></td>
+<td><p>14.7</p></td>
+<td><p>NA</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_nocaps.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Multimodal Classification</strong></p></th>
+<th class="head"><p><strong>val</strong></p></th>
+<th class="head"><p><strong>test</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NLVR2 (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>82.48</p></td>
+<td><p>83.25</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/train/train_nlvr.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/blip/eval/eval_nlvr.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="clip">
+<h2>CLIP<a class="headerlink" href="#clip" title="Permalink to this heading"></a></h2>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 25%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 19%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Tasks</strong></p></th>
+<th class="head"><p><strong>Retrieval (Zero-shot)</strong></p></th>
+<th class="head"><p><strong>R1</strong></p></th>
+<th class="head"><p><strong>R5</strong></p></th>
+<th class="head"><p><strong>R10</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>57.2</p></td>
+<td><p>80.5</p></td>
+<td><p>87.8</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/clip/eval/eval_clip_ret_coco.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>IR</p></td>
+<td><p>COCO (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_coco.py">download</a>)</p></td>
+<td><p>36.5</p></td>
+<td><p>60.8</p></td>
+<td><p>71.0</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/clip/eval/eval_clip_ret_coco.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>Flickr30k (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_flickr.py">download</a>)</p></td>
+<td><p>86.5</p></td>
+<td><p>98.0</p></td>
+<td><p>99.1</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/clip/eval/eval_clip_ret_flickr.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>IR</p></td>
+<td><p>Flickr30k (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_flickr.py">download</a>)</p></td>
+<td><p>67.0</p></td>
+<td><p>88.9</p></td>
+<td><p>93.3</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/clip/eval/eval_clip_ret_flickr.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Multimodal Classification</strong></p></th>
+<th class="head"><p><strong>val</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ImageNet</p></td>
+<td><p>76.5</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/clip/eval/eval_clip_zs_imnet.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="alpro">
+<h2>ALPRO<a class="headerlink" href="#alpro" title="Permalink to this heading"></a></h2>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 22%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Tasks</strong></p></th>
+<th class="head"><p><strong>Retrieval</strong></p></th>
+<th class="head"><p><strong>R1</strong></p></th>
+<th class="head"><p><strong>R5</strong></p></th>
+<th class="head"><p><strong>R10</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>MSRVTT (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_msrvtt.py">download</a>)</p></td>
+<td><p>33.2</p></td>
+<td><p>60.5</p></td>
+<td><p>71.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/train/train_msrvtt_ret.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/eval/eval_msrvtt_ret.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>VR</p></td>
+<td><p>MSRVTT (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_msrvtt.py">download</a>)</p></td>
+<td><p>33.8</p></td>
+<td><p>61.4</p></td>
+<td><p>72.7</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/train/train_msrvtt_ret.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/eval/eval_msrvtt_ret.sh">script</a></p></td>
+</tr>
+<tr class="row-even"><td><p>TR</p></td>
+<td><p>DiDeMo (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_didemo.py">download</a>)</p></td>
+<td><p>38.8</p></td>
+<td><p>66.4</p></td>
+<td><p>76.8</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/train/train_didemo_ret.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/eval/eval_didemo_ret.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>VR</p></td>
+<td><p>DiDeMo (<a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/lavis/datasets/download_scripts/download_didemo.py">download</a>)</p></td>
+<td><p>36.6</p></td>
+<td><p>67.5</p></td>
+<td><p>77.9</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/train/train_didemo_ret.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/eval/eval_didemo_ret.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Video QA</strong></p></th>
+<th class="head"><p><strong>test</strong></p></th>
+<th class="head"><p><strong>Training</strong></p></th>
+<th class="head"><p><strong>Evaluation</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MSRVTT</p></td>
+<td><p>42.1</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/train/train_msrvtt_qa.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/eval/eval_msrvtt_qa.sh">script</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>MSVD</p></td>
+<td><p>46.0</p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/train/train_msvd_qa.sh">script</a></p></td>
+<td><p><a class="reference external" href="https://github.com/salesforce/LAVIS/blob/main/run_scripts/alpro/eval/eval_msvd_qa.sh">script</a></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Dataset Zoo" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, salesforce.com inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

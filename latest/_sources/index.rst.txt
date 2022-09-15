@@ -30,6 +30,7 @@ Welcome to LAVIS's documentation!
    :maxdepth: 2
    :caption: Advanced Usage
 
+   benchmark
    tutorial
 
 

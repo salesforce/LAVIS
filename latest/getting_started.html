@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorials" href="tutorial.html" />
+    <link rel="next" title="Benchmark" href="benchmark.html" />
     <link rel="prev" title="What is LAVIS?" href="intro.html" /> 
 </head>
 
@@ -60,6 +60,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
 </ul>
 
@@ -224,7 +225,7 @@ pre-trained model with its preprocessors (transforms),  we use <code class="docu
 <span class="n">image</span> <span class="o">=</span> <span class="n">vis_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">raw_image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
 <span class="c1"># generate caption</span>
-<span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">({</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">}</span>
+<span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">({</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">})</span>
 <span class="c1"># [&#39;a large fountain spewing water into the air&#39;]</span>
 </pre></div>
 </div>
@@ -281,9 +282,9 @@ To extract features, we load the feature extractor variants of each model.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_multimodal</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;multimodal_embeds&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_multimodal</span><span class="o">.</span><span class="n">multimodal_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="c1"># torch.Size([1, 12, 768])</span>
+<span class="c1"># torch.Size([1, 9, 768])</span>
 
-<span class="n">features_image</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+<span class="n">features_image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;image_features&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -291,13 +292,13 @@ To extract features, we load the feature extractor variants of each model.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># torch.Size([1, 197, 256])</span>
 
-<span class="n">features_text</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="n">features_text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># odict_keys([&#39;text_embeds&#39;, &#39;text_features&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="c1"># torch.Size([1, 197, 768])</span>
+<span class="c1"># torch.Size([1, 9, 768])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="c1"># torch.Size([1, 197, 256])</span>
+<span class="c1"># torch.Size([1, 9, 256])</span>
 </pre></div>
 </div>
 <p>Since LAVIS supports a unified feature extraction interface, minimal changes are necessary to use a different model as feature extractor. For example,
@@ -318,13 +319,13 @@ to use ALBEF as the feature extractor, one only needs to change the following li
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="intro.html" class="btn btn-neutral float-left" title="What is LAVIS?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="benchmark.html" class="btn btn-neutral float-right" title="Benchmark" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+    <p>&#169; Copyright 2022, salesforce.com inc..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
