@@ -246,7 +246,7 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 
 ## Documentations
 For more details and advanced usages, please refer to
-[documentation](https://cuddly-giggle-94dc5918.pages.github.io/latest/tutorial.html#).
+[documentation](https://cuddly-giggle-94dc5918.pages.github.io/latest/index.html#).
 
 
 ## Technical Report and Citing LAVIS
