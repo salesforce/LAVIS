@@ -20,7 +20,7 @@ from PIL import Image
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # load sample image
-raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
 
 precision = 1e-1
 
@@ -228,7 +228,7 @@ class TestBlip:
         caption = "a large fountain spewing water into the air"
 
         model, vis_processors, txt_processors = load_model_and_preprocess(
-            "blip_feature_extractor", is_eval=True, device=device
+            "blip_feature_extractor", model_type="base", is_eval=True, device=device
         )
 
         image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)

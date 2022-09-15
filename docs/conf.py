@@ -18,8 +18,10 @@
 # -- Project information -----------------------------------------------------
 
 project = "LAVIS"
-copyright = "2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi"
-author = "Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi"
+copyright = "2022, salesforce.com inc."
+author = (
+    "Dongxu Li, Junnan Li, Hung Le, Guangsen Wang, Silvio Savarese, Steven C.H. Hoi"
+)
 
 
 # -- General configuration ---------------------------------------------------

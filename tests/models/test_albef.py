@@ -18,7 +18,7 @@ from PIL import Image
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # load sample image
-raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
 
 precision = 1e-3
 
@@ -120,7 +120,9 @@ class TestAlbef:
         )
 
     def test_pretrain(self):
-        model = load_model("albef_pretrain", is_eval=True, device=device)
+        model = load_model(
+            "albef_pretrain", model_type="base", is_eval=True, device=device
+        )
 
         images = torch.randn(4, 3, 224, 224).to(device)
 

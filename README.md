@@ -120,6 +120,7 @@ print(model_zoo)
 Let’s see how to use models in LAVIS to perform inference on example data. We first load a sample image from local.
 
 ```python
+import torch
 from PIL import Image
 
 # setup device to use
@@ -151,7 +152,7 @@ model, vis_processors, _ = load_model_and_preprocess(name="blip_caption", model_
 image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
 
 # generate caption
-model.generate({"image": image}
+model.generate({"image": image})
 # ['a large fountain spewing water into the air']
 ```
 
@@ -192,19 +193,19 @@ sample = {"image": image, "text_input": [text_input]}
 
 features_multimodal = model.extract_features(sample)
 print(features_multimodal.multimodal_embeds.shape)
-# torch.Size([1, 12, 768])
+# torch.Size([1, 9, 768])
 
-features_image = model(sample, mode="image")
+features_image = model.extract_features(sample, mode="image")
 print(features_image.image_embeds.shape)
 # torch.Size([1, 197, 768])
 
-features_text = model(sample, mode="text")
+features_text = model.extract_features(sample, mode="text")
 print(features_text.text_embeds.shape)
-# torch.Size([1, 197, 768])
+# torch.Size([1, 9, 768])
 ```
 
 ### Load Datasets
-LAVIS inherently supports a wide variety of common language-vision datasets by providing [automatic download tools](markdown/instructions.md) to help download and organize these datasets. To load supported datasets, use the following code:
+LAVIS inherently supports a wide variety of common language-vision datasets by providing [automatic download tools](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) to help download and organize these datasets. After downloading, to load the datasets, use the following code:
 
 ```python
 from lavis.datasets.builders import dataset_zoo
@@ -240,8 +241,8 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 
 ## Resources and Tools
 - **GUI Demo**: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
-- **Benchmarks**: see [Benchmark](markdown/benchmark.md) for instructions to evaluate and train supported models.
-- **Dataset Download and Browsing**: see [Dataset Download](markdown/instructions.md) for instructions and automatic tools on download common language-vision datasets.
+- **Benchmarks**: see [Benchmark](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions to evaluate and train supported models.
+- **Dataset Download and Browsing**: see [Dataset Download](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions and automatic tools on download common language-vision datasets.
 
 
 ## Documentations
