@@ -68,6 +68,7 @@ The following table shows the supported tasks, datasets and models in our librar
 |    Video Question Answering (VideoQA)    |       BLIP, ALPRO        |                MSRVTT, MSVD                |
 |              Video Dialogue              |         VGD-GPT          |                    AVSD                    |
 |      Multimodal Feature Extraction       | ALBEF, CLIP, BLIP, ALPRO |                 customized                 |
+|         Text-to-image Generation         |      [COMING SOON]       |                                            |
 
 ## Installation
 

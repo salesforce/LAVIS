@@ -20,7 +20,7 @@ def fetch_requirements(filename):
 
 setup(
     name="lavis",
-    version="0.0.1",
+    version="0.1.0",
     author="Dongxu Li, Junnan Li, Hung Le, Guangsen Wang, Silvio Savarese, Steven C.H. Hoi",
     description="LAVIS - A Library for Language-Vision Intelligence",
     long_description=open("README.md", "r", encoding="utf-8").read(),

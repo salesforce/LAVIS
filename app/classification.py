@@ -37,9 +37,13 @@ def load_demo_image(img_url=None):
 )
 def load_model_cache(model_type, device):
     if model_type == "blip":
-        model = load_model("blip_feature_extractor", is_eval=True, device=device)
-    elif model_type == "albef":
-        model = load_model("albef_feature_extractor", is_eval=True, device=device)
+        model = load_model(
+            "blip_feature_extractor", model_type="base", is_eval=True, device=device
+        )
+    # elif model_type == "albef":
+    #     model = load_model(
+    #         "albef_feature_extractor", model_type="base", is_eval=True, device=device
+    #     )
     elif model_type == "CLIP_ViT-B-32":
         model = load_model(
             "clip_feature_extractor", "ViT-B-32", is_eval=True, device=device

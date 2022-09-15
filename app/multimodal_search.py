@@ -56,7 +56,9 @@ def load_feat():
 def load_feature_extractor_model(device):
     model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
 
-    model = load_model("blip_feature_extractor", is_eval=True, device=device)
+    model = load_model(
+        "blip_feature_extractor", model_type="base", is_eval=True, device=device
+    )
     model.load_from_pretrained(model_url)
 
     return model
