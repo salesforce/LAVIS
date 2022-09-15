@@ -19,7 +19,6 @@
   - [Resources and Tools](#resources-and-tools)
   - [Documentations](#documentations)
   - [Technical Report and Citing LAVIS](#technical-report-and-citing-lavis)
-  - [Contact Us](#contact-us)
   - [License](#license)
 
 ## Introduction
@@ -248,9 +247,6 @@ If you're using LAVIS in your research or applications, please cite using this B
   year      = {2022},
 }
 ```
-
-## Contact Us
-If you have any questions, comments or suggestions, please do not hesitate to contact us at [TBD]()
 
 ## License
 [BSD 3-Clause License](LICENSE)
