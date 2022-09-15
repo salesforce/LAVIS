@@ -37,7 +37,7 @@ After downloading the images, we can use ``load_dataset()`` to obtain the datase
     from lavis.datasets.builders import load_dataset
     coco_dataset = load_dataset("coco_caption")
 
-    print(coco_dataset.key())
+    print(coco_dataset.keys())
     # dict_keys(['train', 'val', 'test'])
 
     print(len(coco_dataset["train"]))
@@ -102,7 +102,7 @@ load a sample image from local.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load sample image
-    raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+    raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
 
 This example image shows `Merlion park <https://en.wikipedia.org/wiki/Merlion>`_ (`image credit <https://theculturetrip.com/asia/singapore/articles/what-exactly-is-singapores-merlion-anyway/>`_), a landmark in Singapore.
 

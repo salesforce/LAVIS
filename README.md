@@ -122,12 +122,10 @@ Let’s see how to use models in LAVIS to perform inference on example data. We 
 ```python
 import torch
 from PIL import Image
-
 # setup device to use
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # load sample image
-raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
 ```
 
 This example image shows [Merlion park](https://en.wikipedia.org/wiki/Merlion) ([source](https://theculturetrip.com/asia/singapore/articles/what-exactly-is-singapores-merlion-anyway/)), a landmark in Singapore.
@@ -140,17 +138,13 @@ pre-trained model with its preprocessors (transforms), accessed via ``load_model
 ```python
 import torch
 from lavis.models import load_model_and_preprocess
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # loads BLIP caption base model, with finetuned checkpoints on MSCOCO captioning dataset.
 # this also loads the associated image processors
 model, vis_processors, _ = load_model_and_preprocess(name="blip_caption", model_type="base_coco", is_eval=True, device=device)
-
 # preprocess the image
 # vis_processors stores image transforms for "train" and "eval" (validation / testing / inference)
 image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
-
 # generate caption
 model.generate({"image": image})
 # ['a large fountain spewing water into the air']
@@ -164,13 +158,10 @@ passed to ``load_model_and_preprocess()``.
 ```python
 from lavis.models import load_model_and_preprocess
 model, vis_processors, txt_processors = load_model_and_preprocess(name="blip_vqa", model_type="vqav2", is_eval=True, device=device)
-
 # ask a random question.
 question = "Which city is this photo taken?"
-
 image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
 question = txt_processors["eval"](question)
-
 model.predict_answers(samples={"image": image, "text_input": question}, inference_method="generate")
 # ['singapore']
 ```
@@ -182,23 +173,18 @@ To extract features, we load the feature extractor variants of each model.
 
 ```python
 from lavis.models import load_model_and_preprocess
-
 model, vis_processors, txt_processors = load_model_and_preprocess(name="blip_feature_extractor", model_type="base", is_eval=True, device=device)
 caption = "a large fountain spewing water into the air"
-
 image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
 text_input = txt_processors["eval"](question)
-
 sample = {"image": image, "text_input": [text_input]}
 
 features_multimodal = model.extract_features(sample)
 print(features_multimodal.multimodal_embeds.shape)
 # torch.Size([1, 9, 768])
-
 features_image = model.extract_features(sample, mode="image")
 print(features_image.image_embeds.shape)
 # torch.Size([1, 197, 768])
-
 features_text = model.extract_features(sample, mode="text")
 print(features_text.text_embeds.shape)
 # torch.Size([1, 9, 768])
@@ -220,13 +206,10 @@ After downloading the images, we can use ``load_dataset()`` to obtain the datase
 ```python
 from lavis.datasets.builders import load_dataset
 coco_dataset = load_dataset("coco_caption")
-
-print(coco_dataset.key())
+print(coco_dataset.keys())
 # dict_keys(['train', 'val', 'test'])
-
 print(len(coco_dataset["train"]))
 # 566747
-
 print(coco_dataset["train"][0])
 # {'image': <PIL.Image.Image image mode=RGB size=640x480>,
 #  'text_input': 'A woman wearing a net on her head cutting a cake. ',
