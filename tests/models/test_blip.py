@@ -224,7 +224,7 @@ class TestBlip:
         from PIL import Image
         from lavis.models import load_model_and_preprocess
 
-        raw_image = Image.open("docs/data/merlion.png").convert("RGB")
+        raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
         caption = "a large fountain spewing water into the air"
 
         model, vis_processors, txt_processors = load_model_and_preprocess(

@@ -223,9 +223,14 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ```
 
 ## Resources and Tools
-- **GUI Demo**: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
 - **Benchmarks**: see [Benchmark](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions to evaluate and train supported models.
 - **Dataset Download and Browsing**: see [Dataset Download](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions and automatic tools on download common language-vision datasets.
+- **GUI Demo**: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
+<p align="center">
+    <br>
+    <img src="assets/browser-6.png"/>
+    <br>
+<p>
 
 
 ## Documentations
@@ -234,7 +239,7 @@ For more details and advanced usages, please refer to
 
 
 ## Technical Report and Citing LAVIS
-You can find more details in our technical report: [TBD]()
+You can find more details in our [technical report](assets/LAVIS_technical_report.pdf).
 
 If you're using LAVIS in your research or applications, please cite using this BibTeX:
 ```
