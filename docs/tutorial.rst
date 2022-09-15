@@ -6,7 +6,6 @@ Tutorials
 
    tutorial.evaluation
    tutorial.train
-   tutorial.configurations
    tutorial.datasets
    tutorial.processors
    tutorial.models
