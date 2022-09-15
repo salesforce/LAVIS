@@ -413,12 +413,4 @@ class AlbefPretrain(AlbefBase, MomentumDistilationMixin, SharedQueueMixin):
             max_txt_len=max_txt_len,
         )
 
-        if cfg.get("load_pretrained", True):
-            pretrain_path = cfg.get("pretrained")
-            assert (
-                pretrain_path is not None
-            ), "load_pretrained is True but pretrained is None."
-
-            model.load_checkpoint(pretrain_path)
-
         return model
