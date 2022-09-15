@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What is LAVIS? &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Dataset Zoo" href="getting_started.html" />
+    <link rel="prev" title="Welcome to LAVIS’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>What is LAVIS?</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="what-is-lavis">
+<h1>What is LAVIS?<a class="headerlink" href="#what-is-lavis" title="Permalink to this heading"></a></h1>
+<p>LAVIS is a Python deep learning library for LAnguage-and-VISion research and applications.
+It features a unified design to access state-of-the-art foundation language-vision models (<a class="reference external" href="https://arxiv.org/pdf/2107.07651.pdf">ALBEF</a>,
+<a class="reference external" href="https://arxiv.org/pdf/2201.12086.pdf">BLIP</a>, <a class="reference external" href="https://arxiv.org/pdf/2112.09583.pdf">ALPRO</a>, <a class="reference external" href="https://arxiv.org/pdf/2103.00020.pdf">CLIP</a>), common tasks
+(retrieval, captioning, visual question answering, multimodal classification etc.) and datasets (COCO, Flickr, Nocaps, Conceptual
+Commons, SBU, etc.).</p>
+<p>This library aims to provide engineers and researchers with a one-stop solution to rapidly develop models for their specific multimodal
+scenarios, and benchmark them across standard and customized datasets.</p>
+<p>Key features of LAVIS include:</p>
+<ul class="simple">
+<li><p><strong>Modular and Extensible Library Design</strong>: facilitating to easily utilize and repurpose existing modules (datasets, models, preprocessors), also to add new modules.</p></li>
+<li><p><strong>Easy Off-the-shelf Inference and Feature Extraction</strong>: readily available pre-trained models let you take advantage of state-of-the-art multimodal understanding and generation capabilities on your own data.</p></li>
+<li><p><strong>Reproducible Model Zoo</strong>: provided training/pre-training recipies to easily replicate and extend state-of-the-art models.</p></li>
+<li><p><strong>Dataset Zoo and Automatic Downloading Tools</strong>: it can be a hassle to prepare the many language-vision datasets. LAVIS provides automatic downloaing scripts to help prepare a large variety of datasets and their annotations.</p></li>
+</ul>
+<p>Other features include:</p>
+<ul class="simple">
+<li><p><strong>Distributed Training</strong> using multiple GPUs on one machine or across multiple machines.</p></li>
+<li><p><strong>Web Demo</strong>: try supported models on your own pictures, questions etc.</p></li>
+<li><p><strong>Leaderboard</strong>: comparing state-of-the-art models across standard datasets.</p></li>
+<li><p><strong>Dataset Explorer</strong>: help browse and understand language-vision datasets.</p></li>
+</ul>
+</section>
+<section id="supported-tasks-models-and-datasets">
+<h1>Supported Tasks, Models and Datasets<a class="headerlink" href="#supported-tasks-models-and-datasets" title="Permalink to this heading"></a></h1>
+<p>The following table shows the supported models and language-vision tasks by LAVIS. Adapting existing models to more tasks is possible and next to come in future releases.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 22%" />
+<col style="width: 36%" />
+<col style="width: 10%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tasks</p></th>
+<th class="head"><p>Supported Models</p></th>
+<th class="head"><p>Supported Datasets</p></th>
+<th class="head"><p>Modalities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Image-text Pre-training</p></td>
+<td><p>ALBEF, BLIP</p></td>
+<td><p>COCO, VisualGenome, SBU, ConceptualCaptions</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Image-text Retrieval</p></td>
+<td><p>ALBEF, BLIP, CLIP</p></td>
+<td><p>COCO, Flickr30k</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-even"><td><p>Text-image Retrieval</p></td>
+<td><p>ALBEF, BLIP, CLIP</p></td>
+<td><p>COCO, Flickr30k</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Visual Question Answering</p></td>
+<td><p>ALBEF, BLIP</p></td>
+<td><p>VQAv2, OKVQA, A-OKVQA</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-even"><td><p>Image Captioning</p></td>
+<td><p>BLIP</p></td>
+<td><p>COCO, NoCaps</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Image Classification</p></td>
+<td><p>CLIP</p></td>
+<td><p>ImageNet</p></td>
+<td><p>image</p></td>
+</tr>
+<tr class="row-even"><td><p>Natural Language Visual Reasoning (NLVR)</p></td>
+<td><p>ALBEF, BLIP</p></td>
+<td><p>NLVR2</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Visual Entailment (VE)</p></td>
+<td><p>ALBEF</p></td>
+<td><p>SNLI-VE</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-even"><td><p>Visual Dialogue</p></td>
+<td><p>BLIP</p></td>
+<td><p>VisDial</p></td>
+<td><p>image, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Video-text Retrieval</p></td>
+<td><p>BLIP, ALPRO</p></td>
+<td><p>MSRVTT, DiDeMo</p></td>
+<td><p>video, text</p></td>
+</tr>
+<tr class="row-even"><td><p>Text-video Retrieval</p></td>
+<td><p>BLIP, ALPRO</p></td>
+<td><p>MSRVTT, DiDeMo</p></td>
+<td><p>video, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Video Question Answering (VideoQA)</p></td>
+<td><p>BLIP, ALPRO</p></td>
+<td><p>MSRVTT, MSVD</p></td>
+<td><p>video, text</p></td>
+</tr>
+<tr class="row-even"><td><p>Video Dialogue</p></td>
+<td></td>
+<td></td>
+<td><p>video, text</p></td>
+</tr>
+<tr class="row-odd"><td><p>Multimodal Feature Extraction</p></td>
+<td><p>ALBEF, CLIP, BLIP, ALPRO</p></td>
+<td><p>customized</p></td>
+<td><p>image, text</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="library-design">
+<h1>Library Design<a class="headerlink" href="#library-design" title="Permalink to this heading"></a></h1>
+<a class="reference internal image-reference" href="_images/architecture.png"><img alt="_images/architecture.png" src="_images/architecture.png" style="width: 550px;" /></a>
+<p>LAVIS has six key modules.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.runners</span></code> manages the overall training and evaluation lifecycle. It is also responsible for creating required components lazily as per demand, such as optimizers, learning rate schedulers and dataloaders. Currently <code class="docutils literal notranslate"><span class="pre">RunnerBase</span></code> implements epoch-based training and <code class="docutils literal notranslate"><span class="pre">RunerIters</span></code> implements iteration-based training.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.tasks</span></code> implements concrete training and evaluation logic per task. A task could be, for example, retrieval, captioning, pre-training. The rationale to have an abstraction of task is to accomodate task-specific training and evaluation. For example, evaluating a retrieval model is different from a classification model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.datasets</span></code> is responsible for creating datasets, where <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders</span></code> loads dataset configurations, downloads annotations and returns a dataset object; <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets</span></code> defines the supported datasets, each is a <code class="docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code> instance. We also provide <cite>automatic dataset downloading tools</cite> in <code class="docutils literal notranslate"><span class="pre">datasets/download_scripts</span></code> to help prepare common public datasets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> holds definition for the supported models and shared model layers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.processors</span></code> handles preprocessing of text and images/videos before feeding the model. For images and videos, a processor can be thought as transfroms in torchvision; for text input, this may include lowering case, truncation etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.common</span></code> module contains shared classes and methods used by multiple other modules. For example,</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.common.config</span></code> contains classes to store and manipulate configuration files used by LAVIS. In particular, we use a hierarchical configuration design, to allow highly customizable training and evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.common.registry</span></code>  serves as a centralized place to manage modules that share the same functionalities. It allows building datasets, models, tasks, and learning rate schedulers during runtime, by specifying their names as string in the configuration file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.common.optims</span></code> contains definitions of learning rate schedulers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.common.dist_utils</span></code> contains utilities for distributed training and evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lavis.common.utils</span></code> contains miscellaneous utilities, mostly IO-related helper functions.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<ol class="arabic simple">
+<li><p>(Optional) Creating conda environment</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n lavis <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.8
+conda activate lavis
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Cloning and building from source</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/MetaMind/LAVIS.git
+<span class="nb">cd</span> LAVIS
+pip install .
+</pre></div>
+</div>
+<p>If you would like to develop on LAVIS, you may find it easier to build with editable mode:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to LAVIS’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="getting_started.html" class="btn btn-neutral float-right" title="Dataset Zoo" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dataset Zoo &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorial.html" />
+    <link rel="prev" title="What is LAVIS?" href="intro.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#inference-with-pre-trained-models">Inference with Pre-trained Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#image-captioning">Image Captioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visual-question-answering-vqa">Visual question answering (VQA)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Dataset Zoo</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="dataset-zoo">
+<h1>Dataset Zoo<a class="headerlink" href="#dataset-zoo" title="Permalink to this heading"></a></h1>
+<p>LAVIS inherently supports a wide variety of common language-vision datasets by providing automatic download scripts to help download and organize these datasets;
+and implements PyTorch datasets for these datasets. To view supported datasets, use the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.datasets.builders</span> <span class="kn">import</span> <span class="n">dataset_zoo</span>
+<span class="n">dataset_names</span> <span class="o">=</span> <span class="n">dataset_zoo</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset_names</span><span class="p">)</span>
+<span class="c1"># [&#39;aok_vqa&#39;, &#39;coco_caption&#39;, &#39;coco_retrieval&#39;, &#39;coco_vqa&#39;, &#39;conceptual_caption_12m&#39;,</span>
+<span class="c1">#  &#39;conceptual_caption_3m&#39;, &#39;didemo_retrieval&#39;, &#39;flickr30k&#39;, &#39;imagenet&#39;, &#39;laion2B_multi&#39;,</span>
+<span class="c1">#  &#39;msrvtt_caption&#39;, &#39;msrvtt_qa&#39;, &#39;msrvtt_retrieval&#39;, &#39;msvd_caption&#39;, &#39;msvd_qa&#39;, &#39;nlvr&#39;,</span>
+<span class="c1">#  &#39;nocaps&#39;, &#39;ok_vqa&#39;, &#39;sbu_caption&#39;, &#39;snli_ve&#39;, &#39;vatex_caption&#39;, &#39;vg_caption&#39;, &#39;vg_vqa&#39;]</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dataset_names</span><span class="p">))</span>
+<span class="c1"># 23</span>
+</pre></div>
+</div>
+</section>
+<section id="auto-downloading-and-loading-datasets">
+<h1>Auto-Downloading and Loading Datasets<a class="headerlink" href="#auto-downloading-and-loading-datasets" title="Permalink to this heading"></a></h1>
+<p>We now take COCO caption dataset as an example to demonstrate how to download and prepare the dataset.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">lavis/datasets/download_scripts/</span></code>, we provide tools to download most common public language-vision datasets supported by LAVIS.
+The COCO caption dataset uses images from COCO dataset. Therefore, we first download COCO images via:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> lavis/datasets/download_scripts/ <span class="o">&amp;&amp;</span> python download_coco.py
+</pre></div>
+</div>
+<p>This will automatically download and extract COCO images to the default LAVIS cache location.
+The default cache location is <code class="docutils literal notranslate"><span class="pre">~/.cache/lavis</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">lavis/configs/default.yaml</span></code>.</p>
+<p>After downloading the images, we can use <code class="docutils literal notranslate"><span class="pre">load_dataset()</span></code> to obtain the dataset. On the first run, this will automatically download and cache annotation files.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.datasets.builders</span> <span class="kn">import</span> <span class="n">load_dataset</span>
+<span class="n">coco_dataset</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;coco_caption&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">coco_dataset</span><span class="o">.</span><span class="n">key</span><span class="p">())</span>
+<span class="c1"># dict_keys([&#39;train&#39;, &#39;val&#39;, &#39;test&#39;])</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coco_dataset</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]))</span>
+<span class="c1"># 566747</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">coco_dataset</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+<span class="c1"># {&#39;image&#39;: &lt;PIL.Image.Image image mode=RGB size=640x480&gt;,</span>
+<span class="c1">#  &#39;text_input&#39;: &#39;A woman wearing a net on her head cutting a cake. &#39;,</span>
+<span class="c1">#  &#39;image_id&#39;: 0}</span>
+</pre></div>
+</div>
+<p>If you already host a local copy of the dataset, you can pass in the <code class="docutils literal notranslate"><span class="pre">vis_path</span></code> argument to change the default location to load images.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coco_dataset</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;coco_caption&quot;</span><span class="p">,</span> <span class="n">vis_path</span><span class="o">=</span><span class="n">YOUR_LOCAL_PATH</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="model-zoo">
+<h1>Model Zoo<a class="headerlink" href="#model-zoo" title="Permalink to this heading"></a></h1>
+<p>LAVIS supports a growing list of pre-trained models for different tasks,
+datatsets and of varying sizes. Let’s get started by viewing the supported models.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">model_zoo</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model_zoo</span><span class="p">)</span>
+<span class="c1"># ==================================================</span>
+<span class="c1"># Architectures                  Types</span>
+<span class="c1"># ==================================================</span>
+<span class="c1"># albef_classification           base, ve</span>
+<span class="c1"># albef_nlvr                     base</span>
+<span class="c1"># albef_pretrain                 base</span>
+<span class="c1"># albef_retrieval                base, coco, flickr</span>
+<span class="c1"># albef_vqa                      base, vqav2</span>
+<span class="c1"># alpro_qa                       base, msrvtt, msvd</span>
+<span class="c1"># alpro_retrieval                base, msrvtt, didemo</span>
+<span class="c1"># blip_caption                   base, base_coco, large, large_coco</span>
+<span class="c1"># blip_classification            base</span>
+<span class="c1"># blip_feature_extractor         base</span>
+<span class="c1"># blip_nlvr                      base</span>
+<span class="c1"># blip_pretrain                  base</span>
+<span class="c1"># blip_retrieval                 base, coco, flickr</span>
+<span class="c1"># blip_vqa                       base, vqav2</span>
+<span class="c1"># clip                           ViT-B-32, ViT-B-16, ViT-L-14, ViT-L-14-336, RN50</span>
+
+<span class="c1"># show total number of support model variants</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">model_zoo</span><span class="p">)</span>
+<span class="c1"># 33</span>
+</pre></div>
+</div>
+</section>
+<section id="inference-with-pre-trained-models">
+<h1>Inference with Pre-trained Models<a class="headerlink" href="#inference-with-pre-trained-models" title="Permalink to this heading"></a></h1>
+<p>Now let’s see how to use models in LAVIS to perform inference on example data. We first
+load a sample image from local.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+
+<span class="c1"># setup device to use</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+
+<span class="c1"># load sample image</span>
+<span class="n">raw_image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;docs/data/merlion.png&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This example image shows <a class="reference external" href="https://en.wikipedia.org/wiki/Merlion">Merlion park</a> (<a class="reference external" href="https://theculturetrip.com/asia/singapore/articles/what-exactly-is-singapores-merlion-anyway/">image credit</a>), a landmark in Singapore.</p>
+<img alt="_images/merlion.png" src="_images/merlion.png" />
+<section id="image-captioning">
+<h2>Image Captioning<a class="headerlink" href="#image-captioning" title="Permalink to this heading"></a></h2>
+<p>We now use the BLIP model to generate a caption for the image. To make inference even easier, we also associate each
+pre-trained model with its preprocessors (transforms),  we use <code class="docutils literal notranslate"><span class="pre">load_model_and_preprocess()</span></code> with the following arguments:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: The name of the model to load. This could be a pre-trained model, task model, or feature extractor. See <code class="docutils literal notranslate"><span class="pre">model_zoo</span></code> for a full list of model names.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model_type</span></code>: Each architecture has variants trained on different datasets and at different scale. See Types column in <code class="docutils literal notranslate"><span class="pre">model_zoo</span></code> for a full list of model types.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_eval</span></code>: if <cite>True</cite>, set the model to evaluation mode. This is desired for inference or feature extraction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">devce</span></code>: device to load the model to.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">load_model_and_preprocess</span>
+<span class="c1"># loads BLIP caption base model, with finetuned checkpoints on MSCOCO captioning dataset.</span>
+<span class="c1"># this also loads the associated image processors</span>
+<span class="n">model</span><span class="p">,</span> <span class="n">vis_processors</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">load_model_and_preprocess</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;blip_caption&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base_coco&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># preprocess the image</span>
+<span class="c1"># vis_processors stores image transforms for &quot;train&quot; and &quot;eval&quot; (validation / testing / inference)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">vis_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">raw_image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># generate caption</span>
+<span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">({</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">}</span>
+<span class="c1"># [&#39;a large fountain spewing water into the air&#39;]</span>
+</pre></div>
+</div>
+<p>You may also load models and their preprocessors separately via <code class="docutils literal notranslate"><span class="pre">load_model()</span></code> and <code class="docutils literal notranslate"><span class="pre">load_processor()</span></code>.
+In BLIP, you can also generate diverse captions by turning nucleus sampling on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.processors</span> <span class="kn">import</span> <span class="n">load_processor</span>
+<span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">load_model</span>
+
+<span class="c1"># load image preprocesser used for BLIP</span>
+<span class="n">vis_processor</span> <span class="o">=</span> <span class="n">load_processor</span><span class="p">(</span><span class="s2">&quot;blip_image_eval&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">image_size</span><span class="o">=</span><span class="mi">384</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">load_model</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;blip_caption&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base_coco&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">vis_processor</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">({</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">raw_image</span><span class="p">},</span> <span class="n">use_nucleus_sampling</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># one generated random sample: [&#39;some very pretty buildings and some water jets&#39;]</span>
+</pre></div>
+</div>
+</section>
+<section id="visual-question-answering-vqa">
+<h2>Visual question answering (VQA)<a class="headerlink" href="#visual-question-answering-vqa" title="Permalink to this heading"></a></h2>
+<p>BLIP model is able to answer free-form questions about images in natural language.
+To access the VQA model, simply replace the <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">model_type</span></code> arguments
+passed to <code class="docutils literal notranslate"><span class="pre">load_model_and_preprocess()</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">load_model_and_preprocess</span>
+<span class="n">model</span><span class="p">,</span> <span class="n">vis_processors</span><span class="p">,</span> <span class="n">txt_processors</span> <span class="o">=</span> <span class="n">load_model_and_preprocess</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;blip_vqa&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;vqav2&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># ask a random question.</span>
+<span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;Which city is this photo taken?&quot;</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">vis_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">raw_image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">question</span> <span class="o">=</span> <span class="n">txt_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">question</span><span class="p">)</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">predict_answers</span><span class="p">(</span><span class="n">samples</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span> <span class="s2">&quot;text_input&quot;</span><span class="p">:</span> <span class="n">question</span><span class="p">},</span> <span class="n">inference_method</span><span class="o">=</span><span class="s2">&quot;generate&quot;</span><span class="p">)</span>
+<span class="c1"># [&#39;singapore&#39;]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="unified-feature-extraction-interface">
+<h1>Unified Feature Extraction Interface<a class="headerlink" href="#unified-feature-extraction-interface" title="Permalink to this heading"></a></h1>
+<p>LAVIS provides a unified interface to extract multimodal features from each architecture.
+To extract features, we load the feature extractor variants of each model.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">load_model_and_preprocess</span>
+
+<span class="n">model</span><span class="p">,</span> <span class="n">vis_processors</span><span class="p">,</span> <span class="n">txt_processors</span> <span class="o">=</span> <span class="n">load_model_and_preprocess</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;blip_feature_extractor&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;a large fountain spewing water into the air&quot;</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">vis_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">raw_image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="n">text_input</span> <span class="o">=</span> <span class="n">txt_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">question</span><span class="p">)</span>
+
+<span class="n">sample</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span> <span class="s2">&quot;text_input&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">text_input</span><span class="p">]}</span>
+
+<span class="n">features_multimodal</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_multimodal</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;multimodal_embeds&#39;])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_multimodal</span><span class="o">.</span><span class="n">multimodal_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># torch.Size([1, 12, 768])</span>
+
+<span class="n">features_image</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;image_features&#39;])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># torch.Size([1, 197, 768])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># torch.Size([1, 197, 256])</span>
+
+<span class="n">features_text</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># odict_keys([&#39;text_embeds&#39;, &#39;text_features&#39;])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># torch.Size([1, 197, 768])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># torch.Size([1, 197, 256])</span>
+</pre></div>
+</div>
+<p>Since LAVIS supports a unified feature extraction interface, minimal changes are necessary to use a different model as feature extractor. For example,
+to use ALBEF as the feature extractor, one only needs to change the following line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="p">,</span> <span class="n">vis_processors</span><span class="p">,</span> <span class="n">txt_processors</span> <span class="o">=</span> <span class="n">load_model_and_preprocess</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;albef_feature_extractor&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Similarly, to use CLIP as feature extractor:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="p">,</span> <span class="n">vis_processors</span><span class="p">,</span> <span class="n">txt_processors</span> <span class="o">=</span> <span class="n">load_model_and_preprocess</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;clip_feature_extractor&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="c1"># model, vis_processors, txt_processors = load_model_and_preprocess(name=&quot;clip_feature_extractor&quot;, model_type=&quot;RN50&quot;, is_eval=True, device=device)</span>
+<span class="c1"># model, vis_processors, txt_processors = load_model_and_preprocess(name=&quot;clip_feature_extractor&quot;, model_type=&quot;ViT-L-14&quot;, is_eval=True, device=device)</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="intro.html" class="btn btn-neutral float-left" title="What is LAVIS?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

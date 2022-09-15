@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adding Datasets &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Adding Processors" href="tutorial.processors.html" />
+    <link rel="prev" title="Configurations" href="tutorial.configurations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial.evaluation.html">Evaluating Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.train.html">Fine-tuning Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.configurations.html">Configurations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Adding Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dataset-configuration-lavis-configs-datasets">Dataset Configuration <code class="docutils literal notranslate"><span class="pre">lavis.configs.datasets</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dataset-card">Dataset Card</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#visual-data-type">Visual Data Type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#build-info">Build Info</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dataset-lavis-datasets-datasets">Dataset <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#base-dataset-lavis-datasets-datasets-base-dataset">Base Dataset <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets.base_dataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dialogue-datasets-lavis-datasets-datasets-dialogue-datasets">Dialogue Datasets <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets.dialogue_datasets</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dataset-builder-lavis-datasets-builders">Dataset Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#base-dataset-builder-lavis-datasets-builders-base-dataset-builder">Base Dataset Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.base_dataset_builder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dialogue-dataset-builder-lavis-datasets-builders-dialogue-builder">Dialogue Dataset Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.dialogue_builder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#registering-builder-lavis-datasets-builders-init">Registering Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.__init__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#assigning-builder">Assigning Builder</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.processors.html">Adding Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.models.html">Adding Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.tasks.html">Adding Tasks</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+      <li>Adding Datasets</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.datasets.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="adding-datasets">
+<h1>Adding Datasets<a class="headerlink" href="#adding-datasets" title="Permalink to this heading"></a></h1>
+<p>This is a tutorial on adding a new dataset using <code class="docutils literal notranslate"><span class="pre">lavis.datasets</span></code> module.</p>
+<p>The LAVIS library includes a standard dataset module, which allows customization to add new datasets.
+The <code class="docutils literal notranslate"><span class="pre">lavis.datasets</span></code> module is designed such that any new dataset class can be easily added and adapted from our code base, including creating dataset configuration, and defining and associating new dataset classes.</p>
+<p>In this tutorial, we will replicate the steps to add a dataset class for the <a class="reference external" href="https://arxiv.org/pdf/1901.09107.pdf">Audio-Visual Scene-Aware Dialogue (AVSD)</a> benchmark for the video-grounded dialogue task.</p>
+<section id="dataset-configuration-lavis-configs-datasets">
+<h2>Dataset Configuration <code class="docutils literal notranslate"><span class="pre">lavis.configs.datasets</span></code><a class="headerlink" href="#dataset-configuration-lavis-configs-datasets" title="Permalink to this heading"></a></h2>
+<p>First, we define the basic configurations for this dataset, including a new dataset class <code class="docutils literal notranslate"><span class="pre">avsd_dialogue</span></code>, dataset card, and data types.
+We can define any new dataset configuration in <code class="docutils literal notranslate"><span class="pre">lavis.configs.datasets</span></code>. For instance, under this module, we can set up a configuration file <code class="docutils literal notranslate"><span class="pre">avsd/defaults_dial.yaml</span></code> as follows:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">avsd_dialogue</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="w">    </span><span class="nt">dataset_card</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dataset_card/avsd_dialogue.md</span><span class="w"> </span><span class="c1"># path to the dataset card</span><span class="w"></span>
+<span class="w">    </span><span class="nt">data_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">features</span><span class="w"> </span><span class="c1"># [images|videos|features] we use features in this case for extracted video features</span><span class="w"></span>
+
+<span class="w">    </span><span class="nt">build_info</span><span class="p">:</span><span class="w"></span>
+<span class="w">      </span><span class="c1"># Be careful not to append minus sign (-) before split to avoid itemizing</span><span class="w"></span>
+<span class="w">      </span><span class="nt">annotations</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/export/home/data/avsd/train_set4DSTC7-AVSD.json</span><span class="w"></span>
+<span class="w">          </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avsd/annotations/train.json</span><span class="w"></span>
+<span class="w">        </span><span class="nt">val</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/export/home/data/avsd/valid_set4DSTC7-AVSD.json</span><span class="w"></span>
+<span class="w">          </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avsd/annotations/val.json</span><span class="w"></span>
+<span class="w">        </span><span class="nt">test</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/export/home/data/avsd/test_set4DSTC7-AVSD.json</span><span class="w"></span>
+<span class="w">          </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">avsd/annotations/test.json</span><span class="w"></span>
+<span class="w">      </span><span class="nt">features</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/export/home/data/avsd/features/</span><span class="w"></span>
+</pre></div>
+</div>
+<section id="dataset-card">
+<h3>Dataset Card<a class="headerlink" href="#dataset-card" title="Permalink to this heading"></a></h3>
+<p>One optional step to set up dataset configuration is defining a dataset card, which contains more details about the dataset such as description, tasks, and metrics.
+For instance, we can define a dataset card for the AVSD benchmark in <code class="docutils literal notranslate"><span class="pre">dataset_card/avsd_dialogue.md</span></code>.
+Depending on the dataset, we included in its corresponding dataset card the command for auto-downloading data (with python code defined in <code class="docutils literal notranslate"><span class="pre">lavis.datasets.download_scripts</span></code>) that will automatically load the data and store it in a specific folder.
+Else, you should describe in the dataset card the external download instructions from the original data source to load the dataset properly.</p>
+<p>One example of a dataset card for the AVSD benchmark is:</p>
+<div class="highlight-md notranslate"><div class="highlight"><pre><span></span>![<span class="nt">Samples from the AVSD dataset (Image credit: &quot;https://arxiv.org/pdf/1901.09107.pdf&quot;).</span>](<span class="na">imgs/avsd_dialogue.png</span>)(Samples from the AVSD dataset. Image credit: &quot;https://arxiv.org/pdf/1901.09107.pdf&quot;)
+
+<span class="gh"># Audio-Visual Scene-Aware Dialogues (AVSD)</span>
+
+<span class="gu">## Description</span>
+[<span class="nt">Audio-Visual Scene-Aware Dialogues (AVSD)</span>](<span class="na">https://github.com/hudaAlamri/DSTC7-Audio-Visual-Scene-Aware-Dialog-AVSD-Challenge</span>) contains more than 10,000 dialogues, each of which is grounded on a unique video. In the test split, for each test sample, 6 reference dialogue responses are provided.
+
+
+<span class="gu">## Task</span>
+
+(https://github.com/hudaAlamri/DSTC7-Audio-Visual-Scene-Aware-Dialog-AVSD-Challenge)
+
+In a <span class="gs">**video-grounded dialogue task**</span>, the system must generate responses to user input in the context of a given dialog.
+This context consists of a dialog history (previous utterances by both user and system) in addition to video and audio information that comprise the scene. The quality of a system’s automatically generated sentences is evaluated using objective measures to determine whether or not the generated responses are natural and informative
+
+<span class="gu">## Metrics</span>
+Models are typically evaluated according to [<span class="nt">BLEU</span>](<span class="na">https://aclanthology.org/P02-1040/</span>), [<span class="nt">CIDER</span>](<span class="na">https://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Vedantam_CIDEr_Consensus-Based_Image_2015_CVPR_paper.pdf</span>), [<span class="nt">METEOR</span>](<span class="na">https://aclanthology.org/W05-0909/</span>), and [<span class="nt">ROUGE-L</span>](<span class="na">https://aclanthology.org/W04-1013/</span>) metrics.
+
+<span class="gu">## Leaderboard</span>
+
+....
+
+
+<span class="gu">## Auto-Downloading</span>
+
+Please refer to [<span class="nt">benchmark webite</span>](<span class="na">https://github.com/hudaAlamri/DSTC7-Audio-Visual-Scene-Aware-Dialog-AVSD-Challenge</span>) for instructions to download the dataset.
+
+
+<span class="gu">## References</span>
+&quot;Audio Visual Scene-Aware Dialog&quot;, Huda Alamri, Vincent Cartillier, Abhishek Das, Jue Wang, Anoop Cherian, Irfan Essa, Dhruv Batra, Tim K. Marks, Chiori Hori, Peter Anderson, Stefan Lee, Devi Parikh
+</pre></div>
+</div>
+</section>
+<section id="visual-data-type">
+<h3>Visual Data Type<a class="headerlink" href="#visual-data-type" title="Permalink to this heading"></a></h3>
+<p>We currently limit the visual data types to one of three options: <code class="docutils literal notranslate"><span class="pre">images</span></code>, <code class="docutils literal notranslate"><span class="pre">videos</span></code>, and <code class="docutils literal notranslate"><span class="pre">features</span></code>.
+“Images” and “videos” refer to the raw visual data, which is appropriate for models processing visual data in their original forms (e.g. ViT models).
+“Features” are visual representations extracted from pretrained models (e.g. CNN models).
+In this tutorial, the AVSD benchmark consists of video features extracted from 3D-CNN models.</p>
+</section>
+<section id="build-info">
+<h3>Build Info<a class="headerlink" href="#build-info" title="Permalink to this heading"></a></h3>
+<p>Build info refers to the specific locations where data is stored and cached.</p>
+<p>For text annotations (e.g. captioning or dialogues), by default, we include three data splits, namely “train”, “val”, and “test”, typically used in all machine learning projects.
+For each split, we specify 2 parameters: <code class="docutils literal notranslate"><span class="pre">url</span></code>  and <code class="docutils literal notranslate"><span class="pre">storage</span></code>.
+<code class="docutils literal notranslate"><span class="pre">url</span></code> can be either an online URL where the dataset can be loaded automatically (e.g. from <em>googleapis</em>), or a local directory where data is already downloaded beforehand.
+<code class="docutils literal notranslate"><span class="pre">storage</span></code> is the directory where the data will be cached over time, avoiding downloading data repeatedly.</p>
+<p>For visual data annotations, ensure the field name matches the data types defined earlier (e.g. one of “images”, “videos” or features”).
+As visual features are usually large and should be downloaded beforehand, we maintain only a <code class="docutils literal notranslate"><span class="pre">storage</span></code> parameter where visual data is cached.</p>
+</section>
+</section>
+<section id="dataset-lavis-datasets-datasets">
+<h2>Dataset <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets</span></code><a class="headerlink" href="#dataset-lavis-datasets-datasets" title="Permalink to this heading"></a></h2>
+<section id="base-dataset-lavis-datasets-datasets-base-dataset">
+<h3>Base Dataset <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets.base_dataset</span></code><a class="headerlink" href="#base-dataset-lavis-datasets-datasets-base-dataset" title="Permalink to this heading"></a></h3>
+<p>In this step, we want to define new dataset classes that inherit our base dataset class <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets.base_dataset</span></code>. This base dataset class already defines standard methods such as <code class="docutils literal notranslate"><span class="pre">collater</span></code> which uses the default collator from Pytorch.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span>
+
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">ConcatDataset</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data.dataloader</span> <span class="kn">import</span> <span class="n">default_collate</span>
+
+<span class="k">class</span> <span class="nc">BaseDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">vis_processor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">text_processor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vis_root</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ann_paths</span><span class="o">=</span><span class="p">[]</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        vis_root (string): Root directory of images (e.g. coco/images/)</span>
+<span class="sd">        ann_root (string): directory to store the annotation file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_root</span> <span class="o">=</span> <span class="n">vis_root</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ann_path</span> <span class="ow">in</span> <span class="n">ann_paths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">ann_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_processor</span> <span class="o">=</span> <span class="n">vis_processor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span> <span class="o">=</span> <span class="n">text_processor</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_instance_ids</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">collater</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">default_collate</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_processors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vis_processor</span><span class="p">,</span> <span class="n">text_processor</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_processor</span> <span class="o">=</span> <span class="n">vis_processor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span> <span class="o">=</span> <span class="n">text_processor</span>
+
+    <span class="k">def</span> <span class="nf">_add_instance_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;instance_id&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">ann</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="p">):</span>
+            <span class="n">ann</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any dataset subclass will inherit these methods and it is optional to define and overwrite these methods accordingly to the specifications of the dataset.
+We encourage users not to modify the base dataset class as any modification will have cascading impacts on any other dataset classes that inherit this base dataset.
+Instead, the users should independently create new dataset classes to cater to their specific requirements.</p>
+</section>
+<section id="dialogue-datasets-lavis-datasets-datasets-dialogue-datasets">
+<h3>Dialogue Datasets <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets.dialogue_datasets</span></code><a class="headerlink" href="#dialogue-datasets-lavis-datasets-datasets-dialogue-datasets" title="Permalink to this heading"></a></h3>
+<p>For example, for the AVSD dataset, we want to define a new dataset subclass <code class="docutils literal notranslate"><span class="pre">DialogueDataset</span></code> for dialogue tasks. We can define this dataset class in <code class="docutils literal notranslate"><span class="pre">lavis.datasets.datasets.dialogue_datasets</span></code> as following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">from</span> <span class="nn">lavis.datasets.datasets.base_dataset</span> <span class="kn">import</span> <span class="n">BaseDataset</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="k">class</span> <span class="nc">DialogueDataset</span><span class="p">(</span><span class="n">BaseDataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vis_processor</span><span class="p">,</span> <span class="n">text_processor</span><span class="p">,</span> <span class="n">vis_root</span><span class="p">,</span> <span class="n">ann_paths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        vis_processor (string): visual processor</span>
+<span class="sd">        text_processor (string): textual processor</span>
+<span class="sd">        vis_root (string): Root directory of images (e.g. coco/images/)</span>
+<span class="sd">        ann_paths (string): Root directory of images (e.g. coco/images/)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_root</span> <span class="o">=</span> <span class="n">vis_root</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ann_path</span> <span class="ow">in</span> <span class="n">ann_paths</span><span class="p">:</span>
+            <span class="n">dialogs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">ann_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">))[</span><span class="s1">&#39;dialogs&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">dialog</span> <span class="ow">in</span> <span class="n">dialogs</span><span class="p">:</span>
+                <span class="n">all_turns</span> <span class="o">=</span> <span class="n">dialog</span><span class="p">[</span><span class="s1">&#39;dialog&#39;</span><span class="p">]</span>
+                <span class="n">dialogue_context</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">turn</span> <span class="ow">in</span> <span class="n">all_turns</span><span class="p">:</span>
+                    <span class="n">dialog_instance</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
+                    <span class="n">question</span> <span class="o">=</span> <span class="n">turn</span><span class="p">[</span><span class="s1">&#39;question&#39;</span><span class="p">]</span>
+                    <span class="n">answer</span> <span class="o">=</span> <span class="n">turn</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">]</span>
+
+                    <span class="n">dialog_instance</span><span class="p">[</span><span class="s1">&#39;dialog&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dialogue_context</span><span class="p">)</span>
+                    <span class="n">dialog_instance</span><span class="p">[</span><span class="s1">&#39;question&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">question</span>
+                    <span class="n">dialog_instance</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">answer</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dialog_instance</span><span class="p">)</span>
+                    <span class="n">dialogue_context</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">turn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_processor</span> <span class="o">=</span> <span class="n">vis_processor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span> <span class="o">=</span> <span class="n">text_processor</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_instance_ids</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_ids</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">ann</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="p">:</span>
+            <span class="n">img_id</span> <span class="o">=</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;image_id&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">img_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">img_ids</span><span class="p">[</span><span class="n">img_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Class inheritance allows us to define multiple subclasses. For instance, we want another dialogue dataset class that is defined only for the test split. We can define another dataset class <code class="docutils literal notranslate"><span class="pre">DialogueEvalDataset</span></code> as similarly defined above but the annotations are processed differently.
+Typically, in dialogue tasks, during test time, only a single test sample is constructed per dialogue (rather than decomposing all dialogue turns as samples during training time).
+The dataset class can then be defined as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DialogueEvalDataset</span><span class="p">(</span><span class="n">BaseDataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vis_processor</span><span class="p">,</span> <span class="n">text_processor</span><span class="p">,</span> <span class="n">vis_root</span><span class="p">,</span> <span class="n">ann_paths</span><span class="p">):</span>
+        <span class="c1"># ...</span>
+        <span class="c1"># defined similarly as DialogueDataset above</span>
+        <span class="c1"># except for the loading of dialogue annotation data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ann_path</span> <span class="ow">in</span> <span class="n">ann_paths</span><span class="p">:</span>
+            <span class="n">dialogs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">ann_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">))[</span><span class="s1">&#39;dialogs&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">dialog</span> <span class="ow">in</span> <span class="n">dialogs</span><span class="p">:</span>
+                <span class="n">all_turns</span> <span class="o">=</span> <span class="n">dialog</span><span class="p">[</span><span class="s1">&#39;dialog&#39;</span><span class="p">]</span>
+                <span class="n">dialogue_context</span> <span class="o">=</span> <span class="n">all_turns</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">last_turn</span> <span class="o">=</span> <span class="n">all_turns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="n">question</span> <span class="o">=</span> <span class="n">last_turn</span><span class="p">[</span><span class="s1">&#39;question&#39;</span><span class="p">]</span>
+                <span class="n">answer</span> <span class="o">=</span> <span class="n">last_turn</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">]</span>
+
+                <span class="n">dialog</span><span class="p">[</span><span class="s1">&#39;dialog&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dialogue_context</span>
+                <span class="n">dialog</span><span class="p">[</span><span class="s1">&#39;question&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">question</span>
+                <span class="n">dialog</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">answer</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using class inheritance to define datasets also allows us to develop more fine-grain class implementations, each of which is specifically designated for a benchmark.
+For instance, under the dialogue-based tasks, we can further define another dataset subclass that is specified for the AVSD dataset.
+We can define a new class <code class="docutils literal notranslate"><span class="pre">AVSDDialDataset</span></code> that further specifies how to load individual samples and collate them accordingly to specific requirements:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">lavis.datasets.datasets.base_dataset</span> <span class="kn">import</span> <span class="n">BaseDataset</span>
+<span class="kn">from</span> <span class="nn">lavis.datasets.datasets.dialogue_datasets</span> <span class="kn">import</span> <span class="n">DialogueDataset</span><span class="p">,</span> <span class="n">DialogueEvalDataset</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="k">class</span> <span class="nc">AVSDDialDataset</span><span class="p">(</span><span class="n">DialogueDataset</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vis_processor</span><span class="p">,</span> <span class="n">text_processor</span><span class="p">,</span> <span class="n">vis_root</span><span class="p">,</span> <span class="n">ann_paths</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">vis_processor</span><span class="p">,</span> <span class="n">text_processor</span><span class="p">,</span> <span class="n">vis_root</span><span class="p">,</span> <span class="n">ann_paths</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+
+        <span class="n">ann</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotation</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="n">vname</span> <span class="o">=</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;image_id&quot;</span><span class="p">]</span>
+
+        <span class="n">video</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis_processor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vis_root</span><span class="p">,</span> <span class="n">vname</span><span class="p">)</span>
+
+        <span class="n">dialogue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;video_fts&quot;</span><span class="p">:</span> <span class="n">video</span><span class="p">[</span><span class="s1">&#39;video_fts&#39;</span><span class="p">],</span>
+            <span class="s2">&quot;video_token_type_ids&quot;</span><span class="p">:</span> <span class="n">video</span><span class="p">[</span><span class="s1">&#39;token_type_ids&#39;</span><span class="p">],</span>
+            <span class="s2">&quot;input_ids&quot;</span><span class="p">:</span> <span class="n">dialogue</span><span class="p">[</span><span class="s1">&#39;input_ids&#39;</span><span class="p">],</span>
+            <span class="s2">&quot;token_type_ids&quot;</span><span class="p">:</span> <span class="n">dialogue</span><span class="p">[</span><span class="s1">&#39;token_type_ids&#39;</span><span class="p">],</span>
+            <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">dialogue</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">],</span>
+            <span class="s2">&quot;image_id&quot;</span><span class="p">:</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;image_id&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;instance_id&quot;</span><span class="p">:</span> <span class="n">ann</span><span class="p">[</span><span class="s2">&quot;instance_id&quot;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">collater</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">):</span>
+
+        <span class="n">input_ids</span><span class="p">,</span> <span class="n">token_type_ids</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">video_fts</span><span class="p">,</span> <span class="n">video_token_type_ids</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">:</span>
+            <span class="n">input_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;input_ids&#39;</span><span class="p">])</span>
+            <span class="n">token_type_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;token_type_ids&#39;</span><span class="p">])</span>
+            <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">])</span>
+            <span class="n">video_fts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;video_fts&#39;</span><span class="p">])</span>
+            <span class="n">video_token_type_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;video_token_type_ids&#39;</span><span class="p">])</span>
+
+        <span class="n">input_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span><span class="o">.</span><span class="n">padding</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span><span class="o">.</span><span class="n">padding</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">video_fts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis_processor</span><span class="o">.</span><span class="n">padding</span><span class="p">(</span><span class="n">video_fts</span><span class="p">)</span>
+
+        <span class="n">token_type_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span><span class="o">.</span><span class="n">padding</span><span class="p">(</span><span class="n">token_type_ids</span><span class="p">)</span>
+        <span class="n">video_token_type_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span><span class="o">.</span><span class="n">padding</span><span class="p">(</span><span class="n">video_token_type_ids</span><span class="p">)</span>
+        <span class="n">token_type_ids</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">video_token_type_ids</span><span class="p">,</span> <span class="n">token_type_ids</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">attn_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_processor</span><span class="o">.</span><span class="n">get_attention_mask</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+        <span class="n">video_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vis_processor</span><span class="o">.</span><span class="n">get_attention_mask</span><span class="p">(</span><span class="n">video_fts</span><span class="p">)</span>
+        <span class="n">attn_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">video_mask</span><span class="p">,</span> <span class="n">attn_mask</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">video_labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">video_fts</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">video_fts</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span><span class="o">.</span><span class="n">long</span><span class="p">()</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># ignore token indice -1 by default</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">video_labels</span><span class="p">,</span> <span class="n">labels</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">samples</span><span class="p">[</span><span class="s1">&#39;input_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_ids</span>
+        <span class="n">samples</span><span class="p">[</span><span class="s1">&#39;token_type_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">token_type_ids</span>
+        <span class="n">samples</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+        <span class="n">samples</span><span class="p">[</span><span class="s1">&#39;video_fts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">video_fts</span>
+        <span class="n">samples</span><span class="p">[</span><span class="s1">&#39;attn_mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attn_mask</span>
+
+        <span class="k">return</span> <span class="n">samples</span>
+</pre></div>
+</div>
+<p>Note that in a dataset subclass, if methods such as <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> and <code class="docutils literal notranslate"><span class="pre">collater</span></code> are not defined, the same functions from the corresponding superclass will be used.
+For instance, by default, we always use the collater from the <code class="docutils literal notranslate"><span class="pre">BaseDataset</span></code> class to collate data samples.</p>
+</section>
+</section>
+<section id="dataset-builder-lavis-datasets-builders">
+<h2>Dataset Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders</span></code><a class="headerlink" href="#dataset-builder-lavis-datasets-builders" title="Permalink to this heading"></a></h2>
+<p>Dataset Builder is the data processing module that controls the dataset classes (by training or evaluation split) and associates the specific dataset configurations to these dataset classes.</p>
+<section id="base-dataset-builder-lavis-datasets-builders-base-dataset-builder">
+<h3>Base Dataset Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.base_dataset_builder</span></code><a class="headerlink" href="#base-dataset-builder-lavis-datasets-builders-base-dataset-builder" title="Permalink to this heading"></a></h3>
+<p>Note that any new builder class definition should inherit the base dataset builder class <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.base_dataset_builder</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseDatasetBuilder</span><span class="p">:</span>
+    <span class="n">train_dataset_cls</span><span class="p">,</span> <span class="n">eval_dataset_cls</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>This allows us to standardize the operations of dataset builders across all builder classes. We advise the users to carefully review the standard methods defined in the base builder class, including methods such as <code class="docutils literal notranslate"><span class="pre">_download_data</span></code> and <code class="docutils literal notranslate"><span class="pre">build_dataset</span></code> that will load download the data and create instances of dataset classes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseDatasetBuilder</span><span class="p">:</span>
+<span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">build_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># download, split, etc...</span>
+        <span class="c1"># only called on 1 GPU/TPU in distributed</span>
+
+        <span class="k">if</span> <span class="n">is_main_process</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_download_data</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">is_dist_avail_and_initialized</span><span class="p">():</span>
+            <span class="n">dist</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+
+        <span class="c1"># at this point, all the annotations and image/videos should be all downloaded to the specified locations.</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building datasets...&quot;</span><span class="p">)</span>
+        <span class="n">datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>  <span class="c1"># dataset[&#39;train&#39;/&#39;val&#39;/&#39;test&#39;]</span>
+
+        <span class="k">return</span> <span class="n">datasets</span>
+
+    <span class="k">def</span> <span class="nf">_download_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_download_ann</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_download_vis</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We encourage users not to modify the implementation of the base dataset builder class as this will affect all existing dataset builder subclasses.</p>
+</section>
+<section id="dialogue-dataset-builder-lavis-datasets-builders-dialogue-builder">
+<h3>Dialogue Dataset Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.dialogue_builder</span></code><a class="headerlink" href="#dialogue-dataset-builder-lavis-datasets-builders-dialogue-builder" title="Permalink to this heading"></a></h3>
+<p>We can define any new builder subclass and associate this builder with the corresponding dataset classes and dataset configurations.
+For instance, for the AVSD dataset, we can define a builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.dialogue_builder</span></code> for dialogue-based datasets as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.datasets.builders.base_dataset_builder</span> <span class="kn">import</span> <span class="n">BaseDatasetBuilder</span>
+<span class="kn">from</span> <span class="nn">lavis.datasets.datasets.avsd_dialogue_datasets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AVSDDialDataset</span><span class="p">,</span>
+    <span class="n">AVSDDialEvalDataset</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">lavis.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_builder</span><span class="p">(</span><span class="s2">&quot;avsd_dialogue&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AVSDDialBuilder</span><span class="p">(</span><span class="n">BaseDatasetBuilder</span><span class="p">):</span>
+    <span class="n">train_dataset_cls</span> <span class="o">=</span> <span class="n">AVSDDialDataset</span>
+    <span class="n">eval_dataset_cls</span> <span class="o">=</span> <span class="n">AVSDDialEvalDataset</span>
+
+    <span class="n">DATASET_CONFIG_DICT</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="s2">&quot;configs/datasets/avsd/defaults_dial.yaml&quot;</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that we chose to separately define the parameters <code class="docutils literal notranslate"><span class="pre">train_dataset_cls</span></code> and  <code class="docutils literal notranslate"><span class="pre">eval_dataset_cls</span></code> to consider cases where data is processed differently between training and test time.
+For instance, in captioning tasks, during test time, each data sample often includes multiple ground-truth captions rather than just a single ground-truth during training time.
+If the data processing is the same in both training and test time, the two parameters can be linked to the same dataset class.</p>
+<p>Finally, define <code class="docutils literal notranslate"><span class="pre">DATASET_CONFIG_DICT</span></code> to associate the dataset configurations to the assigned dataset classes.</p>
+</section>
+<section id="registering-builder-lavis-datasets-builders-init">
+<h3>Registering Builder <code class="docutils literal notranslate"><span class="pre">lavis.datasets.builders.__init__</span></code><a class="headerlink" href="#registering-builder-lavis-datasets-builders-init" title="Permalink to this heading"></a></h3>
+<p>To add a new builder class, ensure to first include the class within the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code>. For instance, to define a new builder for the AVSD dataset:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.datasets.builders.dialogue_builder</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AVSDDialBuilder</span>
+<span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span><span class="p">,</span>
+    <span class="s2">&quot;AVSDDialBuilder&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="assigning-builder">
+<h3>Assigning Builder<a class="headerlink" href="#assigning-builder" title="Permalink to this heading"></a></h3>
+<p>Note that during data loading and processing, the builder being assigned must have the correct registry to be able to load it properly.
+For instance, the following should be specified in a configuration file e.g. <code class="docutils literal notranslate"><span class="pre">dialogue_avsd_ft.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">avsd_dialogue</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain"># processor configuration</span><span class="w"></span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Subsequently, any processes (e.g. training) should load this configuration file to assign the correct builder which will then associate the correct dataset classes to construct data samples.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python train.py --cfg-path dialogue_avsd_ft.yaml
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.configurations.html" class="btn btn-neutral float-left" title="Configurations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.processors.html" class="btn btn-neutral float-right" title="Adding Processors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

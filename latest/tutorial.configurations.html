@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurations &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Adding Datasets" href="tutorial.datasets.html" />
+    <link rel="prev" title="Fine-tuning Pre-trained Models on Task Datasets" href="tutorial.train.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial.evaluation.html">Evaluating Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.train.html">Fine-tuning Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.datasets.html">Adding Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.processors.html">Adding Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.models.html">Adding Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.tasks.html">Adding Tasks</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+      <li>Configurations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.configurations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="configurations">
+<h1>Configurations<a class="headerlink" href="#configurations" title="Permalink to this heading"></a></h1>
+<p>LAVIS executes training and evaluation based on arguments specified in the configuration files. The default model and dataset configurations are defined in <code class="docutils literal notranslate"><span class="pre">lavis/configs</span></code>. The task-specific configurations are defined in <code class="docutils literal notranslate"><span class="pre">lavis/projects</span></code>. Task-specific configurations have higher priority over the default configurations.</p>
+<p>The following tables provide explanations for the arguments in the configuration files.</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Model Configurations</p></th>
+<th class="head"><p>Functionalities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>arch</p></td>
+<td><div class="line-block">
+<div class="line">name of the model from the model zoo</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>model_type</p></td>
+<td><div class="line-block">
+<div class="line">the type of the model (e.g., base)</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>load_pretrained</p></td>
+<td><div class="line-block">
+<div class="line">load pretrained weights</div>
+<div class="line">default: True (for finetuning task) | False (for pretraining task)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>load_finetuned</p></td>
+<td><div class="line-block">
+<div class="line">load task-specific finetuned weights</div>
+<div class="line">default: False (for finetuning task) | True (for evaluation)</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>pretrained</p></td>
+<td><div class="line-block">
+<div class="line">URL or local path which stores the pretrained model, defined in the default model configuration file</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>finetuned</p></td>
+<td><div class="line-block">
+<div class="line">URL or local path which stores the finetuned model, defined in the default model configuration file</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Dataset Configurations</p></th>
+<th class="head"><p>Functionalities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>vis_processor</p></td>
+<td><div class="line-block">
+<div class="line">pre-processing of visual input</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>text_processor</p></td>
+<td><div class="line-block">
+<div class="line">pre-processing of text input</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>build_info</p></td>
+<td><div class="line-block">
+<div class="line">dataset information including the storage location, defined in the default dataset configuration file</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Runtime Configurations</p></th>
+<th class="head"><p>Functionalities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>task</p></td>
+<td><div class="line-block">
+<div class="line">name of the task</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>lr_sched</p></td>
+<td><div class="line-block">
+<div class="line">learning rate schedular</div>
+<div class="line">default: linear_warmup_cosine_lr</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>init_lr</p></td>
+<td><div class="line-block">
+<div class="line">initial learning rate (after warmup)</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>min_lr</p></td>
+<td><div class="line-block">
+<div class="line">final learning rate after decay</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>warmup_lr</p></td>
+<td><div class="line-block">
+<div class="line">starting learning rate for warmup</div>
+<div class="line">default: init_lr (no warmup)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>lr_decay_rate</p></td>
+<td><div class="line-block">
+<div class="line">learning rate decay per epoch for step_lr_shedule</div>
+<div class="line">default: 0.9</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>warmup_steps</p></td>
+<td><div class="line-block">
+<div class="line">number of steps for learning rate warmup</div>
+<div class="line">default: 0</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>max_epoch</p></td>
+<td><div class="line-block">
+<div class="line">total number of training epochs</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>weight_decay</p></td>
+<td><div class="line-block">
+<div class="line">weight decay coefficient for the optimizer</div>
+<div class="line">default: 0.05</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>batch_size_train</p></td>
+<td><div class="line-block">
+<div class="line">batch size during training</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>batch_size_eval</p></td>
+<td><div class="line-block">
+<div class="line">batch size during evaluation</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>seed</p></td>
+<td><div class="line-block">
+<div class="line">pseudo random number generator seed</div>
+<div class="line">default: 42</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>output_dir</p></td>
+<td><div class="line-block">
+<div class="line">directory to store logs, results and checkpoints</div>
+<div class="line">default: task-dependent</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>resume_ckpt_path</p></td>
+<td><div class="line-block">
+<div class="line">path of the checkpoint to resume training from</div>
+<div class="line">default: None</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>evaluate</p></td>
+<td><div class="line-block">
+<div class="line">only perform evaluation without training</div>
+<div class="line">default: False</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>train_splits</p></td>
+<td><div class="line-block">
+<div class="line">dataset splits used for training</div>
+<div class="line">default: [“train”]</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>valid_splits</p></td>
+<td><div class="line-block">
+<div class="line">dataset splits used for validation</div>
+<div class="line">default: [“val”]</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>test</p></td>
+<td><div class="line-block">
+<div class="line">dataset splits used for test</div>
+<div class="line">default: [“test”]</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>device</p></td>
+<td><div class="line-block">
+<div class="line">use cpu or gpu (cuda)</div>
+<div class="line">default: cuda</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>world_size</p></td>
+<td><div class="line-block">
+<div class="line">number of processes participating in the job</div>
+<div class="line">default: 1</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>dist_url</p></td>
+<td><div class="line-block">
+<div class="line">URL specifying how to initialize the process group</div>
+<div class="line">default: “env://”</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>distributed</p></td>
+<td><div class="line-block">
+<div class="line">use distributed training</div>
+<div class="line">default: True</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>amp</p></td>
+<td><div class="line-block">
+<div class="line">use automatic mixed precision training</div>
+<div class="line">default: False</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Text Generation Configurations</p></th>
+<th class="head"><p>Functionalities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>max_len</p></td>
+<td><div class="line-block">
+<div class="line">maximum number of text tokens to generate</div>
+<div class="line">default: 20 (for image captioning)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>min_len</p></td>
+<td><div class="line-block">
+<div class="line">minimum number of text tokens to generate</div>
+<div class="line">default: 5 (for image captioning)</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p>num_beams</p></td>
+<td><div class="line-block">
+<div class="line">number of beams to perform beam search</div>
+<div class="line">default: 3</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 56%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Multimodal Retrieval Configurations</p></th>
+<th class="head"><p>Functionalities</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>negative_all_rank</p></td>
+<td><div class="line-block">
+<div class="line">collect negatives from all processes for the image-text matching loss</div>
+<div class="line">default: True (for coco)</div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p>k_test</p></td>
+<td><div class="line-block">
+<div class="line">number of retrieval candidates ranked from contrastive similarity</div>
+<div class="line">default: 256 (for coco)</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.train.html" class="btn btn-neutral float-left" title="Fine-tuning Pre-trained Models on Task Datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.datasets.html" class="btn btn-neutral float-right" title="Adding Datasets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

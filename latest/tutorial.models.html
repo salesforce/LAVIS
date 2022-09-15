@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adding Models &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Adding Tasks" href="tutorial.tasks.html" />
+    <link rel="prev" title="Adding Processors" href="tutorial.processors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial.evaluation.html">Evaluating Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.train.html">Fine-tuning Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.configurations.html">Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.datasets.html">Adding Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.processors.html">Adding Processors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Adding Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-model-lavis-models-base-model">Base Model <code class="docutils literal notranslate"><span class="pre">lavis.models.base_model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpt-style-video-grounded-dialogue-model-lavis-models-gpt-models-gpt-dialogue">GPT-style Video-grounded Dialogue Model <code class="docutils literal notranslate"><span class="pre">lavis.models.gpt_models.gpt_dialogue</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#registering-new-model-lavis-models-init">Registering New Model <code class="docutils literal notranslate"><span class="pre">lavis.models.__init__</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-model">Assigning Model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.tasks.html">Adding Tasks</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+      <li>Adding Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="adding-models">
+<h1>Adding Models<a class="headerlink" href="#adding-models" title="Permalink to this heading"></a></h1>
+<p>This is a tutorial on adding new models using <code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> module.</p>
+<p>The LAVIS library includes a standard model module that builds the foundation for many major language-vision models such as <a class="reference external" href="https://arxiv.org/pdf/2107.07651.pdf">ALBEF</a>,
+<a class="reference external" href="https://arxiv.org/pdf/2201.12086.pdf">BLIP</a>, <a class="reference external" href="https://arxiv.org/pdf/2112.09583.pdf">ALPRO</a>, and <a class="reference external" href="https://arxiv.org/pdf/2103.00020.pdf">CLIP</a>.
+The <code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> module is designed such that any new models can be added and integrated into the LAVIS library, with minimal steps to develop training and testing procedures.
+In this tutorial, we will replicate the steps to add a GPT-style model specifically for <a class="reference external" href="https://arxiv.org/pdf/1901.09107.pdf">video-grounded dialogue tasks</a>.</p>
+<section id="base-model-lavis-models-base-model">
+<h2>Base Model <code class="docutils literal notranslate"><span class="pre">lavis.models.base_model</span></code><a class="headerlink" href="#base-model-lavis-models-base-model" title="Permalink to this heading"></a></h2>
+<p>Note that any new model definition should inherit the base model class <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">OmegaConf</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+
+<span class="kn">from</span> <span class="nn">lavis.common.utils</span> <span class="kn">import</span> <span class="n">get_abs_path</span>
+
+<span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for models.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">forward_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Similar to *forward* but only return features.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">load_from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url_or_filename</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cfg</span><span class="p">:</span>
+            <span class="c1"># useful when building model without a provided configuration file</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">default_config_path</span><span class="p">(</span><span class="n">model_type</span><span class="p">))</span><span class="o">.</span><span class="n">model</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build a pretrained model from the default configuration file, specified by model_type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_from_config</span><span class="p">(</span><span class="n">cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="n">model_type</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">device</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">device</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">default_config_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">model_type</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">PRETRAINED_MODEL_CONFIG_DICT</span>
+        <span class="p">),</span> <span class="s2">&quot;Unknown model type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">get_abs_path</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">PRETRAINED_MODEL_CONFIG_DICT</span><span class="p">[</span><span class="n">model_type</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">before_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">show_n_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">return_str</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">tot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+            <span class="n">w</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="n">w</span> <span class="o">*=</span> <span class="n">x</span>
+            <span class="n">tot</span> <span class="o">+=</span> <span class="n">w</span>
+        <span class="k">if</span> <span class="n">return_str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tot</span> <span class="o">&gt;=</span> <span class="mf">1e6</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">M&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tot</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{:.1f}</span><span class="s2">K&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tot</span> <span class="o">/</span> <span class="mf">1e3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tot</span>
+</pre></div>
+</div>
+<p>In this base model, we already declare and standardize many common methods such as <code class="docutils literal notranslate"><span class="pre">_from_config</span></code> and <code class="docutils literal notranslate"><span class="pre">_from_pretrained</span></code>.
+Inheriting this base model class allows us to standardize operations of models across all model classes while still allowing customizations.
+We advise users not to change the implementation of the base model class as this will affect all existing model subclasses.</p>
+</section>
+<section id="gpt-style-video-grounded-dialogue-model-lavis-models-gpt-models-gpt-dialogue">
+<h2>GPT-style Video-grounded Dialogue Model <code class="docutils literal notranslate"><span class="pre">lavis.models.gpt_models.gpt_dialogue</span></code><a class="headerlink" href="#gpt-style-video-grounded-dialogue-model-lavis-models-gpt-models-gpt-dialogue" title="Permalink to this heading"></a></h2>
+<p>In this step, we can define a new model class, e.g. under <code class="docutils literal notranslate"><span class="pre">lavis.models.gpt_models.gpt_dialogue</span></code>, for GPT-based dialogue models designed specifically for video-grounded dialogues.
+Note that we assume the model class inherits from the standard model super class <code class="docutils literal notranslate"><span class="pre">GPT2LMHeadModel</span></code> from the <code class="docutils literal notranslate"><span class="pre">transformers</span></code> <a class="reference external" href="https://huggingface.co/docs/transformers/index">library</a>.
+We also enforce model integration to the LAVIS framework through the inheritance of the <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> from the LAVIS library, as the secondary super class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">lavis.common.registry</span> <span class="kn">import</span> <span class="n">registry</span>
+<span class="kn">from</span> <span class="nn">lavis.models.base_model</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="kn">from</span> <span class="nn">transformers</span> <span class="kn">import</span> <span class="n">GPT2Model</span><span class="p">,</span> <span class="n">GPT2LMHeadModel</span>
+<span class="kn">from</span> <span class="nn">transformers.modeling_outputs</span> <span class="kn">import</span> <span class="n">CausalLMOutputWithCrossAttentions</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">from</span> <span class="nn">torch.nn</span> <span class="kn">import</span> <span class="n">CrossEntropyLoss</span><span class="p">,</span> <span class="n">MSELoss</span>
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_model</span><span class="p">(</span><span class="s2">&quot;gpt_dialogue&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GPTDialogue</span><span class="p">(</span><span class="n">GPT2LMHeadModel</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Next, we can modify the architecture of the model during model initialization to fit the tasks of interest, i.e. video-grounded dialogues.
+In this case, we want to add additional model parameters for a linear network to transform the video feature representations to the model dimension.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GPTDialogue</span><span class="p">(</span><span class="n">GPT2LMHeadModel</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">len_video_ft</span><span class="o">=</span><span class="mi">4224</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">video_ff</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">len_video_ft</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_embd</span><span class="p">)</span>
+
+        <span class="c1"># Model parallel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_parallel</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device_map</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Initialize weights and apply final processing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_init</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note that for each new model class, we advise redefining the <code class="docutils literal notranslate"><span class="pre">from_config</span></code> method which is inherited from the <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> class.
+As each model usually has its own unique configurations, redefining the method will ensure the model instances are created properly.
+For instance, <code class="docutils literal notranslate"><span class="pre">GPTDialogue</span></code> requires an additional parameter of video feature length (<code class="docutils literal notranslate"><span class="pre">len_video_ft</span></code>) which should be part of the model initialization procedure.
+Another additional parameter is the number of tokens/words (as we include additional special tokens in the vocabulary for dialogue tasks).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GPTDialogue</span><span class="p">(</span><span class="n">GPT2LMHeadModel</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;gpt2&#39;</span><span class="p">,</span> <span class="n">len_video_ft</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;len_video_ft&#39;</span><span class="p">])</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">resize_token_embeddings</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;len_tokenizer&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>Other basic methods should also be defined explicitly in the new model class, including the <code class="docutils literal notranslate"><span class="pre">forward</span></code> function.
+For instance, in GPT models for video-grounded dialogue tasks, we want the forward operation also includes the transformation and integration of video features before passing the representations to the Transformer layers.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GPTDialogue</span><span class="p">(</span><span class="n">GPT2LMHeadModel</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span>
+                <span class="n">past_key_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">position_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">head_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">encoder_hidden_states</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">encoder_attention_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">output_attentions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">output_hidden_states</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">return_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+            <span class="n">input_embs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">wte</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="s1">&#39;input_ids&#39;</span><span class="p">])</span>
+            <span class="n">video_embs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">video_ff</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="s1">&#39;video_fts&#39;</span><span class="p">])</span>
+            <span class="n">input_embs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">video_embs</span><span class="p">,</span> <span class="n">input_embs</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">transformer_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="p">(</span>
+                <span class="n">attention_mask</span><span class="o">=</span><span class="n">samples</span><span class="p">[</span><span class="s1">&#39;attn_mask&#39;</span><span class="p">],</span>
+                <span class="n">token_type_ids</span><span class="o">=</span><span class="n">samples</span><span class="p">[</span><span class="s1">&#39;token_type_ids&#39;</span><span class="p">],</span>
+                <span class="n">inputs_embeds</span><span class="o">=</span><span class="n">input_embs</span><span class="p">,</span>
+                <span class="n">position_ids</span><span class="o">=</span><span class="n">position_ids</span><span class="p">,</span>
+                <span class="n">head_mask</span><span class="o">=</span><span class="n">head_mask</span><span class="p">,</span>
+                <span class="n">encoder_hidden_states</span><span class="o">=</span><span class="n">encoder_hidden_states</span><span class="p">,</span>
+                <span class="n">encoder_attention_mask</span><span class="o">=</span><span class="n">encoder_attention_mask</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
+                <span class="n">output_attentions</span><span class="o">=</span><span class="n">output_attentions</span><span class="p">,</span>
+                <span class="n">output_hidden_states</span><span class="o">=</span><span class="n">output_hidden_states</span><span class="p">,</span>
+                <span class="n">return_dict</span><span class="o">=</span><span class="n">return_dict</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">transformer_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">lm_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+            <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="registering-new-model-lavis-models-init">
+<h2>Registering New Model <code class="docutils literal notranslate"><span class="pre">lavis.models.__init__</span></code><a class="headerlink" href="#registering-new-model-lavis-models-init" title="Permalink to this heading"></a></h2>
+<p>Any new model must be officially registered as part of the <code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> module.
+For instance, to add a model class for GPT-based dialogue models, we can modify the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models.gpt_models.gpt_dialogue</span> <span class="kn">import</span> <span class="n">GPTDialogue</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span>
+    <span class="s2">&quot;GPTDialogue&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="assigning-model">
+<h2>Assigning Model<a class="headerlink" href="#assigning-model" title="Permalink to this heading"></a></h2>
+<p>From the above example of a model class, note that we define a <code class="docutils literal notranslate"><span class="pre">from_config</span> <span class="pre">method</span></code> for the new model class.
+This method will process a configuration file and pass specific parameters to initialize the model classes properly.
+To do this, we can assign/ associate the correct registry of model classes in a configuration file.
+For instance, the following should be specified in a configuration file e.g. <code class="docutils literal notranslate"><span class="pre">dialogue_avsd_ft.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">model</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">arch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt_dialogue</span><span class="w"> </span><span class="c1"># name of the model</span><span class="w"></span>
+<span class="w">  </span><span class="nt">model_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">base</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Subsequently, any processes (e.g. training) should load this configuration file to assign the correct model.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python train.py --cfg-path dialogue_avsd_ft.yaml
+</pre></div>
+</div>
+<p>Note that to simplify the model configuration, we only enable two main parameters here: <code class="docutils literal notranslate"><span class="pre">arch</span></code> and <code class="docutils literal notranslate"><span class="pre">model_type</span></code>. <code class="docutils literal notranslate"><span class="pre">arch</span></code> refers to the model class registry, and <code class="docutils literal notranslate"><span class="pre">model_type</span></code> is the corresponding model type under this model family.
+For instance, with <code class="docutils literal notranslate"><span class="pre">gpt_dialogue</span></code>, we have a model <code class="docutils literal notranslate"><span class="pre">base</span></code> which has its own configuration in a separate configuration file e.g. <code class="docutils literal notranslate"><span class="pre">gpt_dialogue_base.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">model</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">arch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gpt_dialogue</span><span class="w"></span>
+<span class="w">  </span><span class="nt">len_tokenizer</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50264</span><span class="w"> </span><span class="c1"># 50257 tokens from gpt2 default tokenizer + additional special tokens</span><span class="w"></span>
+<span class="w">  </span><span class="nt">len_video_ft</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4224</span><span class="w"> </span><span class="c1"># i3d_rgb: 2048 i3d_flow: 2048 vggish: 128</span><span class="w"></span>
+</pre></div>
+</div>
+<p>We can pass load this configuration and pass the parameters to the above <code class="docutils literal notranslate"><span class="pre">from_config</span></code> method to initialize the model accordingly.
+We advise the users to maintain a dictionary that contains default paths to model configurations, in the model class definition.
+By default, the LAVIS framework will search for configurations from each model class defined as <code class="docutils literal notranslate"><span class="pre">model.PRETRAINED_MODEL_CONFIG_DICT</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GPTDialogue</span><span class="p">(</span><span class="n">GPT2LMHeadModel</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">PRETRAINED_MODEL_CONFIG_DICT</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;base&quot;</span><span class="p">:</span> <span class="s2">&quot;configs/models/gpt_dialogue_base.yaml&quot;</span>
+        <span class="p">}</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.processors.html" class="btn btn-neutral float-left" title="Adding Processors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.tasks.html" class="btn btn-neutral float-right" title="Adding Tasks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

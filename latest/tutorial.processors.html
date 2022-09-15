@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adding Processors &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Adding Models" href="tutorial.models.html" />
+    <link rel="prev" title="Adding Datasets" href="tutorial.datasets.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial.evaluation.html">Evaluating Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.train.html">Fine-tuning Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.configurations.html">Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.datasets.html">Adding Datasets</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Adding Processors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#base-processor-lavis-processors-base-processors">Base Processor <code class="docutils literal notranslate"><span class="pre">lavis.processors.base_processors</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpt-style-processors-lavis-processors-gpt-processors">GPT-style Processors <code class="docutils literal notranslate"><span class="pre">lavis.processors.gpt_processors</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#registering-new-processors-lavis-processors-init">Registering New Processors <code class="docutils literal notranslate"><span class="pre">lavis.processors.__init__</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#assigning-processors">Assigning Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.models.html">Adding Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.tasks.html">Adding Tasks</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+      <li>Adding Processors</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.processors.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="adding-processors">
+<h1>Adding Processors<a class="headerlink" href="#adding-processors" title="Permalink to this heading"></a></h1>
+<p>This is a tutorial on adding new processors using <code class="docutils literal notranslate"><span class="pre">lavis.processors</span></code> module.</p>
+<p>The LAVIS library includes a standard processor module that preprocesses data e.g. image transformation and sequence concatenation.
+The <code class="docutils literal notranslate"><span class="pre">lavis.processors</span></code> module is designed such that any processors can be added, specifically to the requirements of corresponding models of interest.
+In this tutorial, we will replicate the steps to add visual and textual processors specifically for <a class="reference external" href="https://arxiv.org/pdf/1901.09107.pdf">video-grounded dialogue tasks</a>.
+In addition, we also want the processors to have processing features to make the data samples compatible with GPT-style models.</p>
+<section id="base-processor-lavis-processors-base-processors">
+<h2>Base Processor <code class="docutils literal notranslate"><span class="pre">lavis.processors.base_processors</span></code><a class="headerlink" href="#base-processor-lavis-processors-base-processors" title="Permalink to this heading"></a></h2>
+<p>Note that any new processor definition should inherit the base processor class <code class="docutils literal notranslate"><span class="pre">BaseProcessor</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">OmegaConf</span>
+
+<span class="k">class</span> <span class="nc">BaseProcessor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This allows us to standardize operations of processors across all processor classes while still allowing customization of processors specifically to data and model types.
+We encourage users not to modify the implementation of the base processor class as this will have an impact on all existing processor subclasses.</p>
+</section>
+<section id="gpt-style-processors-lavis-processors-gpt-processors">
+<h2>GPT-style Processors <code class="docutils literal notranslate"><span class="pre">lavis.processors.gpt_processors</span></code><a class="headerlink" href="#gpt-style-processors-lavis-processors-gpt-processors" title="Permalink to this heading"></a></h2>
+<p>In this step, we can define new processor classes, e.g. under <code class="docutils literal notranslate"><span class="pre">lavis.processors.gpt_processors</span></code>, for GPT models designed specifically for video-grounded dialogues.
+First, we want to process video features by defining <code class="docutils literal notranslate"><span class="pre">GPTVideoFeatureProcessor</span></code> class.
+In this tutorial, we assume video features are extracted beforehand and this processor simply loads the features from <code class="docutils literal notranslate"><span class="pre">npy</span></code> files.
+Other methods that are specifically defined are <code class="docutils literal notranslate"><span class="pre">padding</span></code> (which is used by dataset instances to pad multiple video samples) and <code class="docutils literal notranslate"><span class="pre">get_attention_mask</span></code> (which creates an attention mask for Transformer attention in GPT models).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SPECIAL_TOKENS_DICT</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;bos_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;bos&gt;&quot;</span><span class="p">,</span> <span class="s1">&#39;eos_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">,</span> <span class="s1">&#39;additional_special_tokens&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;speaker1&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;speaker2&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;video&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;cap&gt;&quot;</span><span class="p">],</span> <span class="s1">&#39;pad_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">}</span>
+<span class="o">...</span>
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;gpt_video_ft&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GPTVideoFeatureProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">visual_ft</span><span class="p">,</span> <span class="n">audio_ft</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">visual_ft</span> <span class="o">=</span> <span class="n">visual_ft</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audio_ft</span> <span class="o">=</span> <span class="n">audio_ft</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">GPT2Tokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;gpt2&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">add_special_tokens</span><span class="p">(</span><span class="n">SPECIAL_TOKENS_DICT</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+        <span class="n">padded_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">pad_sequence</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding_value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">padded_seq</span>
+
+    <span class="k">def</span> <span class="nf">get_attention_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">seq</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ft_root</span><span class="p">,</span> <span class="n">vname</span><span class="p">):</span>
+        <span class="n">all_ft</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">ft_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">visual_ft</span><span class="p">:</span>
+            <span class="n">ft_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ft_root</span><span class="p">,</span> <span class="n">ft_name</span><span class="p">,</span> <span class="n">vname</span><span class="p">)</span>
+            <span class="n">all_ft</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ft_path</span> <span class="o">+</span> <span class="s1">&#39;.npy&#39;</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">ft_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_ft</span><span class="p">:</span>
+            <span class="n">ft_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ft_root</span><span class="p">,</span> <span class="n">ft_name</span><span class="p">,</span> <span class="n">vname</span><span class="p">)</span>
+            <span class="n">all_ft</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ft_path</span> <span class="o">+</span> <span class="s1">&#39;.npy&#39;</span><span class="p">))</span>
+
+        <span class="n">min_len</span> <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">ft</span><span class="p">)</span> <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">all_ft</span><span class="p">])</span>
+
+        <span class="n">sampled_ft</span> <span class="o">=</span> <span class="p">[</span><span class="n">ft</span><span class="p">[:</span><span class="n">min_len</span><span class="p">]</span> <span class="k">for</span> <span class="n">ft</span> <span class="ow">in</span> <span class="n">all_ft</span><span class="p">]</span>
+        <span class="n">sampled_ft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">sampled_ft</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">item</span><span class="p">[</span><span class="s1">&#39;video_fts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">sampled_ft</span><span class="p">)</span>
+
+        <span class="n">video_type_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">convert_tokens_to_ids</span><span class="p">(</span><span class="s1">&#39;&lt;video&gt;&#39;</span><span class="p">)</span>
+        <span class="n">item</span><span class="p">[</span><span class="s1">&#39;token_type_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">([</span><span class="n">video_type_token</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">sampled_ft</span><span class="p">))</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">item</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+        <span class="n">visual_ft</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;visual_ft&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;i3d_rgb&quot;</span><span class="p">])</span>
+        <span class="n">audio_ft</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;audio_ft&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;vggish&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">visual_ft</span><span class="o">=</span><span class="n">visual_ft</span><span class="p">,</span>
+            <span class="n">audio_ft</span><span class="o">=</span><span class="n">audio_ft</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+<p>Another processor class that will be useful to have is to process dialogue data. Here we can define a <code class="docutils literal notranslate"><span class="pre">GPTDialogueProcessor</span></code> class.
+This processor class receives raw annotations and constructs inputs as a concatenation of input sequences (questions, dialogue contexts, and responses) to facilitate application in GPT models.
+Other methods that are specifically defined are <code class="docutils literal notranslate"><span class="pre">padding</span></code> (which is used by dataset instances to pad multiple sequence samples) and <code class="docutils literal notranslate"><span class="pre">get_attention_mask</span></code> (which creates an attention mask for Transformer attention in GPT models).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SPECIAL_TOKENS_DICT</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;bos_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;bos&gt;&quot;</span><span class="p">,</span> <span class="s1">&#39;eos_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">,</span> <span class="s1">&#39;additional_special_tokens&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&lt;speaker1&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;speaker2&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;video&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;cap&gt;&quot;</span><span class="p">],</span> <span class="s1">&#39;pad_token&#39;</span><span class="p">:</span> <span class="s2">&quot;&lt;pad&gt;&quot;</span><span class="p">}</span>
+<span class="o">...</span>
+
+<span class="nd">@registry</span><span class="o">.</span><span class="n">register_processor</span><span class="p">(</span><span class="s2">&quot;gpt_dialogue&quot;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">GPTDialogueProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_turns</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">use_caption</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_turns</span> <span class="o">=</span> <span class="n">max_turns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_caption</span> <span class="o">=</span> <span class="n">use_caption</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">GPT2Tokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;gpt2&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">add_special_tokens</span><span class="p">(</span><span class="n">SPECIAL_TOKENS_DICT</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">sample_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span> <span class="n">history</span><span class="p">,</span> <span class="n">answer</span><span class="p">):</span>
+        <span class="n">bos</span><span class="p">,</span> <span class="n">eos</span><span class="p">,</span> <span class="n">speaker1</span><span class="p">,</span> <span class="n">speaker2</span><span class="p">,</span> <span class="n">cap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">convert_tokens_to_ids</span><span class="p">(</span><span class="n">SPECIAL_TOKENS</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">instance</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="p">[</span><span class="n">caption</span><span class="p">]</span> <span class="o">+</span> <span class="n">history</span> <span class="o">+</span> <span class="p">[</span><span class="n">answer</span><span class="p">]</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="o">+</span> <span class="p">[</span><span class="n">eos</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">]</span>
+
+        <span class="n">instance</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="n">sequence</span><span class="p">))</span>
+        <span class="n">instance</span><span class="p">[</span><span class="s2">&quot;token_type_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cap</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="p">[</span><span class="n">speaker2</span> <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">speaker1</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sequence</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+        <span class="n">instance</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span> <span class="o">+</span> <span class="n">sequence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">instance</span><span class="p">[</span><span class="s2">&quot;input_ids&quot;</span><span class="p">])</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">instance</span><span class="p">[</span><span class="s2">&quot;token_type_ids&quot;</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">instance</span><span class="p">[</span><span class="s2">&quot;token_type_ids&quot;</span><span class="p">])</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">instance</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">instance</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">instance</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">instance</span>
+
+    <span class="k">def</span> <span class="nf">padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">pad_token</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pad_token</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span> <span class="n">pad_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">pad_token_id</span>
+        <span class="n">padded_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">pad_sequence</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding_value</span><span class="o">=</span><span class="n">pad_token</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">padded_seq</span>
+
+    <span class="k">def</span> <span class="nf">get_attention_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">pad_token</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pad_token</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span> <span class="n">pad_token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">pad_token_id</span>
+        <span class="k">return</span> <span class="n">seq</span> <span class="o">!=</span> <span class="n">pad_token</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_caption</span><span class="p">:</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;caption&#39;</span><span class="p">],</span> <span class="n">ann</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">]])</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">caption</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">dial_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">turn</span> <span class="ow">in</span> <span class="n">ann</span><span class="p">[</span><span class="s1">&#39;dialog&#39;</span><span class="p">][</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_turns</span><span class="p">:]:</span>
+            <span class="n">dial_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">turn</span><span class="p">[</span><span class="s1">&#39;question&#39;</span><span class="p">])</span>
+            <span class="n">dial_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">turn</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">])</span>
+        <span class="n">dial_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;question&#39;</span><span class="p">])</span>
+        <span class="n">dial_history</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">dial_history</span><span class="p">]</span>
+
+        <span class="n">answer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">])</span>
+
+        <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_sequence</span><span class="p">(</span><span class="n">caption</span><span class="p">,</span> <span class="n">dial_history</span><span class="p">,</span> <span class="n">answer</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">item</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cfg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cfg</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+        <span class="n">use_caption</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_caption&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">max_turns</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_turns&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">max_turns</span><span class="o">=</span><span class="n">max_turns</span><span class="p">,</span> <span class="n">use_caption</span><span class="o">=</span><span class="n">use_caption</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="registering-new-processors-lavis-processors-init">
+<h2>Registering New Processors <code class="docutils literal notranslate"><span class="pre">lavis.processors.__init__</span></code><a class="headerlink" href="#registering-new-processors-lavis-processors-init" title="Permalink to this heading"></a></h2>
+<p>Finally, any new processor must be officially registered as part of the <code class="docutils literal notranslate"><span class="pre">lavis.processors</span></code> module.
+For instance, to add processor classes for GPT-based dialogue models, including one for dialogue data <code class="docutils literal notranslate"><span class="pre">GPTDialogueProcessor</span></code> and one for video features <code class="docutils literal notranslate"><span class="pre">GPTVideoFeatureProcessor</span></code>, we can modify the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.processors.gpt_processors</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GPTVideoFeatureProcessor</span><span class="p">,</span>
+    <span class="n">GPTDialogueProcessor</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="o">...</span>
+    <span class="c1"># GPT</span>
+    <span class="s2">&quot;GPTVideoFeatureProcessor&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GPTDialogueProcessor&quot;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="assigning-processors">
+<h2>Assigning Processors<a class="headerlink" href="#assigning-processors" title="Permalink to this heading"></a></h2>
+<p>From the above example of processor classes, note that we define a <code class="docutils literal notranslate"><span class="pre">from_config</span></code> method for each class.
+This method will process a configuration file and pass specific parameters e.g. <code class="docutils literal notranslate"><span class="pre">max_turns</span></code>, <code class="docutils literal notranslate"><span class="pre">visual_ft</span></code>, to initialize the processor classes properly.
+To do this, we can assign/ associate the correct registry of processor classes in a configuration file.
+For instance, the following should be specified in a configuration file e.g. <code class="docutils literal notranslate"><span class="pre">dialogue_avsd_ft.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="nt">avsd_dialogue</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="w">    </span><span class="nt">vis_processor</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gpt_video_ft&quot;</span><span class="w"> </span><span class="c1"># name of the visual processor for training data</span><span class="w"></span>
+<span class="w">          </span><span class="nt">visual_ft</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;i3d_flow&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;i3d_rgb&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="w">          </span><span class="nt">audio_ft</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;vggish&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="w">        </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gpt_video_ft&quot;</span><span class="w"> </span><span class="c1"># name of the visual processor for evaluation data</span><span class="w"></span>
+<span class="w">          </span><span class="nt">visual_ft</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;i3d_flow&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;i3d_rgb&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="w">          </span><span class="nt">audio_ft</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;vggish&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="w">    </span><span class="nt">text_processor</span><span class="p">:</span><span class="w"></span>
+<span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gpt_dialogue&quot;</span><span class="w"> </span><span class="c1"># name of the textual processor for training data</span><span class="w"></span>
+<span class="w">          </span><span class="nt">max_turns</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"></span>
+<span class="w">          </span><span class="nt">use_caption</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w"></span>
+<span class="w">        </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;gpt_dialogue&quot;</span><span class="w"> </span><span class="c1"># name of the textual processor for evaluation data</span><span class="w"></span>
+<span class="w">          </span><span class="nt">max_turns</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"></span>
+<span class="w">          </span><span class="nt">use_caption</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Subsequently, any processes (e.g. training) should load this configuration file to assign the correct processors.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python train.py --cfg-path dialogue_avsd_ft.yaml
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.datasets.html" class="btn btn-neutral float-left" title="Adding Datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.models.html" class="btn btn-neutral float-right" title="Adding Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Dongxu Li, Junnan Li, Hung Le, Steven C.H. Hoi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
