@@ -50,7 +50,7 @@ Visual Dialogue                           BLIP                        VisDial   
 Video-text Retrieval                      BLIP, ALPRO                 MSRVTT, DiDeMo                               video, text  
 Text-video Retrieval                      BLIP, ALPRO                 MSRVTT, DiDeMo                               video, text  
 Video Question Answering (VideoQA)        BLIP, ALPRO                 MSRVTT, MSVD                                 video, text  
-Video Dialogue                                                                                                     video, text  
+Video Dialogue                            VGD-GPT                     AVSD                                         video, text  
 Multimodal Feature Extraction             ALBEF, CLIP, BLIP, ALPRO    customized                                   image, text  
 ======================================== =========================== ============================================= ============ 
 
