@@ -31,7 +31,11 @@ It features a unified design to access
 Commons, SBU, etc.);
 - **30+** pretrained weights of state-of-the-art foundation language-vision models and their task-specific adaptations, including [ALBEF](https://arxiv.org/pdf/2107.07651.pdf),
 [BLIP](https://arxiv.org/pdf/2201.12086.pdf), [ALPRO](https://arxiv.org/pdf/2112.09583.pdf), [CLIP](https://arxiv.org/pdf/2103.00020.pdf).
-
+<p align="center">
+    <br>
+    <img src="assets/browser-6.png"/>
+    <br>
+<p>
 
 This library aims to provide engineers and researchers with a one-stop solution to rapidly develop models for their specific multimodal
 scenarios, and benchmark them across standard and customized datasets.
@@ -226,11 +230,6 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 - **Benchmarks**: see [Benchmark](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions to evaluate and train supported models.
 - **Dataset Download and Browsing**: see [Dataset Download](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions and automatic tools on download common language-vision datasets.
 - **GUI Demo**: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
-<p align="center">
-    <br>
-    <img src="assets/browser-6.png"/>
-    <br>
-<p>
 
 
 ## Documentations
