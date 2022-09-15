@@ -17,6 +17,7 @@
     - [Visual question answering (VQA)](#visual-question-answering-vqa)
     - [Load Datasets](#load-datasets)
   - [Resources and Tools](#resources-and-tools)
+  - [Documentations](#documentations)
   - [Technical Report and Citing LAVIS](#technical-report-and-citing-lavis)
   - [Contact Us](#contact-us)
   - [License](#license)
@@ -238,13 +239,15 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ```
 
 ## Resources and Tools
-- GUI Demo: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
-- Benchmarks: see [Benchmark](markdown/benchmark.md) for instructions to evaluate and train supported models.
-- Dataset Download and Browsing: see [Dataset Download](markdown/instructions.md) for instructions and automatic tools on download common language-vision datasets.
-- How to Contribute: we welcome the contribution from the open-source community to improve the library.
+- **GUI Demo**: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
+- **Benchmarks**: see [Benchmark](markdown/benchmark.md) for instructions to evaluate and train supported models.
+- **Dataset Download and Browsing**: see [Dataset Download](markdown/instructions.md) for instructions and automatic tools on download common language-vision datasets.
 
-To add a new tasks, datasets and models into the library, please follow the template and steps demonstrated in this
+
+## Documentations
+For more details and advanced usages, please refer to
 [documentation](https://cuddly-giggle-94dc5918.pages.github.io/latest/tutorial.html#).
+
 
 ## Technical Report and Citing LAVIS
 You can find more details in our technical report: [TBD]()
