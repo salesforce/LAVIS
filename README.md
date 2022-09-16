@@ -4,6 +4,14 @@
     <br>
 <p>
 
+<div align="center">
+  <a href="https://opensource.org/licenses/BSD-3-Clause">
+  <img alt="license" src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg"/>
+  <a href="https://opensource.salesforce.com/LAVIS/index.html">
+  <img alt="docs" src="https://github.com/salesforce/LAVIS/actions/workflows/docs.yaml/badge.svg"/>
+  </a>
+</div>
+
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## Table of Contents
