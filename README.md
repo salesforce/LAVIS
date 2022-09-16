@@ -33,7 +33,7 @@ Commons, SBU, etc.);
 [BLIP](https://arxiv.org/pdf/2201.12086.pdf), [ALPRO](https://arxiv.org/pdf/2112.09583.pdf), [CLIP](https://arxiv.org/pdf/2103.00020.pdf).
 <p align="center">
     <br>
-    <img src="assets/browser-6.png"/>
+    <img src="assets/demo-6.png"/>
     <br>
 <p>
 
@@ -186,13 +186,13 @@ sample = {"image": image, "text_input": [text_input]}
 
 features_multimodal = model.extract_features(sample)
 print(features_multimodal.multimodal_embeds.shape)
-# torch.Size([1, 9, 768])
+# torch.Size([1, 12, 768])
 features_image = model.extract_features(sample, mode="image")
 print(features_image.image_embeds.shape)
 # torch.Size([1, 197, 768])
 features_text = model.extract_features(sample, mode="text")
 print(features_text.text_embeds.shape)
-# torch.Size([1, 9, 768])
+# torch.Size([1, 12, 768])
 ```
 
 ### Load Datasets
