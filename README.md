@@ -5,10 +5,11 @@
 <p>
 
 <div align="center">
-  <a href="https://opensource.org/licenses/BSD-3-Clause">
-  <img alt="license" src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg"/>
+  <a href="https://github.com/salesforce/LAVIS/releases"><img alt="Latest Release" src="https://img.shields.io/github/release/salesforce/LAVIS.svg" /></a>
   <a href="https://opensource.salesforce.com/LAVIS/index.html">
   <img alt="docs" src="https://github.com/salesforce/LAVIS/actions/workflows/docs.yaml/badge.svg"/>
+  <a href="https://opensource.org/licenses/BSD-3-Clause">
+  <img alt="license" src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg"/>
   </a>
 </div>
 
