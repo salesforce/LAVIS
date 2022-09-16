@@ -15,6 +15,7 @@
     - [Model Zoo](#model-zoo)
     - [Image Captioning](#image-captioning)
     - [Visual question answering (VQA)](#visual-question-answering-vqa)
+    - [Unified Feature Extraction Interface](#unified-feature-extraction-interface)
     - [Load Datasets](#load-datasets)
   - [Resources and Tools](#resources-and-tools)
   - [Documentations](#documentations)
@@ -170,9 +171,9 @@ model.predict_answers(samples={"image": image, "text_input": question}, inferenc
 # ['singapore']
 ```
 
-Unified Feature Extraction Interface
+### Unified Feature Extraction Interface
 
-LAVIS provides a unified interface to extract multimodal features from each architecture.
+LAVIS provides a unified interface to extract multimodal features from each architecture. 
 To extract features, we load the feature extractor variants of each model.
 
 ```python
@@ -180,7 +181,7 @@ from lavis.models import load_model_and_preprocess
 model, vis_processors, txt_processors = load_model_and_preprocess(name="blip_feature_extractor", model_type="base", is_eval=True, device=device)
 caption = "a large fountain spewing water into the air"
 image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
-text_input = txt_processors["eval"](question)
+text_input = txt_processors["eval"](caption)
 sample = {"image": image, "text_input": [text_input]}
 
 features_multimodal = model.extract_features(sample)
