@@ -180,9 +180,9 @@ class BlipFeatureExtractor(BlipBase):
 
         return BlipOutputFeatures(
             image_embeds=image_embeds,
-            image_features=image_features,
+            image_embeds_proj=image_features,
             text_embeds=text_embeds,
-            text_features=text_features,
+            text_embeds_proj=text_features,
             multimodal_embeds=multimodal_embeds,
         )
 

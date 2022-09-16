@@ -244,10 +244,10 @@ class TestBlip:
         assert features_multimodal.multimodal_embeds.shape == torch.Size([1, 12, 768])
 
         assert features_text.text_embeds.shape == torch.Size([1, 12, 768])
-        assert features_text.text_features.shape == torch.Size([1, 12, 256])
+        assert features_text.text_embeds_proj.shape == torch.Size([1, 12, 256])
 
         assert features_image.image_embeds.shape == torch.Size([1, 197, 768])
-        assert features_image.image_features.shape == torch.Size([1, 197, 256])
+        assert features_image.image_embeds_proj.shape == torch.Size([1, 197, 256])
 
         assert torch.mean(features_multimodal.image_embeds).item() == pytest.approx(
             -0.02032, precision
@@ -259,14 +259,14 @@ class TestBlip:
         assert torch.mean(features_text.text_embeds).item() == pytest.approx(
             -6.6098e-5, precision
         )
-        assert torch.mean(features_text.text_features).item() == pytest.approx(
+        assert torch.mean(features_text.text_embeds_proj).item() == pytest.approx(
             -0.002149, precision
         )
 
         assert torch.mean(features_image.image_embeds).item() == pytest.approx(
             -0.02032, precision
         )
-        assert torch.mean(features_image.image_features).item() == pytest.approx(
+        assert torch.mean(features_image.image_embeds_proj).item() == pytest.approx(
             -0.0023, precision
         )
 

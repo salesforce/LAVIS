@@ -108,9 +108,9 @@ class BlipOutputFeatures(ModelOutput):
     """
 
     image_embeds: Optional[torch.FloatTensor] = None
-    image_features: Optional[torch.FloatTensor] = None
+    image_embeds_proj: Optional[torch.FloatTensor] = None
 
     text_embeds: Optional[torch.FloatTensor] = None
-    text_features: Optional[torch.FloatTensor] = None
+    text_embeds_proj: Optional[torch.FloatTensor] = None
 
     multimodal_embeds: Optional[torch.FloatTensor] = None

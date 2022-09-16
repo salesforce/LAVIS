@@ -579,11 +579,11 @@ class CLIP(BaseModel):
             return self.encode_text(text)
         elif text is None:
             return self.encode_image(image)
-        image_features = self.encode_image(image)
-        image_features = F.normalize(image_features, dim=-1)
+        image_embeds = self.encode_image(image)
+        image_features = F.normalize(image_embeds, dim=-1)
 
-        text_features = self.encode_text(text)
-        text_features = F.normalize(text_features, dim=-1)
+        text_embeds = self.encode_text(text)
+        text_features = F.normalize(text_embeds, dim=-1)
 
         loss = self.loss(image_features, text_features, self.logit_scale.exp())
 
@@ -591,7 +591,10 @@ class CLIP(BaseModel):
         # return {"loss": loss}
         return ClipOutput(
             intermediate_output=ClipOutputFeatures(
-                image_features=image_features, text_features=text_features
+                image_embeds=image_embeds,
+                image_embeds_proj=image_features,
+                text_embeds=text_embeds,
+                text_embeds_proj=text_features,
             ),
             loss=loss,
             logit_scale_exp=self.logit_scale.exp(),
@@ -629,9 +632,9 @@ class CLIP(BaseModel):
 
         return ClipOutputFeatures(
             image_embeds=image_embeds,
-            image_features=image_features,
+            image_embeds_proj=image_features,
             text_embeds=text_embeds,
-            text_features=text_features,
+            text_embeds_proj=text_features,
         )
 
     def predict(self, samples):
