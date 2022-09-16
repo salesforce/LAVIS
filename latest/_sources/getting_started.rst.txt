@@ -195,7 +195,7 @@ The multimodal feature can be used for multimodal classification. The low-dimens
     print(features_multimodal.keys())
     # odict_keys(['image_embeds', 'multimodal_embeds'])
     print(features_multimodal.multimodal_embeds.shape)
-    # torch.Size([1, 9, 768]), use features_multimodal[:,0,:] for multimodal classification tasks
+    # torch.Size([1, 12, 768]), use features_multimodal[:, 0, :] for multimodal classification tasks
 
     features_image = model.extract_features(sample, mode="image")
     print(features_image.keys())
