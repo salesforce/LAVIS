@@ -297,11 +297,11 @@ The multimodal feature can be used for multimodal classification. The low-dimens
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># odict_keys([&#39;text_embeds&#39;, &#39;text_embeds_proj&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="c1"># torch.Size([1, 9, 768])</span>
+<span class="c1"># torch.Size([1, 12, 768])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds_proj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="c1"># torch.Size([1, 9, 256])</span>
+<span class="c1"># torch.Size([1, 12, 256])</span>
 
-<span class="n">similarity</span> <span class="o">=</span> <span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds_proj</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">@</span> <span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds_proj</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>
+<span class="n">similarity</span> <span class="o">=</span> <span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds_proj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">@</span> <span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds_proj</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">similarity</span><span class="p">)</span>
 <span class="c1"># tensor([[0.2622]])</span>
 </pre></div>

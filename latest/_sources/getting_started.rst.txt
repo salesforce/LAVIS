@@ -209,11 +209,11 @@ The multimodal feature can be used for multimodal classification. The low-dimens
     print(features_text.keys())
     # odict_keys(['text_embeds', 'text_embeds_proj'])
     print(features_text.text_embeds.shape)
-    # torch.Size([1, 9, 768])
+    # torch.Size([1, 12, 768])
     print(features_text.text_embeds_proj.shape)
-    # torch.Size([1, 9, 256])
+    # torch.Size([1, 12, 256])
     
-    similarity = features_image.image_embeds_proj[:,0,:] @ features_text.text_embeds_proj[:,0,:].t()
+    similarity = features_image.image_embeds_proj[:, 0, :] @ features_text.text_embeds_proj[:, 0, :].t()
     print(similarity)
     # tensor([[0.2622]])
 
