@@ -26,7 +26,6 @@ setup(
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     keywords="Vision-Language, Deep Learning, Library",
-    # url="https://github.com/salesforce/omnixai",
     license="3-Clause BSD",
     packages=find_namespace_packages(include="lavis.*"),
     install_requires=fetch_requirements("requirements-dev.txt"),
