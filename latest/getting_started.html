@@ -267,14 +267,15 @@ passed to <code class="docutils literal notranslate"><span class="pre">load_mode
 <section id="unified-feature-extraction-interface">
 <h1>Unified Feature Extraction Interface<a class="headerlink" href="#unified-feature-extraction-interface" title="Permalink to this heading"></a></h1>
 <p>LAVIS provides a unified interface to extract multimodal features from each architecture.
-To extract features, we load the feature extractor variants of each model.</p>
+To extract features, we load the feature extractor variants of each model.
+The multimodal feature can be used for multimodal classification. The low-dimensional unimodal features can be used to compute cross-modal similarity.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">load_model_and_preprocess</span>
 
 <span class="n">model</span><span class="p">,</span> <span class="n">vis_processors</span><span class="p">,</span> <span class="n">txt_processors</span> <span class="o">=</span> <span class="n">load_model_and_preprocess</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;blip_feature_extractor&quot;</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="n">is_eval</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
 <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;a large fountain spewing water into the air&quot;</span>
 
 <span class="n">image</span> <span class="o">=</span> <span class="n">vis_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">raw_image</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-<span class="n">text_input</span> <span class="o">=</span> <span class="n">txt_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">question</span><span class="p">)</span>
+<span class="n">text_input</span> <span class="o">=</span> <span class="n">txt_processors</span><span class="p">[</span><span class="s2">&quot;eval&quot;</span><span class="p">](</span><span class="n">caption</span><span class="p">)</span>
 
 <span class="n">sample</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;image&quot;</span><span class="p">:</span> <span class="n">image</span><span class="p">,</span> <span class="s2">&quot;text_input&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">text_input</span><span class="p">]}</span>
 
@@ -282,14 +283,14 @@ To extract features, we load the feature extractor variants of each model.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_multimodal</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 <span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;multimodal_embeds&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_multimodal</span><span class="o">.</span><span class="n">multimodal_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="c1"># torch.Size([1, 9, 768])</span>
+<span class="c1"># torch.Size([1, 9, 768]), use features_multimodal[:,0,:] for multimodal classification tasks</span>
 
 <span class="n">features_image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-<span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;image_features&#39;])</span>
+<span class="c1"># odict_keys([&#39;image_embeds&#39;, &#39;image_embeds_proj&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># torch.Size([1, 197, 768])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds_proj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># torch.Size([1, 197, 256])</span>
 
 <span class="n">features_text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
@@ -297,8 +298,12 @@ To extract features, we load the feature extractor variants of each model.</p>
 <span class="c1"># odict_keys([&#39;text_embeds&#39;, &#39;text_features&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># torch.Size([1, 9, 768])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds_proj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># torch.Size([1, 9, 256])</span>
+
+<span class="n">similarity</span> <span class="o">=</span> <span class="n">features_image</span><span class="o">.</span><span class="n">image_embeds_proj</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">@</span> <span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds_proj</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">t</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">similarity</span><span class="p">)</span>
+<span class="c1"># tensor([[0.2622]])</span>
 </pre></div>
 </div>
 <p>Since LAVIS supports a unified feature extraction interface, minimal changes are necessary to use a different model as feature extractor. For example,

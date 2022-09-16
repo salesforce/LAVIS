@@ -177,6 +177,7 @@ Unified Feature Extraction Interface
 
 LAVIS provides a unified interface to extract multimodal features from each architecture.
 To extract features, we load the feature extractor variants of each model.
+The multimodal feature can be used for multimodal classification. The low-dimensional unimodal features can be used to compute cross-modal similarity.
 
 .. code-block:: python
 
@@ -186,7 +187,7 @@ To extract features, we load the feature extractor variants of each model.
     caption = "a large fountain spewing water into the air"
 
     image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
-    text_input = txt_processors["eval"](question)
+    text_input = txt_processors["eval"](caption)
 
     sample = {"image": image, "text_input": [text_input]}
 
@@ -194,14 +195,14 @@ To extract features, we load the feature extractor variants of each model.
     print(features_multimodal.keys())
     # odict_keys(['image_embeds', 'multimodal_embeds'])
     print(features_multimodal.multimodal_embeds.shape)
-    # torch.Size([1, 9, 768])
+    # torch.Size([1, 9, 768]), use features_multimodal[:,0,:] for multimodal classification tasks
 
     features_image = model.extract_features(sample, mode="image")
     print(features_image.keys())
-    # odict_keys(['image_embeds', 'image_features'])
+    # odict_keys(['image_embeds', 'image_embeds_proj'])
     print(features_image.image_embeds.shape)
     # torch.Size([1, 197, 768])
-    print(features_image.image_features.shape)
+    print(features_image.image_embeds_proj.shape)
     # torch.Size([1, 197, 256])
 
     features_text = model.extract_features(sample, mode="text")
@@ -209,8 +210,12 @@ To extract features, we load the feature extractor variants of each model.
     # odict_keys(['text_embeds', 'text_features'])
     print(features_text.text_embeds.shape)
     # torch.Size([1, 9, 768])
-    print(features_text.text_features.shape)
+    print(features_text.text_embeds_proj.shape)
     # torch.Size([1, 9, 256])
+    
+    similarity = features_image.image_embeds_proj[:,0,:] @ features_text.text_embeds_proj[:,0,:].t()
+    print(similarity)
+    # tensor([[0.2622]])
 
 Since LAVIS supports a unified feature extraction interface, minimal changes are necessary to use a different model as feature extractor. For example,
 to use ALBEF as the feature extractor, one only needs to change the following line:
