@@ -33,7 +33,7 @@
 ## Introduction
 LAVIS is a Python deep learning library for LAnguage-and-VISion intelligence research and applications. This library aims to provide engineers and researchers with a one-stop solution to rapidly develop models for their specific multimodal scenarios, and benchmark them across standard and customized datasets.
 It features a unified interface design to access
-- **10+** common tasks
+- **10+** tasks
 (retrieval, captioning, visual question answering, multimodal classification etc.);
 - **20+** datasets (COCO, Flickr, Nocaps, Conceptual
 Commons, SBU, etc.);
