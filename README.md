@@ -16,8 +16,6 @@
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## Table of Contents
-<!-- - [LAVIS - A Library for Language-Vision Intelligence](#lavis---a-library-for-language-vision-intelligence) -->
-  <!-- - [Table of Contents](#table-of-contents) -->
   - [Introduction](#introduction)
   - [Installation](#installation)
   - [Getting Started](#getting-started)
@@ -28,6 +26,7 @@
     - [Load Datasets](#load-datasets)
   - [Resources and Tools](#resources-and-tools)
   - [Documentations](#documentations)
+  - [Ethical and Responsible Use](#ethical-and-responsible-use)
   - [Technical Report and Citing LAVIS](#technical-report-and-citing-lavis)
   - [License](#license)
 
@@ -255,6 +254,10 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ## Documentations
 For more details and advanced usages, please refer to
 [documentation](https://opensource.salesforce.com/LAVIS//latest/index.html#).
+
+## Ethical and Responsible Use
+We note that models in LAVIS provide no guarantees on their multimodal abilities; incorrect or biased predictions may be observed. In particular, the datasets and pretrained models utilized in LAVIS may contain socioeconomic biases which could result in misclassification and other unwanted behaviors such as offensive or inappropriate speech. We strongly recommend that users review the pre-trained models and overall system in LAVIS before practical adoption. We plan to improve the library by investigating and mitigating these potential biases and
+inappropriate behaviors in the future.
 
 
 ## Technical Report and Citing LAVIS
