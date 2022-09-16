@@ -7,8 +7,8 @@
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## Table of Contents
-- [LAVIS - A Library for Language-Vision Intelligence](#lavis---a-library-for-language-vision-intelligence)
-  - [Table of Contents](#table-of-contents)
+<!-- - [LAVIS - A Library for Language-Vision Intelligence](#lavis---a-library-for-language-vision-intelligence) -->
+  <!-- - [Table of Contents](#table-of-contents) -->
   - [Introduction](#introduction)
   - [Installation](#installation)
   - [Getting Started](#getting-started)
