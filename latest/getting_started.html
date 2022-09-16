@@ -295,7 +295,7 @@ The multimodal feature can be used for multimodal classification. The low-dimens
 
 <span class="n">features_text</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">extract_features</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-<span class="c1"># odict_keys([&#39;text_embeds&#39;, &#39;text_features&#39;])</span>
+<span class="c1"># odict_keys([&#39;text_embeds&#39;, &#39;text_embeds_proj&#39;])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># torch.Size([1, 9, 768])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">features_text</span><span class="o">.</span><span class="n">text_embeds_proj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
