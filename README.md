@@ -195,7 +195,7 @@ print(features_text.text_embeds.shape)
 ```
 
 ### Load Datasets
-LAVIS inherently supports a wide variety of common language-vision datasets by providing [automatic download tools](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) to help download and organize these datasets. After downloading, to load the datasets, use the following code:
+LAVIS inherently supports a wide variety of common language-vision datasets by providing [automatic download tools](https://opensource.salesforce.com/LAVIS//latest/benchmark) to help download and organize these datasets. After downloading, to load the datasets, use the following code:
 
 ```python
 from lavis.datasets.builders import dataset_zoo
@@ -227,14 +227,14 @@ coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ```
 
 ## Resources and Tools
-- **Benchmarks**: see [Benchmark](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions to evaluate and train supported models.
-- **Dataset Download and Browsing**: see [Dataset Download](https://cuddly-giggle-94dc5918.pages.github.io/latest/benchmark) for instructions and automatic tools on download common language-vision datasets.
+- **Benchmarks**: see [Benchmark](https://opensource.salesforce.com/LAVIS//latest/benchmark) for instructions to evaluate and train supported models.
+- **Dataset Download and Browsing**: see [Dataset Download](https://opensource.salesforce.com/LAVIS//latest/benchmark) for instructions and automatic tools on download common language-vision datasets.
 - **GUI Demo**: to run the demo locally, run ```bash run_scripts/run_demo.sh``` and then follow the instruction on the prompts to view in browser.
 
 
 ## Documentations
 For more details and advanced usages, please refer to
-[documentation](https://cuddly-giggle-94dc5918.pages.github.io/latest/index.html#).
+[documentation](https://opensource.salesforce.com/LAVIS//latest/index.html#).
 
 
 ## Technical Report and Citing LAVIS
