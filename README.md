@@ -88,7 +88,7 @@ conda activate lavis
 2. Cloning and building from source
 
 ```bash
-git clone https://github.com/MetaMind/LAVIS.git
+git clone https://github.com/salesforce/LAVIS.git
 cd LAVIS
 pip install .
 ```
