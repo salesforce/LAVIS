@@ -32,12 +32,17 @@ from lavis.processors import load_processor
     allow_output_mutation=True,
 )
 def load_feat():
-    path2feat = torch.load(
-        os.path.join(
-            os.path.dirname(__file__),
-            "resources/path2feat_coco_train2014.pth",
-        )
-    )
+    from lavis.common.utils import download_url
+
+    dirname = os.path.join(os.path.dirname(__file__), "assets")
+    filename = "path2feat_coco_train2014.pth"
+    filepath = os.path.join(dirname, filename)
+    url = "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/assets/path2feat_coco_train2014.pth"
+
+    if not os.path.exists(filepath):
+        download_url(url=url, root=dirname, filename="path2feat_coco_train2014.pth")
+
+    path2feat = torch.load(filepath)
     paths = sorted(path2feat.keys())
 
     all_img_feats = torch.stack([path2feat[k] for k in paths], dim=0).to(device)
@@ -98,7 +103,7 @@ def app():
     with torch.no_grad():
         text_feature = feature_extractor.extract_features(
             sample, mode="text"
-        ).text_features[0, 0]
+        ).text_embeds_proj[0, 0]
 
         path2feat, paths, all_img_feats = load_feat()
         all_img_feats.to(device)
