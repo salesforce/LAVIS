@@ -139,10 +139,10 @@ def app():
                 with torch.no_grad():
                     image_features = feature_extractor.extract_features(
                         sample, mode="image"
-                    ).image_features[:, 0]
+                    ).image_embeds_proj[:, 0]
                     text_features = feature_extractor.extract_features(
                         sample, mode="text"
-                    ).text_features[:, 0]
+                    ).text_embeds_proj[:, 0]
                     sims = (image_features @ text_features.t())[
                         0
                     ] / feature_extractor.temp
@@ -173,10 +173,10 @@ def app():
         #     with torch.no_grad():
         #         image_features = feature_extractor.extract_features(
         #             sample, mode="image"
-        #         ).image_features[:, 0]
+        #         ).image_embeds_proj[:, 0]
         #         text_features = feature_extractor.extract_features(
         #             sample, mode="text"
-        #         ).text_features[:, 0]
+        #         ).text_embeds_proj[:, 0]
 
         #         st.write(image_features.shape)
         #         st.write(text_features.shape)
@@ -206,8 +206,8 @@ def app():
                 with torch.no_grad():
                     clip_features = model.extract_features(sample)
 
-                    image_features = clip_features.image_features
-                    text_features = clip_features.text_features
+                    image_features = clip_features.image_embeds_proj
+                    text_features = clip_features.text_embeds_proj
 
                     image_features /= image_features.norm(dim=-1, keepdim=True)
                     text_features /= text_features.norm(dim=-1, keepdim=True)

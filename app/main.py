@@ -17,7 +17,7 @@ if __name__ == "__main__":
     app = MultiPage()
 
     app.add_page("Image Description Generation", caption.app)
-    # app.add_page("Multimodal Search", ms.app)
+    app.add_page("Multimodal Search", ms.app)
     app.add_page("Visual Question Answering", vqa.app)
     app.add_page("Image Text Matching", itm.app)
     app.add_page("Text Localization", tl.app)
