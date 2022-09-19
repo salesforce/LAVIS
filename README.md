@@ -51,7 +51,7 @@ Key features of LAVIS include:
 
 - **Easy Off-the-shelf Inference and Feature Extraction**: readily available pre-trained models let you take advantage of state-of-the-art multimodal understanding and generation capabilities on your own data.
 
-- **Reproducible Model Zoo**: provided training/pre-training recipies to easily replicate and extend state-of-the-art models.
+- **Reproducible Model Zoo**: provided training/pre-training recipes to easily replicate and extend state-of-the-art models.
 
 - **Dataset Zoo and Automatic Downloading Tools**: it can be a hassle to prepare the many language-vision datasets. LAVIS provides automatic downloaing scripts to help prepare a large variety of datasets and their annotations.
 
