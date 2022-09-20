@@ -5,7 +5,8 @@ Tutorials
    :maxdepth: 1
 
    tutorial.evaluation
-   tutorial.train
+   tutorial.training-example
+   tutorial.configs
    tutorial.datasets
    tutorial.processors
    tutorial.models
