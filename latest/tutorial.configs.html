@@ -21,7 +21,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adding Datasets" href="tutorial.datasets.html" />
-    <link rel="prev" title="Evaluating Pre-trained Models on Task Datasets" href="tutorial.evaluation.html" /> 
+    <link rel="prev" title="Example on Finetuning BLIP on COCO-Captioning" href="tutorial.training-example.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -59,6 +59,8 @@
 <li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorials</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="tutorial.evaluation.html">Evaluating Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.training-example.html">Example on Finetuning BLIP on COCO-Captioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.training-example.html#available-configurations">Available Configurations</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Training Models on Task Datasets (Commands and Configurations)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.datasets.html">Adding Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.processors.html">Adding Processors</a></li>
@@ -85,7 +87,7 @@
           <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
       <li>Training Models on Task Datasets (Commands and Configurations)</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/tutorial.train.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/tutorial.configs.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -118,7 +120,7 @@
 }
 </style>
 <section id="training-models-on-task-datasets-commands-and-configurations">
-<h1>Training Models on Task Datasets (Commands and Configurations)<a class="headerlink" href="#training-models-on-task-datasets-commands-and-configurations" title="Permalink to this heading"></a></h1>
+<span id="config"></span><h1>Training Models on Task Datasets (Commands and Configurations)<a class="headerlink" href="#training-models-on-task-datasets-commands-and-configurations" title="Permalink to this heading"></a></h1>
 <p>LAVIS provides scripts to pre-train and finetune supported models on standard language-vision tasks, stored at <code class="docutils literal notranslate"><span class="pre">lavis/run_scripts/</span></code>.
 To replicate the experiments, just run these bash scripts. For example, to train BLIP model on the image-text retrieval task with MSCOCO dataset, we can run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="n">run_scripts</span><span class="o">/</span><span class="n">lavis</span><span class="o">/</span><span class="n">blip</span><span class="o">/</span><span class="n">train</span><span class="o">/</span><span class="n">train_retrieval_coco</span><span class="o">.</span><span class="n">sh</span>
@@ -461,7 +463,7 @@ the task, model, dataset and training recipes.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="tutorial.evaluation.html" class="btn btn-neutral float-left" title="Evaluating Pre-trained Models on Task Datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.training-example.html" class="btn btn-neutral float-left" title="Example on Finetuning BLIP on COCO-Captioning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="tutorial.datasets.html" class="btn btn-neutral float-right" title="Adding Datasets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example on Finetuning BLIP on COCO-Captioning &mdash; LAVIS  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Training Models on Task Datasets (Commands and Configurations)" href="tutorial.configs.html" />
+    <link rel="prev" title="Evaluating Pre-trained Models on Task Datasets" href="tutorial.evaluation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> LAVIS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#supported-tasks-models-and-datasets">Supported Tasks, Models and Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#library-design">Library Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#installation">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Dataset Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#auto-downloading-and-loading-datasets">Auto-Downloading and Loading Datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#model-zoo">Model Zoo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#inference-with-pre-trained-models">Inference with Pre-trained Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html#unified-feature-extraction-interface">Unified Feature Extraction Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Advanced Usage</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial.evaluation.html">Evaluating Pre-trained Models on Task Datasets</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example on Finetuning BLIP on COCO-Captioning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#deep-dive">Deep Dive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model-configurations">Model configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataset-configurations">Dataset configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#runner-configurations">Runner configurations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#available-configurations">Available Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.configs.html">Training Models on Task Datasets (Commands and Configurations)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.datasets.html">Adding Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.processors.html">Adding Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.models.html">Adding Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.tasks.html">Adding Tasks</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LAVIS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+      <li>Example on Finetuning BLIP on COCO-Captioning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.training-example.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="example-on-finetuning-blip-on-coco-captioning">
+<h1>Example on Finetuning BLIP on COCO-Captioning<a class="headerlink" href="#example-on-finetuning-blip-on-coco-captioning" title="Permalink to this heading"></a></h1>
+<p>To finetune BLIP model on the coco caption dataset, first refer to <a class="reference internal" href="tutorial.evaluation.html#prep-coco"><span class="std std-ref">Preparing Datasets</span></a> to prepare the dataset if you have not done so.</p>
+<p>To finetune the model, we have prepared a run script for you, which can run as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash run_scripts/lavis/blip/train/train_caption_coco_large.sh
+</pre></div>
+</div>
+<p>This will finetune the pre-trained BLIP large model into a new model that can be used for captioning.</p>
+<section id="deep-dive">
+<h2>Deep Dive<a class="headerlink" href="#deep-dive" title="Permalink to this heading"></a></h2>
+<p>Now let’s take a closer look at the script and see what it does.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m torch.distributed.run --nproc_per_node<span class="o">=</span><span class="m">8</span> train.py --cfg-path lavis/projects/blip/train/caption_coco_large_ft.yaml
+</pre></div>
+</div>
+<p>As can be seen, the script simply calls the <code class="code docutils literal notranslate"><span class="pre">train.py</span></code> with PyTorch distributed training enabled.
+The <code class="code docutils literal notranslate"><span class="pre">--cfg-path</span></code> argument specifies the <strong>runtime config</strong> file to use. The config file is a YAML file that specifies the training parameters, shown as follows:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="w"> </span><span class="c1"># Copyright (c) 2022, salesforce.com, inc.</span><span class="w"></span>
+<span class="linenos"> 2</span><span class="w"> </span><span class="c1"># All rights reserved.</span><span class="w"></span>
+<span class="linenos"> 3</span><span class="w"> </span><span class="c1"># SPDX-License-Identifier: BSD-3-Clause</span><span class="w"></span>
+<span class="linenos"> 4</span><span class="w"> </span><span class="c1"># For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause</span><span class="w"></span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="nt">model</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 7</span><span class="w">  </span><span class="nt">arch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blip_caption</span><span class="w"></span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="w">  </span><span class="nt">model_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">large_coco</span><span class="w"></span>
+<span class="linenos">10</span><span class="w">  </span><span class="nt">load_finetuned</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">13</span><span class="w">  </span><span class="nt">coco_caption</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="linenos">14</span><span class="w">    </span><span class="nt">vis_processor</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">15</span><span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">16</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_image_train&quot;</span><span class="w"></span>
+<span class="linenos">17</span><span class="w">        </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">18</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_image_eval&quot;</span><span class="w"></span>
+<span class="linenos">19</span><span class="w">    </span><span class="nt">text_processor</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">20</span><span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">21</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_caption&quot;</span><span class="w"></span>
+<span class="linenos">22</span><span class="w">          </span><span class="nt">prompt</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;a</span><span class="nv"> </span><span class="s">picture</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">&quot;</span><span class="w"></span>
+<span class="linenos">23</span><span class="w">        </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">24</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_caption&quot;</span><span class="w"></span>
+<span class="linenos">25</span>
+<span class="linenos">26</span><span class="nt">run</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">27</span><span class="w">  </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">captioning</span><span class="w"></span>
+<span class="linenos">28</span><span class="w">  </span><span class="c1"># optimizer</span><span class="w"></span>
+<span class="linenos">29</span><span class="w">  </span><span class="nt">lr_sched</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;linear_warmup_cosine_lr&quot;</span><span class="w"></span>
+<span class="linenos">30</span><span class="w">  </span><span class="nt">init_lr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2e-6</span><span class="w"></span>
+<span class="linenos">31</span><span class="w">  </span><span class="nt">min_lr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"></span>
+<span class="linenos">32</span><span class="w">  </span><span class="nt">weight_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span><span class="w"></span>
+<span class="linenos">33</span><span class="w">  </span><span class="nt">max_epoch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w"></span>
+<span class="linenos">34</span><span class="w">  </span><span class="nt">batch_size_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span><span class="w"></span>
+<span class="linenos">35</span><span class="w">  </span><span class="nt">batch_size_eval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span><span class="w"></span>
+<span class="linenos">36</span><span class="w">  </span><span class="nt">num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w"></span>
+<span class="linenos">37</span>
+<span class="linenos">38</span><span class="w">  </span><span class="nt">max_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span><span class="w"></span>
+<span class="linenos">39</span><span class="w">  </span><span class="nt">min_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w"></span>
+<span class="linenos">40</span><span class="w">  </span><span class="nt">num_beams</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"></span>
+<span class="linenos">41</span>
+<span class="linenos">42</span><span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">42</span><span class="w"></span>
+<span class="linenos">43</span><span class="w">  </span><span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;output/BLIP/Caption_coco&quot;</span><span class="w"></span>
+<span class="linenos">44</span>
+<span class="linenos">45</span><span class="w">  </span><span class="nt">amp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
+<span class="linenos">46</span><span class="w">  </span><span class="nt">resume_ckpt_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w"></span>
+<span class="linenos">47</span>
+<span class="linenos">48</span><span class="w">  </span><span class="nt">evaluate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"> </span>
+<span class="linenos">49</span><span class="w">  </span><span class="nt">train_splits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;train&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="linenos">50</span><span class="w">  </span><span class="nt">valid_splits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;val&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="linenos">51</span><span class="w">  </span><span class="nt">test_splits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;test&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="linenos">52</span>
+<span class="linenos">53</span><span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cuda&quot;</span><span class="w"></span>
+<span class="linenos">54</span><span class="w">  </span><span class="nt">world_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
+<span class="linenos">55</span><span class="w">  </span><span class="nt">dist_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;env://&quot;</span><span class="w"></span>
+<span class="linenos">56</span><span class="w">  </span><span class="nt">distributed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w"></span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>The runtime config file is divided into 3 sections:</dt><dd><ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">model</span></code>: specifies the model architecture and type to use.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">data</span></code>: specifies the dataset to use.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">run</span></code>: specifies the runner arguments, such as tasks, optimizer, learning rate scheduler, etc.</p></li>
+</ul>
+</dd>
+</dl>
+<p>We describe each section in detail below.</p>
+<section id="model-configurations">
+<h3>Model configurations<a class="headerlink" href="#model-configurations" title="Permalink to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="nt">model</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">2</span><span class="w">  </span><span class="nt">arch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">blip_caption</span><span class="w"></span>
+<span class="linenos">3</span>
+<span class="linenos">4</span><span class="w">  </span><span class="nt">model_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">large_coco</span><span class="w"></span>
+<span class="linenos">5</span><span class="w">  </span><span class="nt">load_finetuned</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="code docutils literal notranslate"><span class="pre">arch</span></code> argument specifies the model architecture to use. In this case, we use the <code class="code docutils literal notranslate"><span class="pre">blip_caption</span></code> architecture.
+You can find available architectures by inspecting the <code class="code docutils literal notranslate"><span class="pre">model_zoo</span></code>.
+Once the architecture is specified, the runner will look for the model class registered with the name and try to instantiate a model instance.
+In this case <code class="code docutils literal notranslate"><span class="pre">BlipCaption</span></code> is the model registered with the name <code class="code docutils literal notranslate"><span class="pre">blip_caption</span></code>.</p>
+<p>The registry maintains a mapping from the name string to the model class.
+This allows the runner to find the model class dynamically based on the name string from the config file.
+The following segment in <code class="code docutils literal notranslate"><span class="pre">lavis/models/blip_models/blip_caption.py</span></code> shows how <code class="code docutils literal notranslate"><span class="pre">BlipCaption</span></code> is registered with the name string <code class="code docutils literal notranslate"><span class="pre">blip_caption</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nd">@registry</span><span class="o">.</span><span class="n">register_model</span><span class="p">(</span><span class="s2">&quot;blip_caption&quot;</span><span class="p">)</span>
+<span class="linenos"> 2</span><span class="k">class</span> <span class="nc">BlipCaption</span><span class="p">(</span><span class="n">BlipBase</span><span class="p">):</span>
+<span class="linenos"> 3</span>    <span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 4</span><span class="sd">    BLIP captioning model.</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="sd">    Supported model types:</span>
+<span class="linenos"> 7</span><span class="sd">        - base_coco: fine-tuned BLIP base model on COCO caption dataset (Karparthy split).</span>
+<span class="linenos"> 8</span><span class="sd">        - large_coco: fine-tuned BLIP large model on COCO caption dataset (Karparthy split).</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="sd">    Usage:</span>
+<span class="linenos">11</span><span class="sd">        &gt;&gt;&gt; from lavis.models import load_model</span>
+<span class="linenos">12</span><span class="sd">        &gt;&gt;&gt; model = load_model(&quot;blip_caption&quot;, &quot;base_coco&quot;)</span>
+<span class="linenos">13</span><span class="sd">        &gt;&gt;&gt; model = load_model(&quot;blip_caption&quot;, &quot;large_coco&quot;)</span>
+<span class="linenos">14</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span>    <span class="n">PRETRAINED_MODEL_CONFIG_DICT</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">17</span>        <span class="s2">&quot;base_coco&quot;</span><span class="p">:</span> <span class="s2">&quot;configs/models/blip_caption_base_coco.yaml&quot;</span><span class="p">,</span>
+<span class="linenos">18</span>        <span class="s2">&quot;large_coco&quot;</span><span class="p">:</span> <span class="s2">&quot;configs/models/blip_caption_large_coco.yaml&quot;</span><span class="p">,</span>
+<span class="linenos">19</span>    <span class="p">}</span>
+</pre></div>
+</div>
+<p>One same model architecture may be pre-trained or finetuned on different datasets or have different model configurations.
+For example, <code class="code docutils literal notranslate"><span class="pre">BlipCaption</span></code> have:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">base_coco</span></code>: pre-trained base BLIP model adapated for COCO captioning finetuning.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">large_coco</span></code>: pre-trained large BLIP model adapated for COCO captioning finetuning.</p></li>
+</ul>
+</div></blockquote>
+<p>Therefore, we also need to specify <code class="code docutils literal notranslate"><span class="pre">model_type</span></code>. Here we use <code class="code docutils literal notranslate"><span class="pre">large_coco</span></code>.
+And we set <code class="code docutils literal notranslate"><span class="pre">load_finetuned</span></code> to <code class="code docutils literal notranslate"><span class="pre">False</span></code> to indicate that we are finetuning the model from the pre-trained weights.
+If <code class="code docutils literal notranslate"><span class="pre">load_finetuned</span></code> set to <code class="code docutils literal notranslate"><span class="pre">True</span></code> as by default, the model will load finetuned weights on coco captioning.</p>
+<p>Given the model architecture and type, the library will then look for the default model config for <code class="code docutils literal notranslate"><span class="pre">large_coco</span></code> in <code class="code docutils literal notranslate"><span class="pre">lavis/models/blip_models/blip_caption.py</span></code>.
+As can be seen in the above code snippet, the corresponding config path is stored in <code class="code docutils literal notranslate"><span class="pre">BlipCaption.PRETRAINED_MODEL_CONFIG_DICT</span></code>.
+Then the library will load <code class="code docutils literal notranslate"><span class="pre">lavis/configs/models/blip_caption_large_coco.yaml</span></code> as the configuration to build the model.</p>
+<p><em>Priority of Configs</em>: Note that the priority of the run config is higher than the default model config, meaning that arguments in the run config will override the default model config.
+For example, in the default model config, <code class="code docutils literal notranslate"><span class="pre">load_finetuned</span></code> is set to <code class="code docutils literal notranslate"><span class="pre">True</span></code> by default, while in the run config, we set it to <code class="code docutils literal notranslate"><span class="pre">False</span></code> and finetuning from the pre-trained weights only.</p>
+</section>
+<section id="dataset-configurations">
+<h3>Dataset configurations<a class="headerlink" href="#dataset-configurations" title="Permalink to this heading"></a></h3>
+<p>The second section of the config file specifies the dataset(s) to use.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 2</span><span class="w">  </span><span class="nt">coco_caption</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="linenos"> 3</span><span class="w">    </span><span class="nt">vis_processor</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 4</span><span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 5</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_image_train&quot;</span><span class="w"></span>
+<span class="linenos"> 6</span><span class="w">        </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 7</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_image_eval&quot;</span><span class="w"></span>
+<span class="linenos"> 8</span><span class="w">    </span><span class="nt">text_processor</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 9</span><span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">10</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_caption&quot;</span><span class="w"></span>
+<span class="linenos">11</span><span class="w">          </span><span class="nt">prompt</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;a</span><span class="nv"> </span><span class="s">picture</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">&quot;</span><span class="w"></span>
+<span class="linenos">12</span><span class="w">        </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">13</span><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_caption&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>We associate each dataset with a <code class="code docutils literal notranslate"><span class="pre">vis_processor</span></code> and a <code class="code docutils literal notranslate"><span class="pre">text_processor</span></code>, responsible for processing the visual and textual input respectively.
+Here we again use the registry mechanism to dynamically load the processor class based on the name string.
+For example, <code class="code docutils literal notranslate"><span class="pre">blip_image_train</span></code> is the name string for the <code class="code docutils literal notranslate"><span class="pre">BlipImageTrainProcessor</span></code> class, which is registered in <code class="code docutils literal notranslate"><span class="pre">lavis/processors/blip_processors.py</span></code>.</p>
+<p>Similarly, the dataset name string is also registered in the registry, pointing to a dataset builder <code class="code docutils literal notranslate"><span class="pre">COCOCapBuilder</span></code> class.
+By default, the builder will load the default dataset configuration as in <code class="code docutils literal notranslate"><span class="pre">DATASET_CONFIG_DICT</span></code>. You may also add new dataset types by adding new entries to the dictionary.</p>
+<p>The dataset configuration used here is:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 2</span><span class="w">  </span><span class="nt">coco_caption</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="linenos"> 3</span><span class="w">    </span><span class="nt">dataset_card</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dataset_card/coco_caption.md</span><span class="w"></span>
+<span class="linenos"> 4</span><span class="w">    </span><span class="c1"># data_dir: ${env.data_dir}/datasets</span><span class="w"></span>
+<span class="linenos"> 5</span><span class="w">    </span><span class="nt">data_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">images</span><span class="w"> </span><span class="c1"># [images|videos|features]</span><span class="w"></span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="w">    </span><span class="nt">build_info</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 8</span><span class="w">      </span><span class="c1"># Be careful not to append minus sign (-) before split to avoid itemizing</span><span class="w"></span>
+<span class="linenos"> 9</span><span class="w">      </span><span class="nt">annotations</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">10</span><span class="w">        </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">11</span><span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json</span><span class="w"></span>
+<span class="linenos">12</span><span class="w">          </span><span class="nt">md5</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">aa31ac474cf6250ebb81d18348a07ed8</span><span class="w"></span>
+<span class="linenos">13</span><span class="w">          </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coco/annotations/coco_karpathy_train.json</span><span class="w"></span>
+<span class="linenos">14</span><span class="w">        </span><span class="nt">val</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">15</span><span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json</span><span class="w"></span>
+<span class="linenos">16</span><span class="w">          </span><span class="nt">md5</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">b273847456ef5580e33713b1f7de52a0</span><span class="w"></span>
+<span class="linenos">17</span><span class="w">          </span><span class="nt">storage</span><span class="p">:</span><span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">coco/annotations/coco_karpathy_val.json</span><span class="w"></span>
+<span class="linenos">18</span><span class="w">        </span><span class="nt">test</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">19</span><span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json</span><span class="w"></span>
+<span class="linenos">20</span><span class="w">          </span><span class="nt">md5</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3ff34b0ef2db02d01c37399f6a2a6cd1</span><span class="w"></span>
+<span class="linenos">21</span><span class="w">          </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coco/annotations/coco_karpathy_test.json</span><span class="w"></span>
+<span class="linenos">22</span><span class="w">      </span><span class="nt">images</span><span class="p">:</span><span class="w"></span>
+<span class="linenos">23</span><span class="w">        </span><span class="nt">storage</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coco/images/</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In this configuration file, we specify the dataset name and mainly its building information.
+The build information is divided into two parts: <code class="code docutils literal notranslate"><span class="pre">annotation</span></code> and <code class="code docutils literal notranslate"><span class="pre">images</span></code>. The annotation files will be automatically downloaded upon loading the dataset for the first time.
+The <code class="code docutils literal notranslate"><span class="pre">images</span></code> part specifies the image root directory. This is a relative path to the cache directory, which is <code class="code docutils literal notranslate"><span class="pre">cache</span></code> by default. If you have a local copy of the dataset, you can specify the path to the local copy by
+overwriting the <code class="code docutils literal notranslate"><span class="pre">images</span></code> part in the runtime config file. For example, you may alter the run config as below to use your local dataset copy:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">datasets</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="nt">coco_caption</span><span class="p">:</span><span class="w"> </span><span class="c1"># name of the dataset builder</span><span class="w"></span>
+<span class="w">        </span><span class="nt">vis_processor</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_image_train&quot;</span><span class="w"></span>
+<span class="w">            </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_image_eval&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="nt">text_processor</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">train</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_caption&quot;</span><span class="w"></span>
+<span class="w">            </span><span class="nt">prompt</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;a</span><span class="nv"> </span><span class="s">picture</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">&quot;</span><span class="w"></span>
+<span class="w">            </span><span class="nt">eval</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;blip_caption&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="nt">images</span><span class="p">:</span><span class="w"></span>
+<span class="w">            </span><span class="l l-Scalar l-Scalar-Plain">YOUR_LOCAL_IMAGE_ROOT_DIR</span><span class="w"></span>
+</pre></div>
+</div>
+<p>LAVIS supports using multiple datasets for training. See an example in <code class="code docutils literal notranslate"><span class="pre">lavis/projects/blip/train/pretrain_14m.yaml</span></code>.</p>
+</section>
+<section id="runner-configurations">
+<h3>Runner configurations<a class="headerlink" href="#runner-configurations" title="Permalink to this heading"></a></h3>
+<p>The last section of the config file specifies the arguments for the runner, shown below:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nt">run</span><span class="p">:</span><span class="w"></span>
+<span class="linenos"> 2</span><span class="w">  </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">captioning</span><span class="w"></span>
+<span class="linenos"> 3</span><span class="w">  </span><span class="c1"># optimizer</span><span class="w"></span>
+<span class="linenos"> 4</span><span class="w">  </span><span class="nt">lr_sched</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;linear_warmup_cosine_lr&quot;</span><span class="w"></span>
+<span class="linenos"> 5</span><span class="w">  </span><span class="nt">init_lr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2e-6</span><span class="w"></span>
+<span class="linenos"> 6</span><span class="w">  </span><span class="nt">min_lr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w"></span>
+<span class="linenos"> 7</span><span class="w">  </span><span class="nt">weight_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.05</span><span class="w"></span>
+<span class="linenos"> 8</span><span class="w">  </span><span class="nt">max_epoch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w"></span>
+<span class="linenos"> 9</span><span class="w">  </span><span class="nt">batch_size_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span><span class="w"></span>
+<span class="linenos">10</span><span class="w">  </span><span class="nt">batch_size_eval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span><span class="w"></span>
+<span class="linenos">11</span><span class="w">  </span><span class="nt">num_workers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4</span><span class="w"></span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="w">  </span><span class="nt">max_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span><span class="w"></span>
+<span class="linenos">14</span><span class="w">  </span><span class="nt">min_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w"></span>
+<span class="linenos">15</span><span class="w">  </span><span class="nt">num_beams</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"></span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="w">  </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">42</span><span class="w"></span>
+<span class="linenos">18</span><span class="w">  </span><span class="nt">output_dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;output/BLIP/Caption_coco&quot;</span><span class="w"></span>
+<span class="linenos">19</span>
+<span class="linenos">20</span><span class="w">  </span><span class="nt">amp</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"></span>
+<span class="linenos">21</span><span class="w">  </span><span class="nt">resume_ckpt_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w"></span>
+<span class="linenos">22</span>
+<span class="linenos">23</span><span class="w">  </span><span class="nt">evaluate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"> </span>
+<span class="linenos">24</span><span class="w">  </span><span class="nt">train_splits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;train&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="linenos">25</span><span class="w">  </span><span class="nt">valid_splits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;val&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="linenos">26</span><span class="w">  </span><span class="nt">test_splits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;test&quot;</span><span class="p p-Indicator">]</span><span class="w"></span>
+<span class="linenos">27</span>
+<span class="linenos">28</span><span class="w">  </span><span class="nt">device</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cuda&quot;</span><span class="w"></span>
+<span class="linenos">29</span><span class="w">  </span><span class="nt">world_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span><span class="w"></span>
+<span class="linenos">30</span><span class="w">  </span><span class="nt">dist_url</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;env://&quot;</span><span class="w"></span>
+<span class="linenos">31</span><span class="w">  </span><span class="nt">distributed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w"></span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Here we specify runner-related arguments, including</dt><dd><ul class="simple">
+<li><p>task-specific arguments, such as <code class="code docutils literal notranslate"><span class="pre">task</span></code>, <code class="code docutils literal notranslate"><span class="pre">max_len</span></code>, <code class="code docutils literal notranslate"><span class="pre">min_len</span></code>, etc.</p></li>
+<li><p>learning rate schedulers, optimizer;</p></li>
+<li><p>distributed training settings;</p></li>
+<li><p>logging and checkpointing settings.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+</section>
+</section>
+<section id="available-configurations">
+<h1>Available Configurations<a class="headerlink" href="#available-configurations" title="Permalink to this heading"></a></h1>
+<p>See <a class="reference internal" href="tutorial.configs.html#config"><span class="std std-ref">Training Models on Task Datasets (Commands and Configurations)</span></a> for the full list of available configurations and their descriptions.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial.evaluation.html" class="btn btn-neutral float-left" title="Evaluating Pre-trained Models on Task Datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.configs.html" class="btn btn-neutral float-right" title="Training Models on Task Datasets (Commands and Configurations)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, salesforce.com inc..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

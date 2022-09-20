@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Training Models on Task Datasets (Commands and Configurations)" href="tutorial.train.html" />
+    <link rel="next" title="Example on Finetuning BLIP on COCO-Captioning" href="tutorial.training-example.html" />
     <link rel="prev" title="Tutorials" href="tutorial.html" /> 
 </head>
 
@@ -63,7 +63,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#evaluating-pre-trained-models">Evaluating pre-trained models</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.train.html">Training Models on Task Datasets (Commands and Configurations)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.training-example.html">Example on Finetuning BLIP on COCO-Captioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.training-example.html#available-configurations">Available Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.configs.html">Training Models on Task Datasets (Commands and Configurations)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.datasets.html">Adding Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.processors.html">Adding Processors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial.models.html">Adding Models</a></li>
@@ -126,13 +128,18 @@
 <p>LAVIS provides pre-trained and finetuned model for off-the-shelf evaluation on task dataset.
 Let’s now see an example to evaluate BLIP model on the captioning task, using MSCOCO dataset.</p>
 <section id="preparing-datasets">
-<h2>Preparing Datasets<a class="headerlink" href="#preparing-datasets" title="Permalink to this heading"></a></h2>
+<span id="prep-coco"></span><h2>Preparing Datasets<a class="headerlink" href="#preparing-datasets" title="Permalink to this heading"></a></h2>
 <p>First, let’s download the dataset. LAVIS provides <cite>automatic downloading scripts</cite> to help prepare
 most of the public dataset, to download MSCOCO dataset, simply run</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> lavis/datasets/download_scripts <span class="o">&amp;&amp;</span> bash download_coco.py
 </pre></div>
 </div>
-<p>This will put the downloaded dataset at a default cache location <code class="docutils literal notranslate"><span class="pre">~/.cache/lavis</span></code> used by LAVIS.</p>
+<p>This will put the downloaded dataset at a default cache location <code class="docutils literal notranslate"><span class="pre">cache</span></code> used by LAVIS.</p>
+<p>If you want to use a different cache location, you can specify it by updating <code class="docutils literal notranslate"><span class="pre">cache_root</span></code> in <code class="docutils literal notranslate"><span class="pre">lavis/configs/default.yaml</span></code>.</p>
+<p>If you have a local copy of the dataset, it is recommended to create a symlink from the cache location to the local copy, e.g.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ln -s /path/to/local/coco cache/coco
+</pre></div>
+</div>
 </section>
 <section id="evaluating-pre-trained-models">
 <h2>Evaluating pre-trained models<a class="headerlink" href="#evaluating-pre-trained-models" title="Permalink to this heading"></a></h2>
@@ -152,7 +159,7 @@ most of the public dataset, to download MSCOCO dataset, simply run</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tutorial.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tutorial.train.html" class="btn btn-neutral float-right" title="Training Models on Task Datasets (Commands and Configurations)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial.training-example.html" class="btn btn-neutral float-right" title="Example on Finetuning BLIP on COCO-Captioning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
