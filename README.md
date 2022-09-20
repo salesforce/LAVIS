@@ -261,14 +261,17 @@ inappropriate behaviors in the future.
 
 
 ## Technical Report and Citing LAVIS
-You can find more details in our [technical report](assets/LAVIS_technical_report.pdf).
+You can find more details in our [technical report](https://arxiv.org/abs/2209.09019).
 
 If you're using LAVIS in your research or applications, please cite using this BibTeX:
-```
-@article{lavis,
-  author    = {Dongxu Li and Junnan Li and Hung Le and Guangsen Wang and Silvio Savarese and Steven Hoi},
-  title     = {LAVIS: A Library for Language-Vision Intelligence},
-  year      = {2022},
+```bibtex
+@misc{li2022lavis,
+      title={LAVIS: A Library for Language-Vision Intelligence}, 
+      author={Dongxu Li and Junnan Li and Hung Le and Guangsen Wang and Silvio Savarese and Steven C. H. Hoi},
+      year={2022},
+      eprint={2209.09019},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
 }
 ```
 
