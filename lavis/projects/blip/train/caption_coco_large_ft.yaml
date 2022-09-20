@@ -24,7 +24,6 @@ datasets:
           name: "blip_caption"
 
 run:
-  # task: retrieval
   task: captioning
   # optimizer
   lr_sched: "linear_warmup_cosine_lr"
