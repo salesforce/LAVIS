@@ -13,6 +13,13 @@
   </a>
 </div>
 
+<div align="center">
+<a href="https://arxiv.org/abs/2209.09019">Technical Report</a>,
+<a href="https://opensource.salesforce.com/LAVIS//latest/index.html">Documentation</a>,
+<a href="https://blog.salesforceairesearch.com/lavis-language-vision-library/">Blog</a>
+</div>
+
+
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## Table of Contents
