@@ -27,7 +27,7 @@ class AlbefBase(BaseModel):
     def init_tokenizer(cls):
         return BertTokenizer.from_pretrained("bert-base-uncased")
 
-    def load_from_pretrained(self, url_or_filename):
+    def load_from_pretrained(self, url_or_filename, rename_text_keys=True):
         if is_url(url_or_filename):
             cached_file = download_cached_file(
                 url_or_filename, check_hash=False, progress=True
@@ -54,11 +54,12 @@ class AlbefBase(BaseModel):
                 state_dict["visual_encoder_m.pos_embed"], self.visual_encoder_m
             )
 
-        for key in list(state_dict.keys()):
-            if "bert" in key:
-                new_key = key.replace("bert.", "")
-                state_dict[new_key] = state_dict[key]
-                del state_dict[key]
+        if rename_text_keys:
+            for key in list(state_dict.keys()):
+                if "bert" in key:
+                    new_key = key.replace("bert.", "")
+                    state_dict[new_key] = state_dict[key]
+                    del state_dict[key]
 
         for key in self.state_dict().keys():
             if key in state_dict.keys():
