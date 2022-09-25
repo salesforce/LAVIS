@@ -287,4 +287,4 @@ If you're using LAVIS in your research or applications, please cite using this B
 If you have any questions, comments or suggestions, please do not hesitate to contact us at lavis@salesforce.com.
 
 ## License
-[BSD 3-Clause License](LICENSE)
+[BSD 3-Clause License](LICENSE.txt)
