@@ -1,12 +1,12 @@
 contexttimer
-decord>=0.6.0
+decord
 einops>=0.4.1
 fairscale==0.4.4
 ftfy
 iopath
 ipython
-omegaconf>=2.1.2
-opencv-python>=4.5.5
+omegaconf
+opencv-python-headless==4.5.5.64
 opendatasets
 packaging
 pandas
@@ -18,7 +18,7 @@ python-magic
 streamlit
 timm==0.4.12
 torch==1.10.0
-torchvision==0.11.1
+torchvision
 tqdm
 transformers>=4.15.0,<4.22.0
 webdataset
