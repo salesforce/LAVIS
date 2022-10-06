@@ -40,10 +40,10 @@ def load_model_cache(model_type, device):
         model = load_model(
             "blip_feature_extractor", model_type="base", is_eval=True, device=device
         )
-    # elif model_type == "albef":
-    #     model = load_model(
-    #         "albef_feature_extractor", model_type="base", is_eval=True, device=device
-    #     )
+    elif model_type == "albef":
+        model = load_model(
+            "albef_feature_extractor", model_type="base", is_eval=True, device=device
+        )
     elif model_type == "CLIP_ViT-B-32":
         model = load_model(
             "clip_feature_extractor", "ViT-B-32", is_eval=True, device=device
@@ -79,7 +79,7 @@ def load_blip_itm_model(device):
 def app():
     model_type = st.sidebar.selectbox(
         "Model:",
-        ["BLIP_Base", "CLIP_ViT-B-32", "CLIP_ViT-B-16", "CLIP_ViT-L-14"],
+        ["ALBEF", "BLIP_Base", "CLIP_ViT-B-32", "CLIP_ViT-B-16", "CLIP_ViT-L-14"],
     )
     score_type = st.sidebar.selectbox("Score type:", ["Cosine", "Multimodal"])
 
@@ -105,7 +105,7 @@ def app():
     col1.header("Categories")
 
     cls_0 = col1.text_input("category 1", value="merlion")
-    cls_1 = col1.text_input("category 2", value="elephant")
+    cls_1 = col1.text_input("category 2", value="sky")
     cls_2 = col1.text_input("category 3", value="giraffe")
     cls_3 = col1.text_input("category 4", value="fountain")
     cls_4 = col1.text_input("category 5", value="marina bay")
@@ -159,32 +159,32 @@ def app():
             sims = torch.nn.Softmax(dim=0)(sims)
             inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
 
-        # elif model_type.startswith("ALBEF"):
-        #     vis_processor = load_processor("blip_image_eval").build(image_size=224)
-        #     img = vis_processor(raw_img).unsqueeze(0).to(device)
+        elif model_type.startswith("ALBEF"):
+            vis_processor = load_processor("blip_image_eval").build(image_size=224)
+            img = vis_processor(raw_img).unsqueeze(0).to(device)
 
-        #     text_processor = BlipCaptionProcessor(prompt="A picture of ")
-        #     cls_prompt = [text_processor(cls_nm) for cls_nm in cls_names]
+            text_processor = BlipCaptionProcessor(prompt="A picture of ")
+            cls_prompt = [text_processor(cls_nm) for cls_nm in cls_names]
 
-        #     feature_extractor = load_model_cache(model_type="albef", device=device)
+            feature_extractor = load_model_cache(model_type="albef", device=device)
 
-        #     sample = {"image": img, "text_input": cls_prompt}
+            sample = {"image": img, "text_input": cls_prompt}
 
-        #     with torch.no_grad():
-        #         image_features = feature_extractor.extract_features(
-        #             sample, mode="image"
-        #         ).image_embeds_proj[:, 0]
-        #         text_features = feature_extractor.extract_features(
-        #             sample, mode="text"
-        #         ).text_embeds_proj[:, 0]
+            with torch.no_grad():
+                image_features = feature_extractor.extract_features(
+                    sample, mode="image"
+                ).image_embeds_proj[:, 0]
+                text_features = feature_extractor.extract_features(
+                    sample, mode="text"
+                ).text_embeds_proj[:, 0]
 
-        #         st.write(image_features.shape)
-        #         st.write(text_features.shape)
+                st.write(image_features.shape)
+                st.write(text_features.shape)
 
-        #         sims = (image_features @ text_features.t())[0] / 0.0106
+                sims = (image_features @ text_features.t())[0] / feature_extractor.temp
 
-        #     sims = torch.nn.Softmax(dim=0)(sims)
-        #     inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
+            sims = torch.nn.Softmax(dim=0)(sims)
+            inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
 
         elif model_type.startswith("CLIP"):
             if model_type == "CLIP_ViT-B-32":
