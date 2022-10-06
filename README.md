@@ -13,6 +13,14 @@
   </a>
 </div>
 
+<div align="center">
+<a href="https://opensource.salesforce.com/LAVIS//latest/benchmark.html">Benchmark</a>,
+<a href="https://arxiv.org/abs/2209.09019">Technical Report</a>,
+<a href="https://opensource.salesforce.com/LAVIS//latest/index.html">Documentation</a>,
+<a href="https://blog.salesforceairesearch.com/lavis-language-vision-library/">Blog</a>
+</div>
+
+
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## Table of Contents
@@ -275,5 +283,8 @@ If you're using LAVIS in your research or applications, please cite using this B
 }
 ```
 
+## Contact us
+If you have any questions, comments or suggestions, please do not hesitate to contact us at lavis@salesforce.com.
+
 ## License
-[BSD 3-Clause License](LICENSE)
+[BSD 3-Clause License](LICENSE.txt)
