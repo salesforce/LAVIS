@@ -174,7 +174,8 @@ class BlipVQA(BlipBase):
         Args:
             samples (dict): A dictionary containing the following keys:
                 - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). Default H=480, W=480.
-                - text_input (list): A list of strings, each string is a question
+                - text_input (str or [str]): String or a list of strings, each string is a question.
+                                             The number of questions must be equal to the batch size. If a single string, will be converted to a list of string, with length 1 first.
             num_beams (int): Number of beams for beam search. 1 means no beam search.
             inference_method (str): Inference method. One of "rank", "generate".
                 - If "rank", the model will return answers with the highest probability from the answer list.
@@ -212,6 +213,13 @@ class BlipVQA(BlipBase):
         ], "Inference method must be one of 'rank' or 'generate', got {}.".format(
             inference_method
         )
+
+        if isinstance(samples["text_input"], str):
+            samples["text_input"] = [samples["text_input"]]
+
+        assert len(samples["text_input"]) == samples["image"].size(
+            0
+        ), "The number of questions must be equal to the batch size."
 
         if inference_method == "generate":
             return self.generate_answers(
