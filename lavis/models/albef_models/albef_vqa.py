@@ -230,7 +230,8 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
         Args:
             samples (dict): A dictionary containing the following keys:
                 - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W). Default H=480, W=480.
-                - text_input (list): A list of strings, each string is a question
+                - text_input (str or [str]): String or a list of strings, each string is a question.
+                                             The number of questions must be equal to the batch size. If a single string, will be converted to a list of string, with length 1 first.
             num_ans_candidates (int): Number of answer candidates, used to filter out answers with low probability.
             answer_list (list): A list of strings, each string is an answer.
 
@@ -251,6 +252,14 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             >>> answers
             ['Singapore']
         """
+
+        if isinstance(samples["text_input"], str):
+            samples["text_input"] = [samples["text_input"]]
+
+        assert len(samples["text_input"]) == samples["image"].size(
+            0
+        ), "The number of questions must be equal to the batch size."
+
         if num_ans_candidates is None:
             num_ans_candidates = min(128, len(answer_list))
 
