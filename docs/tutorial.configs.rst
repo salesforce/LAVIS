@@ -1,5 +1,8 @@
+.. _config:
+
 Training Models on Task Datasets (Commands and Configurations) 
 #################################################################
+
 LAVIS provides scripts to pre-train and finetune supported models on standard language-vision tasks, stored at ``lavis/run_scripts/``. 
 To replicate the experiments, just run these bash scripts. For example, to train BLIP model on the image-text retrieval task with MSCOCO dataset, we can run
 
