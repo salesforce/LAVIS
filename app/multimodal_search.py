@@ -19,7 +19,7 @@ from app.utils import (
     read_img,
     resize_img,
 )
-from lavis.models import BlipFeatureExtractor, load_model
+from lavis.models import load_model
 from lavis.processors import load_processor
 
 
@@ -193,7 +193,7 @@ def compute_gradcam_batch(model, visual_input, text_input, tokenized_text, block
         block_num
     ].crossattention.self.save_attention = True
 
-    output = model(visual_input, text_input, match_head="itm")
+    output = model({"image": visual_input, "text_input": text_input}, match_head="itm")
     loss = output[:, 1].sum()
 
     model.zero_grad()

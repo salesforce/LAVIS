@@ -70,7 +70,7 @@ class AlbefBase(BaseModel):
 
         logging.info("Missing keys {}".format(msg.missing_keys))
         logging.info("load checkpoint from %s" % url_or_filename)
-        return self, msg
+        return msg
 
 
 def compute_sim_matrix(model, data_loader, **kwargs):

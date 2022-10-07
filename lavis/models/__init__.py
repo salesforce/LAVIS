@@ -20,10 +20,11 @@ from lavis.models.albef_models.albef_vqa import AlbefVQA
 from lavis.models.alpro_models.alpro_qa import AlproQA
 from lavis.models.alpro_models.alpro_retrieval import AlproRetrieval
 
-from lavis.models.blip_models.blip import BlipBase, BlipITM
+from lavis.models.blip_models.blip import BlipBase
 from lavis.models.blip_models.blip_caption import BlipCaption
 from lavis.models.blip_models.blip_classification import BlipClassification
 from lavis.models.blip_models.blip_feature_extractor import BlipFeatureExtractor
+from lavis.models.blip_models.blip_image_text_matching import BlipITM
 from lavis.models.blip_models.blip_nlvr import BlipNLVR
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
 from lavis.models.blip_models.blip_retrieval import BlipRetrieval
@@ -112,7 +113,6 @@ def load_preprocess(config):
     """
 
     def _build_proc_from_cfg(cfg):
-        print(cfg)
         return (
             registry.get_processor_class(cfg.name).from_config(cfg)
             if cfg is not None

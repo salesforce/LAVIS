@@ -9,13 +9,13 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 import torch
-from lavis.models import BlipFeatureExtractor, load_model
-from lavis.models.blip_models.blip import BlipITM
+from lavis.models import load_model
 from lavis.processors import load_processor
 from lavis.processors.blip_processors import BlipCaptionProcessor
 from PIL import Image
 
 from app import device, load_demo_image
+from app.utils import load_blip_itm_model
 from lavis.processors.clip_processors import ClipImageEvalProcessor
 
 
@@ -57,22 +57,6 @@ def load_model_cache(model_type, device):
             "clip_feature_extractor", "ViT-L-14", is_eval=True, device=device
         )
 
-    return model
-
-
-@st.cache(
-    hash_funcs={
-        torch.nn.parameter.Parameter: lambda parameter: parameter.data.detach()
-        .cpu()
-        .numpy()
-    },
-    allow_output_mutation=True,
-)
-def load_blip_itm_model(device):
-    pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
-    model = BlipITM(pretrained=pretrained_path, vit="base")
-    model.eval()
-    model = model.to(device)
     return model
 
 

@@ -133,9 +133,7 @@ class AlbefFeatureExtractor(AlbefBase):
 
             text = self.tokenizer(
                 caption,
-                padding="max_length",
-                truncation=True,
-                max_length=self.max_txt_len,
+                padding=True,
                 return_tensors="pt",
             ).to(self.device)
 

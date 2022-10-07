@@ -8,15 +8,12 @@
 import numpy as np
 import streamlit as st
 import torch
-from app import device, load_demo_image
-from app.utils import (
-    init_bert_tokenizer,
-    getAttMap,
-    compute_gradcam,
-    load_blip_itm_model,
-)
+from lavis.models.blip_models.blip_image_text_matching import compute_gradcam
 from lavis.processors import load_processor
 from PIL import Image
+
+from app import device, load_demo_image
+from app.utils import getAttMap, init_bert_tokenizer, load_blip_itm_model
 
 
 def app():
