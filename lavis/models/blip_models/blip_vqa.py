@@ -166,7 +166,7 @@ class BlipVQA(BlipBase):
         inference_method="rank",
         max_len=10,
         min_len=1,
-        num_ans_candidates=None,
+        num_ans_candidates=128,
         answer_list=None,
         **kwargs
     ):
@@ -222,20 +222,19 @@ class BlipVQA(BlipBase):
         ), "The number of questions must be equal to the batch size."
 
         if inference_method == "generate":
-            return self.generate_answers(
+            return self._generate_answers(
                 samples, num_beams=num_beams, max_length=max_len, min_length=min_len
             )
         elif inference_method == "rank":
             assert answer_list is not None, "answer_list must be provided for ranking"
 
-            if num_ans_candidates is None:
-                num_ans_candidates = min(128, len(answer_list))
+            num_ans_candidates = min(num_ans_candidates, len(answer_list))
 
-            return self.rank_answers(
+            return self._rank_answers(
                 samples, answer_list=answer_list, num_ans_candidates=num_ans_candidates
             )
 
-    def generate_answers(self, samples, num_beams=3, max_length=10, min_length=1):
+    def _generate_answers(self, samples, num_beams=3, max_length=10, min_length=1):
         encoder_out, _ = self.forward_encoder(samples)
 
         question_output = encoder_out
@@ -275,7 +274,7 @@ class BlipVQA(BlipBase):
 
         return answers
 
-    def rank_answers(self, samples, answer_list, num_ans_candidates):
+    def _rank_answers(self, samples, answer_list, num_ans_candidates):
         """
         Generate the first token of answers using decoder and select ${num_ans_candidates}
         most probable ones. Then select answers from answer list, which start with the probable tokens.

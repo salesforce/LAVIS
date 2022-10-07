@@ -5,17 +5,14 @@
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
+import numpy as np
 import streamlit as st
 import torch
-import numpy as np
-
-from PIL import Image
-
+from lavis.models import BlipBase, load_model
 from matplotlib import pyplot as plt
+from PIL import Image
 from scipy.ndimage import filters
 from skimage import transform as skimage_transform
-
-from lavis.models import BlipBase, BlipITM, load_model
 
 
 def resize_img(raw_img):
@@ -49,52 +46,6 @@ def init_bert_tokenizer():
     return tokenizer
 
 
-def compute_gradcam(model, visual_input, text_input, tokenized_text, block_num=6):
-    model.text_encoder.base_model.base_model.encoder.layer[
-        block_num
-    ].crossattention.self.save_attention = True
-
-    output = model(visual_input, text_input, match_head="itm")
-    loss = output[:, 1].sum()
-
-    model.zero_grad()
-    loss.backward()
-    with torch.no_grad():
-        mask = tokenized_text.attention_mask.view(
-            tokenized_text.attention_mask.size(0), 1, -1, 1, 1
-        )  # (bsz,1,token_len, 1,1)
-        token_length = mask.sum() - 2
-        token_length = token_length.cpu()
-        # grads and cams [bsz, num_head, seq_len, image_patch]
-        grads = model.text_encoder.base_model.base_model.encoder.layer[
-            block_num
-        ].crossattention.self.get_attn_gradients()
-        cams = model.text_encoder.base_model.base_model.encoder.layer[
-            block_num
-        ].crossattention.self.get_attention_map()
-
-        # assume using vit large with 576 num image patch
-        cams = cams[:, :, :, 1:].reshape(visual_input.size(0), 12, -1, 24, 24) * mask
-        grads = (
-            grads[:, :, :, 1:].clamp(0).reshape(visual_input.size(0), 12, -1, 24, 24)
-            * mask
-        )
-
-        gradcam = cams * grads
-        gradcam = gradcam[0].mean(0).cpu().detach()
-        # [enc token gradcam, average gradcam across token, gradcam for individual token]
-        gradcam = torch.cat(
-            (
-                gradcam[0:1, :],
-                gradcam[1 : token_length + 1, :].sum(dim=0, keepdim=True)
-                / token_length,
-                gradcam[1:, :],
-            )
-        )
-
-    return gradcam, output
-
-
 def getAttMap(img, attMap, blur=True, overlap=True):
     attMap -= attMap.min()
     if attMap.max() > 0:
@@ -124,11 +75,7 @@ def getAttMap(img, attMap, blur=True, overlap=True):
     allow_output_mutation=True,
 )
 def load_blip_itm_model(device, model_type="base"):
-    if model_type == "large":
-        pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_retrieval_coco.pth"
-    else:
-        pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
-    model = BlipITM(pretrained=pretrained_path, vit=model_type)
-    model.eval()
-    model = model.to(device)
+    model = load_model(
+        "blip_image_text_matching", model_type, is_eval=True, device=device
+    )
     return model

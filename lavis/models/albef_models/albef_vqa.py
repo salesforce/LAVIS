@@ -225,7 +225,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
 
         return loss, answer_output, answer_targets
 
-    def predict_answers(self, samples, answer_list, num_ans_candidates=None, **kwargs):
+    def predict_answers(self, samples, answer_list, num_ans_candidates=128, **kwargs):
         """
         Args:
             samples (dict): A dictionary containing the following keys:
@@ -260,8 +260,7 @@ class AlbefVQA(AlbefBase, MomentumDistilationMixin):
             0
         ), "The number of questions must be equal to the batch size."
 
-        if num_ans_candidates is None:
-            num_ans_candidates = min(128, len(answer_list))
+        num_ans_candidates = min(num_ans_candidates, len(answer_list))
 
         return self.rank_answers(
             samples, answer_list=answer_list, num_ans_candidates=num_ans_candidates

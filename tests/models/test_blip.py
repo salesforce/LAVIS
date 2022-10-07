@@ -12,8 +12,6 @@ Integration tests for BLIP models.
 import pytest
 import torch
 from lavis.models import load_model, load_model_and_preprocess
-from lavis.models.blip_models.blip import BlipITM
-from lavis.processors import load_processor
 from PIL import Image
 
 # setup device to use
@@ -23,14 +21,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
 
 precision = 1e-1
-
-
-def load_blip_itm_model(device):
-    pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
-    model = BlipITM(pretrained=pretrained_path, vit="base")
-    model.eval()
-    model = model.to(device)
-    return model
 
 
 class TestBlip:
@@ -270,25 +260,62 @@ class TestBlip:
             -0.0023, precision
         )
 
-    # def test_itm(self):
-    #     from lavis.processors.blip_processors import BlipCaptionProcessor
+    def test_itm(self):
+        from PIL import Image
+        from lavis.models import load_model_and_preprocess
 
-    #     vis_processor = load_processor("blip_image_eval").build(image_size=384)
+        def compute_itm():
+            img = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
+            txt = txt_processors["eval"](caption)
 
-    #     text_processor = BlipCaptionProcessor(prompt="A picture of ")
-    #     cls_prompt = [
-    #         text_processor(cls_nm)
-    #         for cls_nm in ["merlion", "elephant", "giraffe", "fountain", "marina bay"]
-    #     ]
+            itm_output = model({"image": img, "text_input": [txt]}, match_head="itm")
+            itm_scores = torch.nn.functional.softmax(itm_output, dim=1)
 
-    #     image = vis_processor(raw_image).unsqueeze(0).to(device)
+            return itm_scores
 
-    #     model = load_blip_itm_model(device)
+        def compute_itc():
+            img = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
+            txt = txt_processors["eval"](caption)
 
-    #     output = model(image, cls_prompt, match_head="itm")
-    #     sims = output[:, 1]
+            itc_score = model({"image": img, "text_input": [txt]}, match_head="itc")
 
-    #     sims = torch.nn.Softmax(dim=0)(sims)
-    #     inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
+            return itc_score
 
-    #     print(inv_sims)
+        raw_image = Image.open("docs/_static/merlion.png").convert("RGB")
+
+        model, vis_processors, txt_processors = load_model_and_preprocess(
+            "blip_image_text_matching", model_type="base", is_eval=True, device=device
+        )
+
+        caption = "merlion in Singapore"
+        itm_scores = compute_itm()
+        itc_score = compute_itc()
+
+        assert itm_scores[:, 1].item() == pytest.approx(0.98613, abs=1e-5)
+        assert itc_score.item() == pytest.approx(0.4633, abs=1e-4)
+
+        caption = "a random irrelevant caption"
+        itm_scores = compute_itm()
+        itc_score = compute_itc()
+
+        assert itm_scores[:, 1].item() == pytest.approx(0.05704, abs=1e-5)
+        assert itc_score.item() == pytest.approx(0.23282, abs=1e-5)
+
+        # test BLIP ITM large
+        model, vis_processors, txt_processors = load_model_and_preprocess(
+            "blip_image_text_matching", model_type="large", is_eval=True, device=device
+        )
+
+        caption = "merlion in Singapore"
+        itm_scores = compute_itm()
+        itc_score = compute_itc()
+
+        assert itm_scores[:, 1].item() == pytest.approx(0.99466, abs=1e-5)
+        assert itc_score.item() == pytest.approx(0.4474, abs=1e-4)
+
+        caption = "a random irrelevant caption"
+        itm_scores = compute_itm()
+        itc_score = compute_itc()
+
+        assert itm_scores[:, 1].item() == pytest.approx(0.04744, abs=1e-5)
+        assert itc_score.item() == pytest.approx(0.12821, abs=1e-5)
