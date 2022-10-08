@@ -193,9 +193,6 @@ def app():
                     image_features = clip_features.image_embeds_proj
                     text_features = clip_features.text_embeds_proj
 
-                    image_features /= image_features.norm(dim=-1, keepdim=True)
-                    text_features /= text_features.norm(dim=-1, keepdim=True)
-
                     sims = (100.0 * image_features @ text_features.T)[0].softmax(dim=-1)
                     inv_sims = sims.tolist()[::-1]
             else:
