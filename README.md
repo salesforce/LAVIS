@@ -17,7 +17,7 @@
 <a href="https://opensource.salesforce.com/LAVIS//latest/benchmark.html">Benchmark</a>,
 <a href="https://arxiv.org/abs/2209.09019">Technical Report</a>,
 <a href="https://opensource.salesforce.com/LAVIS//latest/index.html">Documentation</a>,
-<a href="https://github.com/salesforce/LAVIS/tree/main/examples">Examples</a>,
+<a href="https://github.com/salesforce/LAVIS/tree/main/examples">Jupyter Notebook Examples</a>,
 <a href="https://blog.salesforceairesearch.com/lavis-language-vision-library/">Blog</a>
 </div>
 
@@ -33,7 +33,7 @@
     - [Visual question answering (VQA)](#visual-question-answering-vqa)
     - [Unified Feature Extraction Interface](#unified-feature-extraction-interface)
     - [Load Datasets](#load-datasets)
-  - [Examples](#examples)
+  - [Jupyter Notebook Examples](#jupyter-notebook-examples)
   - [Resources and Tools](#resources-and-tools)
   - [Documentations](#documentations)
   - [Ethical and Responsible Use](#ethical-and-responsible-use)
@@ -255,7 +255,7 @@ If you already host a local copy of the dataset, you can pass in the ``vis_path`
 coco_dataset = load_dataset("coco_caption", vis_path=YOUR_LOCAL_PATH)
 ```
 
-## Examples
+## Jupyter Notebook Examples
 See [examples](https://github.com/salesforce/LAVIS/tree/main/examples) for more inference examples, e.g. captioning, feature extraction, VQA, GradCam, zeros-shot classification.
 
 ## Resources and Tools
