@@ -15,7 +15,7 @@ from transformers.modeling_outputs import CausalLMOutputWithCrossAttentions
 
 
 @registry.register_model("gpt_dialogue")
-class GPTDialogue(GPT2LMHeadModel, BaseModel):
+class GPTDialogue(BaseModel, GPT2LMHeadModel):
 
     PRETRAINED_MODEL_CONFIG_DICT = {"base": "configs/models/gpt_dialogue_base.yaml"}
 
@@ -105,6 +105,6 @@ class GPTDialogue(GPT2LMHeadModel, BaseModel):
 
     @classmethod
     def from_config(cls, cfg):
-        model = cls.from_pretrained("gpt2", len_video_ft=cfg["len_video_ft"])
+        model = cls.__bases__[1].from_pretrained("gpt2")
         model.resize_token_embeddings(cfg["len_tokenizer"])
         return model
