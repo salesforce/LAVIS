@@ -29,6 +29,8 @@ from lavis.models.blip_models.blip_nlvr import BlipNLVR
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
 from lavis.models.blip_models.blip_retrieval import BlipRetrieval
 from lavis.models.blip_models.blip_vqa import BlipVQA
+from lavis.models.pnp_vqa_models.pnp_vqa import PNPVQA
+from lavis.models.pnp_vqa_models.pnp_unifiedqav2_fid import PNPUnifiedQAv2FiD
 from lavis.models.med import XBertLMHeadDecoder
 from lavis.models.vit import VisionTransformerEncoder
 from lavis.models.clip_models.model import CLIP
@@ -58,6 +60,8 @@ __all__ = [
     "BlipPretrain",
     "BlipRetrieval",
     "BlipVQA",
+    "PNPVQA",
+    "PNPUnifiedQAv2FiD",
     "CLIP",
     "VisionTransformerEncoder",
     "XBertLMHeadDecoder",
