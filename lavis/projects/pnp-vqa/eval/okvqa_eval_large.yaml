@@ -5,7 +5,7 @@
 
 model:
   arch: pnp_vqa
-  model_type: base
+  model_type: large
 
 datasets:
   ok_vqa: # name of the dataset builder
@@ -21,8 +21,8 @@ run:
   task: vqa_reading_comprehension
 
   # optimization-specific
-  batch_size_train: 16
-  batch_size_eval: 16
+  batch_size_train: 12
+  batch_size_eval: 12
   num_workers: 4
 
   # image question matching specific
@@ -47,7 +47,7 @@ run:
   inference_method: "generate"
 
   seed: 42
-  output_dir: "output/PNP-VQA/OKVQA"
+  output_dir: "output/PNP-VQA-large/OKVQA"
 
   evaluate: True
   test_splits: ["test"]

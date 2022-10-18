@@ -12,6 +12,7 @@ from lavis.models.base_model import BaseModel
 from lavis.common.utils import get_abs_path
 from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
 
+
 @registry.register_model("pnp_unifiedqav2_fid")
 class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
     # pretrained_model_config_dict won't be utilized
@@ -21,6 +22,7 @@ class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
 
     def __init__(self, config, model_path):
         super().__init__(config)
+        
         self.tokenizer = T5Tokenizer.from_pretrained(model_path)
 
     def forward(self, input_ids=None, attention_mask=None, **kwargs):
@@ -64,6 +66,7 @@ class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
 
 
 class EncoderWrapper(torch.nn.Module):
+
     def __init__(self, encoder):
         super().__init__()
 
@@ -79,5 +82,5 @@ class EncoderWrapper(torch.nn.Module):
         attention_mask = attention_mask.view(bsz*self.n_contexts, context_length)
         outputs = self.encoder(input_ids, attention_mask, **kwargs)
         outputs = (outputs[0].view(bsz, self.n_contexts*context_length, -1), ) + outputs[1:]
-        return outputs
 
+        return outputs

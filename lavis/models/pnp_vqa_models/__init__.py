@@ -7,7 +7,7 @@
 
 import torch
 
-###
+
 def prepare_qa_input(sample, num_captions, num_captions_fid):
     sample_question_captions = []
 
@@ -25,12 +25,10 @@ def prepare_qa_input(sample, num_captions, num_captions_fid):
                 question_caption = question.lower().strip() + " \\n " + question_caption.lower().strip()
                 question_captions.append(question_caption)
         sample_question_captions.append(question_captions)
-    ## nested list
+
     sample['question_captions'] = sample_question_captions
 
 
-
-## allow bsz > 1 and only return average_gradcam for tokens
 def compute_gradcam(model, visual_input, text_input, tokenized_text, block_num=6):
     bsz = visual_input.size(0)
     model.text_encoder.base_model.base_model.encoder.layer[

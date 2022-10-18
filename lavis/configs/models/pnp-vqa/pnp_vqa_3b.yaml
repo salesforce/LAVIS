@@ -3,12 +3,10 @@
  # SPDX-License-Identifier: BSD-3-Clause
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
-## right now no difference between vqav2, okvqa and gqa in term of model, so no need to make the differentiation from dataset perspective,
-## differentiate from model perspective, base, large, 3b
 model:
   arch: pnp_vqa
 
-  image_question_matching_model: # internal model will not called pretrained_config_dict
+  image_question_matching_model:
     arch: blip_image_text_matching
     load_finetuned: True
 
@@ -47,9 +45,9 @@ model:
   question_answering_model:
     arch: pnp_unifiedqav2_fid
 
-    pretrained: "allenai/unifiedqa-v2-t5-base-1363200"
+    pretrained: "allenai/unifiedqa-v2-t5-3b-1363200"
 
-    t5_config_path: "configs/models/unifiedqav2_base_config.json"
+    t5_config_path: "configs/models/pnp-vqa/unifiedqav2_3b_config.json"
 
 preprocess:
   vis_processor:

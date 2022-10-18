@@ -8,7 +8,7 @@ model:
   model_type: base
 
 datasets:
-  ok_vqa: # name of the dataset builder
+  gqa: # name of the dataset builder
     vis_processor:
         eval:
           name: "blip_image_eval"
@@ -47,10 +47,10 @@ run:
   inference_method: "generate"
 
   seed: 42
-  output_dir: "output/PNP-VQA/OKVQA"
+  output_dir: "output/PNP-VQA/GQA"
 
   evaluate: True
-  test_splits: ["test"]
+  test_splits: ["test_dev"]
 
   # distribution-specific
   device: "cuda"

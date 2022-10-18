@@ -19,9 +19,9 @@ from transformers.modeling_outputs import CausalLMOutputWithCrossAttentions
 @registry.register_model("pnp_vqa")
 class PNPVQA(BaseModel):
     # pretrained_model_config_dict will be utilized for pnpvqa, but not its sub-model.
-    PRETRAINED_MODEL_CONFIG_DICT = {"base": "configs/models/pnp_vqa_base.yaml",
-                                    "large": "configs/models/pnp_vqa_large.yaml",
-                                    "3b": "configs/models/pnp_vqa_3b.yaml",
+    PRETRAINED_MODEL_CONFIG_DICT = {"base": "configs/models/pnp-vqa/pnp_vqa_base.yaml",
+                                    "large": "configs/models/pnp-vqa/pnp_vqa_large.yaml",
+                                    "3b": "configs/models/pnp-vqa/pnp_vqa_3b.yaml",
                                     }
 
     def __init__(self, itm_cls, cap_cls, qa_cls,
@@ -93,7 +93,6 @@ class PNPVQA(BaseModel):
                 - gradcams (torch.Tensor): A tensor of shape (batch_size, H*W)
                 - captions (nested list): A nested list of strings of total length batch_size * num_captions
         """
-
         encoder_out = self.image_captioning.forward_encoder(samples)
         captions = [[] for _ in range(encoder_out.size(0))]
 
@@ -149,6 +148,7 @@ class PNPVQA(BaseModel):
             min_num_captions = min([len(i) for i in captions])
 
         samples['captions'] = captions
+
         return samples
 
     def forward_qa(
@@ -175,7 +175,6 @@ class PNPVQA(BaseModel):
         Returns:
             List: A list of strings, each string is an answer.
         """
-
         pred_answers = []
         question_captions = samples['question_captions']
         question_captions_chunk = [question_captions[i:i + internal_bsz_fid]

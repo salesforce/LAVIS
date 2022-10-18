@@ -5,7 +5,7 @@
 
 model:
   arch: pnp_vqa
-  model_type: base
+  model_type: 3b
 
 datasets:
   ok_vqa: # name of the dataset builder
@@ -21,8 +21,8 @@ run:
   task: vqa_reading_comprehension
 
   # optimization-specific
-  batch_size_train: 16
-  batch_size_eval: 16
+  batch_size_train: 4
+  batch_size_eval: 4
   num_workers: 4
 
   # image question matching specific
@@ -35,7 +35,7 @@ run:
   cap_max_length: 20
   repetition_penalty: 1
   num_patches: 20
-  num_captions: 100
+  num_captions: 50 # reduce the number of captions to 50 to avoid OOM
   prompt: 'a picture of '
 
   # question answering specific
@@ -47,7 +47,7 @@ run:
   inference_method: "generate"
 
   seed: 42
-  output_dir: "output/PNP-VQA/OKVQA"
+  output_dir: "output/PNP-VQA-3b/OKVQA"
 
   evaluate: True
   test_splits: ["test"]
