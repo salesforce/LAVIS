@@ -11,6 +11,7 @@ from lavis.common.registry import registry
 from lavis.datasets.datasets.aok_vqa_datasets import AOKVQADataset, AOKVQAEvalDataset
 from lavis.datasets.datasets.coco_vqa_datasets import COCOVQADataset, COCOVQAEvalDataset
 from lavis.datasets.datasets.vg_vqa_datasets import VGVQADataset
+from lavis.datasets.datasets.gqa_datasets import GQADataset, GQAEvalDataset
 
 
 @registry.register_builder("coco_vqa")
@@ -43,3 +44,15 @@ class AOKVQABuilder(BaseDatasetBuilder):
     eval_dataset_cls = AOKVQAEvalDataset
 
     DATASET_CONFIG_DICT = {"default": "configs/datasets/aokvqa/defaults.yaml"}
+
+
+@registry.register_builder("gqa")
+class GQABuilder(BaseDatasetBuilder):
+    train_dataset_cls = GQADataset
+    eval_dataset_cls = GQAEvalDataset
+
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/gqa/defaults.yaml",
+        "balanced_val": "configs/datasets/gqa/balanced_val.yaml",
+        "balanced_testdev": "configs/datasets/gqa/balanced_testdev.yaml",
+    }
