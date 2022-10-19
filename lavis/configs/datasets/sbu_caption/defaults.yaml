@@ -13,7 +13,8 @@ datasets:
       annotations:
         train:
           url:
-              - /export/share/dongxuli/data/lavis/sbu/annotation/sbu.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/sbu/sbu.json
+              # - /export/share/dongxuli/data/lavis/sbu/annotation/sbu.json
           storage:
               - sbu_captions/annotations/sbu.json
       images:
