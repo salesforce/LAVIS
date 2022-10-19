@@ -9,7 +9,7 @@ code, notebook example, coming soon
 ## Citation
 
 ```bibtex
-@misc{li2022masked,
+@misc{tiong2022plug,
       title={Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training}, 
       author={Anthony Meng Huat Tiong, Junnan Li, Boyang Li, Silvio Savarese, Steven C. H. Hoi},
       year={2022},
