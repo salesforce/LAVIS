@@ -18,7 +18,24 @@ from transformers.modeling_outputs import CausalLMOutputWithCrossAttentions
 
 @registry.register_model("pnp_vqa")
 class PNPVQA(BaseModel):
-    # pretrained_model_config_dict will be utilized for pnpvqa, but not its sub-model.
+    """
+    PNPVQA model consists of three submodels for zero-shot VQA:
+        1. Image-questioning matching model
+        2. Image captioning model
+        3. Question answering model
+
+    Supported model types:
+        - base: BLIPITM, BLIPCaption, PNPUnifiedQAv2FiD (t5-base)
+        - large: BLIPITM, BLIPCaption, PNPUnifiedQAv2FiD (t5-large)
+        - 3b: BLIPITM, BLIPCaption, PNPUnifiedQAv2FiD (t5-3b)
+
+    Usage:
+        >>> from lavis.models import load_model
+        >>> model = load_model("pnp_vqa", "base", is_eval=True)
+        >>> model = load_model("pnp_vqa", "large", is_eval=True)
+        >>> model = load_model("pnp_vqa", "3b", is_eval=True)
+    """
+    
     PRETRAINED_MODEL_CONFIG_DICT = {"base": "configs/models/pnp-vqa/pnp_vqa_base.yaml",
                                     "large": "configs/models/pnp-vqa/pnp_vqa_large.yaml",
                                     "3b": "configs/models/pnp-vqa/pnp_vqa_3b.yaml",
@@ -32,7 +49,7 @@ class PNPVQA(BaseModel):
         self.image_captioning = cap_cls.from_config(cap_config)
         self.question_answering = qa_cls.from_config(qa_config)
 
-    def forward_itm(self, samples, block_num):
+    def forward_itm(self, samples, block_num=7):
         """
         Args:
             samples (dict): A dictionary containing the following keys:
@@ -66,8 +83,8 @@ class PNPVQA(BaseModel):
             samples,
             cap_max_length=20,
             cap_min_length=0,
-            top_k=50,
             top_p=1,
+            top_k=50,
             repetition_penalty=1.0,
             num_captions=100,
             num_patches=20,
@@ -83,8 +100,8 @@ class PNPVQA(BaseModel):
             top_p (float): The cumulative probability for nucleus sampling.
             top_k (float): The number of the highest probability tokens for top-k sampling.
             repetition_penalty (float): The parameter for repetition penalty. 1.0 means no penalty.
-            num_captions (int): Number of captions to be generated for each image.
-            num_patches (int): Number of patches to be sampled for each image.
+            num_captions (int): Number of captions generated for each image.
+            num_patches (int): Number of patches sampled for each image.
 
         Returns:
             samples (dict): A dictionary containing the following keys:
@@ -115,9 +132,6 @@ class PNPVQA(BaseModel):
                 "encoder_attention_mask": image_atts,
             }
 
-            # image_embeds = torch.repeat_interleave(encoder_out, num_captions, 0)
-
-            ### reason not using num_return_sequence from huggingface? maybe there are the same.
             prompt = [self.image_captioning.prompt] * image_embeds.size(0)
             prompt = self.image_captioning.tokenizer(prompt, return_tensors="pt").to(self.device)
             prompt.input_ids[:, 0] = self.image_captioning.tokenizer.bos_token_id
@@ -137,6 +151,7 @@ class PNPVQA(BaseModel):
                 **model_kwargs)
 
             outputs = self.image_captioning.tokenizer.batch_decode(decoder_out, skip_special_tokens=True)
+
             for counter, output in enumerate(outputs):
                 ind = counter//num_captions
                 if len(captions[ind]) < num_captions:
@@ -158,6 +173,8 @@ class PNPVQA(BaseModel):
             max_len=20,
             min_len=0,
             internal_bsz_fid=1,
+            num_captions=100,
+            num_captions_fid=1,
     ):
         """
         Args:
@@ -171,10 +188,14 @@ class PNPVQA(BaseModel):
             max_len (int): Maximum length of generated answers.
             min_len (int): Minimum length of generated answers.
             internal_bsz_fid (int): Internal batch size when using FiD decoding.
+            num_captions (int): Number of captions generated for each image.
+            num_captions_fid (int): Number of captions concatenated with a question during FiD decoding.
 
         Returns:
             List: A list of strings, each string is an answer.
         """
+        prepare_qa_input(samples, num_captions=num_captions, num_captions_fid=num_captions_fid)
+
         pred_answers = []
         question_captions = samples['question_captions']
         question_captions_chunk = [question_captions[i:i + internal_bsz_fid]
@@ -254,13 +275,13 @@ class PNPVQA(BaseModel):
                                    num_captions=config['num_captions'],
                                    num_patches=config['num_patches'])
 
-        prepare_qa_input(samples, num_captions=config['num_captions'], num_captions_fid=config['num_captions_fid'])
-
         pred_answers = self.forward_qa(samples,
                                   num_beams=num_beams,
                                   max_len=max_len,
                                   min_len=min_len,
-                                  internal_bsz_fid=config['internal_bsz_fid'])
+                                  internal_bsz_fid=config['internal_bsz_fid'],
+                                  num_captions=config['num_captions'],
+                                  num_captions_fid=config['num_captions_fid'])
 
         return pred_answers, samples['captions'], samples['gradcams']
 

@@ -180,8 +180,7 @@ class GQARCTask(VQARCTask):
     @dist_utils.main_process
     def _report_metrics(self, result_file, split):
         """
-        Implementing accuracy computation for AOKVQA, see
-        https://github.com/allenai/aokvqa/blob/main/evaluation/eval_predictions.py#L45 for details.
+        TODO: add other evaluation metrics for GQA
         """
 
         results = json.load(open(result_file, "r"))

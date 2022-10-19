@@ -15,7 +15,7 @@ from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
 
 @registry.register_model("pnp_unifiedqav2_fid")
 class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
-    # pretrained_model_config_dict won't be utilized
+
     PRETRAINED_MODEL_CONFIG_DICT = {"t5_base": "allenai/unifiedqa-v2-t5-base-1363200",
                                     "t5_large": "allenai/unifiedqa-v2-t5-large-1363200",
                                     "t5_3b": "allenai/unifiedqa-v2-t5-3b-1363200"}

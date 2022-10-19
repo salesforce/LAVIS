@@ -9,6 +9,7 @@ model:
 
 datasets:
   gqa: # name of the dataset builder
+    type: balanced_testdev
     vis_processor:
         eval:
           name: "blip_image_eval"
@@ -18,7 +19,7 @@ datasets:
           name: "blip_question"
 
 run:
-  task: vqa_reading_comprehension
+  task: gqa_reading_comprehension
 
   # optimization-specific
   batch_size_train: 16
@@ -40,7 +41,7 @@ run:
 
   # question answering specific
   internal_bsz_fid: 1
-  num_captions_fid: 1
+  num_captions_fid: 5
   min_len: 0
   max_len: 20
   num_beams: 1
@@ -50,7 +51,7 @@ run:
   output_dir: "output/PNP-VQA/GQA"
 
   evaluate: True
-  test_splits: ["test_dev"]
+  test_splits: ["val"]
 
   # distribution-specific
   device: "cuda"
