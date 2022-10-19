@@ -10,7 +10,7 @@ model:
     arch: blip_image_text_matching
     load_finetuned: True
 
-    finetuned: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_retrieval_coco.pth" ##change this
+    finetuned: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_retrieval_coco_train2014.pth"
 
     # vit encoder
     vit_type: "large"
@@ -28,7 +28,7 @@ model:
     arch: blip_caption
     load_finetuned: True
 
-    finetuned: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption.pth" #<----mod this
+    finetuned: "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_caption_coco_train2014.pth"
 
     vit_type: "large"
     vit_grad_ckpt: True
