@@ -14,16 +14,19 @@ to show PNP-VQA inference workflow:
 ### Visual Question Answering
 Evaluate PNP-VQA<sub>base</sub> as following:
 
-#### VQAv2
+#### VQAv2 Val
 <pre> bash run_scripts/pnp-vqa/eval/eval_vqav2.sh </pre>
 
-#### OK-VQA
+#### VQAv2 Test
+<pre> bash run_scripts/pnp-vqa/eval/eval_vqav2_test.sh </pre>
+
+#### OK-VQA Test
 <pre> bash run_scripts/pnp-vqa/eval/eval_okvqa.sh </pre>
 
-#### GQA
+#### GQA Test-dev
 <pre> bash run_scripts/pnp-vqa/eval/eval_gqa.sh </pre>
 
-For PNP-VQA<sub>large</sub> and PNP-VQA<sub>3B</sub>, run the respective scripts denoted with ```large``` and ```3b```. 
+For PNP-VQA<sub>large</sub> and PNP-VQA<sub>3B</sub>, run the respective scripts appended with ```large``` and ```3b```. 
 We reduce the number of captions for PNP-VQA<sub>3B</sub> to prevent OOM using NVIDIA A100 40GB.
 
 ### Citation

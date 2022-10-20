@@ -1,0 +1,60 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: pnp_vqa
+  model_type: large
+
+datasets:
+  coco_vqa: # name of the dataset builder
+    type: default
+    vis_processor:
+        eval:
+          name: "blip_image_eval"
+          image_size: 384
+    text_processor:
+        eval:
+          name: "blip_question"
+
+run:
+  task: vqa_reading_comprehension
+
+  # optimization-specific
+  batch_size_train: 12
+  batch_size_eval: 12
+  num_workers: 4
+
+  # image question matching specific
+  block_num: 7
+
+  # image captioning specific
+  top_k: 50
+  top_p: 1
+  cap_min_length: 10
+  cap_max_length: 20
+  repetition_penalty: 1
+  num_patches: 20
+  num_captions: 100
+  prompt: 'a picture of '
+
+  # question answering specific
+  internal_bsz_fid: 1
+  num_captions_fid: 1
+  min_len: 0
+  max_len: 20
+  num_beams: 1
+  inference_method: "generate"
+
+  seed: 42
+  output_dir: "output/PNP-VQA-large/VQAv2_test"
+
+  evaluate: True
+  test_splits: ["test"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
