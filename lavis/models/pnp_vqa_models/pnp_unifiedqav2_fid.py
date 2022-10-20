@@ -3,6 +3,9 @@
  All rights reserved.
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+ Based on facebookresearch code base
+ https://github.com/facebookresearch/FiD
 """
 
 import torch
@@ -16,9 +19,7 @@ from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
 @registry.register_model("pnp_unifiedqav2_fid")
 class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
 
-    PRETRAINED_MODEL_CONFIG_DICT = {"t5_base": "allenai/unifiedqa-v2-t5-base-1363200",
-                                    "t5_large": "allenai/unifiedqa-v2-t5-large-1363200",
-                                    "t5_3b": "allenai/unifiedqa-v2-t5-3b-1363200"}
+    PRETRAINED_MODEL_CONFIG_DICT = {}
 
     def __init__(self, config, model_path):
         super().__init__(config)
@@ -28,7 +29,7 @@ class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
     def forward(self, input_ids=None, attention_mask=None, **kwargs):
         if input_ids != None:
             if input_ids.dim() == 3:
-                self.encoder.n_contexts = input_ids.size(1)
+                self.encoder.num_contexts = input_ids.size(1)
             input_ids = input_ids.view(input_ids.size(0), -1)
         if attention_mask != None:
             attention_mask = attention_mask.view(attention_mask.size(0), -1)
@@ -40,7 +41,7 @@ class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
         )
 
     def generate(self, input_ids, attention_mask, num_beams=1, min_length=0, max_length=20):
-        self.encoder.n_contexts = input_ids.size(1)
+        self.encoder.num_contexts = input_ids.size(1)
 
         return super().generate(
             input_ids=input_ids.view(input_ids.size(0), -1),
@@ -52,7 +53,7 @@ class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
 
     def load_unifiedqa(self, state_dict):
         self.load_state_dict(state_dict)
-        self.encoder = EncoderWrapper(self.encoder)
+        self.encoder = T5EncoderWrapper(self.encoder)
 
     @classmethod
     def from_config(cls, cfg):
@@ -65,7 +66,7 @@ class PNPUnifiedQAv2FiD(T5ForConditionalGeneration, BaseModel):
         return model
 
 
-class EncoderWrapper(torch.nn.Module):
+class T5EncoderWrapper(torch.nn.Module):
 
     def __init__(self, encoder):
         super().__init__()
@@ -77,10 +78,10 @@ class EncoderWrapper(torch.nn.Module):
 
     def forward(self, input_ids=None, attention_mask=None, **kwargs):
         bsz, total_length = input_ids.shape
-        context_length = total_length // self.n_contexts
-        input_ids = input_ids.view(bsz*self.n_contexts, context_length)
-        attention_mask = attention_mask.view(bsz*self.n_contexts, context_length)
+        context_length = total_length // self.num_contexts
+        input_ids = input_ids.view(bsz*self.num_contexts, context_length)
+        attention_mask = attention_mask.view(bsz*self.num_contexts, context_length)
         outputs = self.encoder(input_ids, attention_mask, **kwargs)
-        outputs = (outputs[0].view(bsz, self.n_contexts*context_length, -1), ) + outputs[1:]
+        outputs = (outputs[0].view(bsz, self.num_contexts*context_length, -1), ) + outputs[1:]
 
         return outputs

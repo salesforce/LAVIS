@@ -1,10 +1,30 @@
 ## Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training
 
-[//]: # (* [![Open In Colab]&#40;https://colab.research.google.com/assets/colab-badge.svg&#41;]&#40;https://colab.research.google.com/github/j-min/VL-T5/blob/main/inference_example.ipynb&#41; &#40;VQA inference using pretrained model on custom image/question&#41;)
-* 
 <img src="pnp_vqa.png" width="700">
 
-This is the code for <a href="https://arxiv.org/abs/2210.08773">PNP-VQA paper</a>
+This is the code for <a href="https://arxiv.org/abs/2210.08773">PNP-VQA paper</a>.
+
+### Demo
+We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/pnp-vqa/pnp_vqa.ipynb)
+to show PNP-VQA inference workflow:
+1. Image-question matching: compute the relevancy score of the image patches wrt the question.
+2. Image captioning: generate question-guided captions based on the relevancy score.
+3. Question answering: answer the question by using the captions.
+
+### Visual Question Answering
+Evaluate PNP-VQA<sub>base</sub> as following:
+
+#### VQAv2
+<pre> bash run_scripts/pnp-vqa/eval/eval_vqav2.sh </pre>
+
+#### OK-VQA
+<pre> bash run_scripts/pnp-vqa/eval/eval_okvqa.sh </pre>
+
+#### GQA
+<pre> bash run_scripts/pnp-vqa/eval/eval_gqa.sh </pre>
+
+For PNP-VQA<sub>large</sub> and PNP-VQA<sub>3B</sub>, run the respective scripts denoted with ```large``` and ```3b```. 
+We reduce the number of captions for PNP-VQA<sub>3B</sub> to prevent OOM using NVIDIA A100 40GB.
 
 ### Citation
 If you find this code to be useful for your research, please consider citing.

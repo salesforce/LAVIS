@@ -15,9 +15,7 @@ from itertools import chain
 import lavis.common.dist_utils as dist_utils
 from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
 from lavis.common.registry import registry
-from lavis.common.vqa_tools.vqa import VQA
 from lavis.common.vqa_tools.vqa_eval import VQAEval as VQATool
-from lavis.tasks.base_task import BaseTask
 from lavis.tasks.vqa import VQATask
 
 
@@ -63,7 +61,6 @@ class VQARCTask(VQATask):
     def valid_step(self, model, samples):
         answers, captions, gradcams = model.predict_answers(
             samples=samples,
-            answer_list=self.answer_list,
             inference_method=self.inference_method,
             num_beams=self.num_beams,
             max_len=self.max_len,
@@ -161,7 +158,6 @@ class GQARCTask(VQARCTask):
     def valid_step(self, model, samples):
         answers, captions, gradcams = model.predict_answers(
             samples=samples,
-            answer_list=self.answer_list,
             inference_method=self.inference_method,
             num_beams=self.num_beams,
             max_len=self.max_len,
@@ -236,7 +232,6 @@ class GQARCTask(VQARCTask):
     def _save_result_leaderboard(self, results):
         """
         Saving the results in the format required for leaderboard evaluation.
-
         """
         result_leaderboard = []
         for res in results:

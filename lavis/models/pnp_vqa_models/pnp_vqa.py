@@ -42,13 +42,12 @@ class PNPVQA(BaseModel):
                                     "3b": "configs/models/pnp-vqa/pnp_vqa_3b.yaml",
                                     }
 
-    def __init__(self, itm_cls, cap_cls, qa_cls,
-                    itm_config, cap_config, qa_config):
+    def __init__(self, image_question_matching_model, image_captioning_model, question_answering_model):
         super().__init__()
 
-        self.image_question_matching = itm_cls.from_config(itm_config)
-        self.image_captioning = cap_cls.from_config(cap_config)
-        self.question_answering = qa_cls.from_config(qa_config)
+        self.image_question_matching_model = image_question_matching_model
+        self.image_captioning_model = image_captioning_model
+        self.question_answering_model = question_answering_model
 
     def forward_itm(self, samples, block_num=7):
         """
@@ -66,10 +65,10 @@ class PNPVQA(BaseModel):
         """
         image = samples['image']
         question = [text.strip('?') for text in samples['text_input']]
-        tokenized_text = self.image_question_matching.tokenizer(question, padding='longest', truncation=True,
+        tokenized_text = self.image_question_matching_model.tokenizer(question, padding='longest', truncation=True,
                                                 return_tensors="pt").to(self.device)
         with torch.set_grad_enabled(True):
-            gradcams, _ = compute_gradcam(model=self.image_question_matching,
+            gradcams, _ = compute_gradcam(model=self.image_question_matching_model,
                             visual_input=image,
                             text_input=question,
                             tokenized_text=tokenized_text,
@@ -112,7 +111,7 @@ class PNPVQA(BaseModel):
                 - gradcams (torch.Tensor): A tensor of shape (batch_size, H*W)
                 - captions (nested list): A nested list of strings of total length batch_size * num_captions
         """
-        encoder_out = self.image_captioning.forward_encoder(samples)
+        encoder_out = self.image_captioning_model.forward_encoder(samples)
         captions = [[] for _ in range(encoder_out.size(0))]
 
         min_num_captions = 0
@@ -134,12 +133,12 @@ class PNPVQA(BaseModel):
                 "encoder_attention_mask": image_atts,
             }
 
-            prompt = [self.image_captioning.prompt] * image_embeds.size(0)
-            prompt = self.image_captioning.tokenizer(prompt, return_tensors="pt").to(self.device)
-            prompt.input_ids[:, 0] = self.image_captioning.tokenizer.bos_token_id
+            prompt = [self.image_captioning_model.prompt] * image_embeds.size(0)
+            prompt = self.image_captioning_model.tokenizer(prompt, return_tensors="pt").to(self.device)
+            prompt.input_ids[:, 0] = self.image_captioning_model.tokenizer.bos_token_id
             prompt.input_ids = prompt.input_ids[:, :-1]
 
-            decoder_out = self.image_captioning.text_decoder.generate(
+            decoder_out = self.image_captioning_model.text_decoder.generate(
                 input_ids=prompt.input_ids,
                 max_length=cap_max_length,
                 min_length=cap_min_length,
@@ -147,17 +146,17 @@ class PNPVQA(BaseModel):
                 top_p=top_p,
                 top_k=top_k,
                 num_return_sequences=1,
-                eos_token_id=self.image_captioning.tokenizer.sep_token_id,
-                pad_token_id=self.image_captioning.tokenizer.pad_token_id,
+                eos_token_id=self.image_captioning_model.tokenizer.sep_token_id,
+                pad_token_id=self.image_captioning_model.tokenizer.pad_token_id,
                 repetition_penalty=repetition_penalty,
                 **model_kwargs)
 
-            outputs = self.image_captioning.tokenizer.batch_decode(decoder_out, skip_special_tokens=True)
+            outputs = self.image_captioning_model.tokenizer.batch_decode(decoder_out, skip_special_tokens=True)
 
             for counter, output in enumerate(outputs):
                 ind = counter//num_captions
                 if len(captions[ind]) < num_captions:
-                    caption = output[len(self.image_captioning.prompt):]
+                    caption = output[len(self.image_captioning_model.prompt):]
                     overlap_caption = [1 for caps in captions[ind] if caption in caps]
                     if len(overlap_caption) == 0:
                         captions[ind].append(caption)
@@ -205,7 +204,7 @@ class PNPVQA(BaseModel):
         question_captions_chunk = list(chain(*question_captions_chunk))
 
         for question_caption in question_captions_chunk:
-            question_caption_input = self.question_answering.tokenizer(question_caption, padding='longest',
+            question_caption_input = self.question_answering_model.tokenizer(question_caption, padding='longest',
                                                                 truncation=True, return_tensors="pt").to(self.device)
 
             question_caption_input.input_ids = question_caption_input.input_ids.reshape(
@@ -213,7 +212,7 @@ class PNPVQA(BaseModel):
             question_caption_input.attention_mask = question_caption_input.attention_mask.reshape(
                                                internal_bsz_fid, -1, question_caption_input.attention_mask.size(1))
 
-            outputs = self.question_answering.generate(input_ids=question_caption_input.input_ids,
+            outputs = self.question_answering_model.generate(input_ids=question_caption_input.input_ids,
                                             attention_mask=question_caption_input.attention_mask,
                                             num_beams=num_beams,
                                             min_length=min_len,
@@ -221,7 +220,7 @@ class PNPVQA(BaseModel):
                                             )
 
             for output in outputs:
-                pred_answer = self.question_answering.tokenizer.decode(output, skip_special_tokens=True)
+                pred_answer = self.question_answering_model.tokenizer.decode(output, skip_special_tokens=True)
                 pred_answers.append(pred_answer)
 
         return pred_answers
@@ -314,7 +313,14 @@ class PNPVQA(BaseModel):
         cap_cls = registry.get_model_class(cap_config.arch)
         qa_cls = registry.get_model_class(qa_config.arch)
 
-        model = cls(itm_cls=itm_cls, cap_cls=cap_cls, qa_cls=qa_cls,
-                    itm_config=itm_config, cap_config=cap_config, qa_config=qa_config)
+        ### pass in model directly
+        image_question_matching_model = itm_cls.from_config(itm_config)
+        image_captioning_model = cap_cls.from_config(cap_config)
+        question_answering_model = qa_cls.from_config(qa_config)
+
+        model = cls(image_question_matching_model=image_question_matching_model,
+                    image_captioning_model=image_captioning_model,
+                    question_answering_model=question_answering_model,
+                    )
 
         return model

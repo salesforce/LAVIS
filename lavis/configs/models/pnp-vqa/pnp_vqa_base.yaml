@@ -44,7 +44,7 @@ model:
 
   question_answering_model:
     arch: pnp_unifiedqav2_fid
-
+  
     pretrained: "allenai/unifiedqa-v2-t5-base-1363200"
 
     t5_config_path: "configs/models/pnp-vqa/unifiedqav2_base_config.json"
