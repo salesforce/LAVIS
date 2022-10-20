@@ -12,7 +12,8 @@ from lavis.common.registry import registry
 from lavis.models.base_model import BaseModel
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers import T5ForConditionalGeneration
-from lavis.models.pnp_vqa_models import compute_gradcam, prepare_qa_input
+from lavis.models.pnp_vqa_models import prepare_qa_input
+from lavis.models.blip_models.blip_image_text_matching import compute_gradcam
 from transformers.modeling_outputs import CausalLMOutputWithCrossAttentions
 
 
@@ -35,7 +36,7 @@ class PNPVQA(BaseModel):
         >>> model = load_model("pnp_vqa", "large", is_eval=True)
         >>> model = load_model("pnp_vqa", "3b", is_eval=True)
     """
-    
+
     PRETRAINED_MODEL_CONFIG_DICT = {"base": "configs/models/pnp-vqa/pnp_vqa_base.yaml",
                                     "large": "configs/models/pnp-vqa/pnp_vqa_large.yaml",
                                     "3b": "configs/models/pnp-vqa/pnp_vqa_3b.yaml",
@@ -74,6 +75,7 @@ class PNPVQA(BaseModel):
                             tokenized_text=tokenized_text,
                             block_num=block_num)
 
+        gradcams = [gradcam_[1] for gradcam_ in gradcams]
         samples['gradcams'] = torch.stack(gradcams).reshape(samples['image'].size(0), -1)
 
         return samples

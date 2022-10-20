@@ -73,7 +73,7 @@ def app():
 
         gradcam, _ = compute_gradcam(model, img, qry, qry_tok, block_num=layer_num)
 
-        avg_gradcam = getAttMap(norm_img, gradcam[1], blur=True)
+        avg_gradcam = getAttMap(norm_img, gradcam[0][1], blur=True)
         col2.image(avg_gradcam, use_column_width=True, clamp=True)
 
         num_cols = 4.0
@@ -81,7 +81,7 @@ def app():
 
         num_rows = int(math.ceil(num_tokens / num_cols))
 
-        gradcam_iter = iter(gradcam[2:-1])
+        gradcam_iter = iter(gradcam[0][2:-1])
         token_id_iter = iter(qry_tok.input_ids[0][1:-1])
 
         for _ in range(num_rows):
