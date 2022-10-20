@@ -68,8 +68,16 @@ class VQARCTask(VQATask):
             num_beams=self.num_beams,
             max_len=self.max_len,
             min_len=self.min_len,
-            num_ans_candidates=self.num_ans_candidates,
-            config=self.config,
+            internal_bsz_fid=self.config['internal_bsz_fid'],
+            num_captions=self.config['num_captions'],
+            num_captions_fid=self.config['num_captions_fid'],
+            cap_max_length=self.config['cap_max_length'],
+            cap_min_length=self.config['cap_min_length'],
+            top_k=self.config['top_k'],
+            top_p=self.config['top_p'],
+            repetition_penalty=self.config['repetition_penalty'],
+            num_patches=self.config['num_patches'],
+            block_num=self.config['block_num'],
         )
 
         pred_qa_pairs = []
@@ -158,8 +166,16 @@ class GQARCTask(VQARCTask):
             num_beams=self.num_beams,
             max_len=self.max_len,
             min_len=self.min_len,
-            num_ans_candidates=self.num_ans_candidates,
-            config=self.config,
+            internal_bsz_fid=self.config['internal_bsz_fid'],
+            num_captions=self.config['num_captions'],
+            num_captions_fid=self.config['num_captions_fid'],
+            cap_max_length=self.config['cap_max_length'],
+            cap_min_length=self.config['cap_min_length'],
+            top_k=self.config['top_k'],
+            top_p=self.config['top_p'],
+            repetition_penalty=self.config['repetition_penalty'],
+            num_patches=self.config['num_patches'],
+            block_num=self.config['block_num'],
         )
 
         pred_qa_pairs = []

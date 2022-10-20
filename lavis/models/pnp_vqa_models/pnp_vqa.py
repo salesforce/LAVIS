@@ -69,7 +69,7 @@ class PNPVQA(BaseModel):
         tokenized_text = self.image_question_matching.tokenizer(question, padding='longest', truncation=True,
                                                 return_tensors="pt").to(self.device)
         with torch.set_grad_enabled(True):
-            gradcams = compute_gradcam(model=self.image_question_matching,
+            gradcams, _ = compute_gradcam(model=self.image_question_matching,
                             visual_input=image,
                             text_input=question,
                             tokenized_text=tokenized_text,
@@ -97,8 +97,8 @@ class PNPVQA(BaseModel):
                 - image (torch.Tensor): A tensor of shape (batch_size, 3, H, W)
                 - text_input (list): A list of strings of length batch_size
                 - gradcams (torch.Tensor): A tensor of shape (batch_size, H*W)
-            cap_max_length (int): The maximum length of the sequence to be generated.
-            cap_min_length (int): The minimum length of the sequence to be generated.
+            cap_max_length (int): The maximum length of the caption to be generated.
+            cap_min_length (int): The minimum length of the caption to be generated.
             top_p (float): The cumulative probability for nucleus sampling.
             top_k (float): The number of the highest probability tokens for top-k sampling.
             repetition_penalty (float): The parameter for repetition penalty. 1.0 means no penalty.
@@ -233,7 +233,16 @@ class PNPVQA(BaseModel):
         inference_method="generate",
         max_len=20,
         min_len=0,
-        **kwargs
+        internal_bsz_fid=1,
+        num_captions=50,
+        num_captions_fid=1,
+        cap_max_length=20,
+        cap_min_length=10,
+        top_k=50,
+        top_p=1,
+        repetition_penalty=1,
+        num_patches=50,
+        block_num=7,
     ):
         """
         Args:
@@ -245,6 +254,16 @@ class PNPVQA(BaseModel):
             inference_method (str): Inference method. Must be "generate". The model will generate answers.
             max_len (int): Maximum length of generated answers.
             min_len (int): Minimum length of generated answers.
+            internal_bsz_fid (int): Internal batch size when using FiD decoding.
+            num_captions (int): Number of captions generated for each image.
+            num_captions_fid (int): Number of captions concatenated with a question during FiD decoding.
+            cap_max_length (int): The maximum length of the caption to be generated.
+            cap_min_length (int): The minimum length of the caption to be generated.
+            top_k (float): The number of the highest probability tokens for top-k sampling.
+            top_p (float): The cumulative probability for nucleus sampling.
+            repetition_penalty (float): The parameter for repetition penalty. 1.0 means no penalty.
+            num_patches (int): Number of patches sampled for each image.
+            block_num (int): The index of cross-attention block for gradcam computation.
 
         Returns:
             List: A list of strings, each string is an answer.
@@ -264,26 +283,24 @@ class PNPVQA(BaseModel):
             0
         ), "The number of questions must be equal to the batch size."
 
-        config = kwargs.get('config')
-
-        samples = self.forward_itm(samples, block_num=config['block_num'])
+        samples = self.forward_itm(samples, block_num=block_num)
 
         samples = self.forward_cap(samples,
-                                   cap_max_length=config['cap_max_length'],
-                                   cap_min_length=config['cap_min_length'],
-                                   top_k=config['top_k'],
-                                   top_p=config['top_p'],
-                                   repetition_penalty=config['repetition_penalty'],
-                                   num_captions=config['num_captions'],
-                                   num_patches=config['num_patches'])
+                                   cap_max_length=cap_max_length,
+                                   cap_min_length=cap_min_length,
+                                   top_k=top_k,
+                                   top_p=top_p,
+                                   repetition_penalty=repetition_penalty,
+                                   num_captions=num_captions,
+                                   num_patches=num_patches)
 
         pred_answers = self.forward_qa(samples,
                                   num_beams=num_beams,
                                   max_len=max_len,
                                   min_len=min_len,
-                                  internal_bsz_fid=config['internal_bsz_fid'],
-                                  num_captions=config['num_captions'],
-                                  num_captions_fid=config['num_captions_fid'])
+                                  internal_bsz_fid=internal_bsz_fid,
+                                  num_captions=num_captions,
+                                  num_captions_fid=num_captions_fid)
 
         return pred_answers, samples['captions'], samples['gradcams']
 
