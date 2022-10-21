@@ -50,7 +50,7 @@ class PNPVQA(BaseModel):
         self.image_captioning_model = image_captioning_model
         self.question_answering_model = question_answering_model
         self.offload_model = offload_model
-        print('offload model: ', self.offload_model)
+
     def forward_itm(self, samples, block_num=7):
         """
         Args:
