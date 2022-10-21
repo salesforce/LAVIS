@@ -36,7 +36,7 @@ run:
   cap_max_length: 20
   repetition_penalty: 1
   num_patches: 20
-  num_captions: 50 # reduce num_captions to prevent OOM
+  num_captions: 100
   prompt: 'a picture of '
 
   # question answering specific

@@ -42,13 +42,15 @@ class PNPVQA(BaseModel):
                                     "3b": "configs/models/pnp-vqa/pnp_vqa_3b.yaml",
                                     }
 
-    def __init__(self, image_question_matching_model, image_captioning_model, question_answering_model):
+    def __init__(self, image_question_matching_model, image_captioning_model,
+                 question_answering_model, offload_model=False):
         super().__init__()
 
         self.image_question_matching_model = image_question_matching_model
         self.image_captioning_model = image_captioning_model
         self.question_answering_model = question_answering_model
-
+        self.offload_model = offload_model
+        print('offload model: ', self.offload_model)
     def forward_itm(self, samples, block_num=7):
         """
         Args:
@@ -66,7 +68,7 @@ class PNPVQA(BaseModel):
         image = samples['image']
         question = [text.strip('?') for text in samples['text_input']]
         tokenized_text = self.image_question_matching_model.tokenizer(question, padding='longest', truncation=True,
-                                                return_tensors="pt").to(self.device)
+                                                return_tensors="pt").to(self.image_question_matching_model.device)
         with torch.set_grad_enabled(True):
             gradcams, _ = compute_gradcam(model=self.image_question_matching_model,
                             visual_input=image,
@@ -119,7 +121,8 @@ class PNPVQA(BaseModel):
         while min_num_captions < num_captions:
             encoder_out_samples = []
             for i in range(num_captions):
-                patch_id = torch.multinomial(samples['gradcams'].to(self.device), num_patches).reshape(encoder_out.size(0), -1) + 1
+                patch_id = torch.multinomial(samples['gradcams'].to(self.image_captioning_model.device),
+                                             num_patches).reshape(encoder_out.size(0), -1) + 1
                 patch_id = patch_id.sort(dim=1).values.unsqueeze(-1).expand(-1, -1, encoder_out.size(2))
                 encoder_out_sample = torch.gather(encoder_out, 1, patch_id)
                 encoder_out_samples.append(encoder_out_sample)
@@ -127,14 +130,15 @@ class PNPVQA(BaseModel):
             stacked = torch.stack(encoder_out_samples, dim=1)
             image_embeds = torch.flatten(stacked, start_dim=0, end_dim=1) #(bsz*num_seq, num_patch, dim)
 
-            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(self.device)
+            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(self.image_captioning_model.device)
             model_kwargs = {
                 "encoder_hidden_states": image_embeds,
                 "encoder_attention_mask": image_atts,
             }
 
             prompt = [self.image_captioning_model.prompt] * image_embeds.size(0)
-            prompt = self.image_captioning_model.tokenizer(prompt, return_tensors="pt").to(self.device)
+            prompt = self.image_captioning_model.tokenizer(prompt,
+                                                           return_tensors="pt").to(self.image_captioning_model.device)
             prompt.input_ids[:, 0] = self.image_captioning_model.tokenizer.bos_token_id
             prompt.input_ids = prompt.input_ids[:, :-1]
 
@@ -205,7 +209,7 @@ class PNPVQA(BaseModel):
 
         for question_caption in question_captions_chunk:
             question_caption_input = self.question_answering_model.tokenizer(question_caption, padding='longest',
-                                                                truncation=True, return_tensors="pt").to(self.device)
+                                        truncation=True, return_tensors="pt").to(self.question_answering_model.device)
 
             question_caption_input.input_ids = question_caption_input.input_ids.reshape(
                                                internal_bsz_fid, -1, question_caption_input.input_ids.size(1))
@@ -293,6 +297,12 @@ class PNPVQA(BaseModel):
                                    num_captions=num_captions,
                                    num_patches=num_patches)
 
+        if self.offload_model:
+            samples['image'] = samples['image'].to('cpu')
+            self.image_question_matching_model.to('cpu')
+            self.image_captioning_model.to('cpu')
+        torch.cuda.empty_cache()
+
         pred_answers = self.forward_qa(samples,
                                   num_beams=num_beams,
                                   max_len=max_len,
@@ -300,6 +310,10 @@ class PNPVQA(BaseModel):
                                   internal_bsz_fid=internal_bsz_fid,
                                   num_captions=num_captions,
                                   num_captions_fid=num_captions_fid)
+
+        if self.offload_model:
+            self.image_question_matching_model.to(self.question_answering_model.device)
+            self.image_captioning_model.to(self.question_answering_model.device)
 
         return pred_answers, samples['captions'], samples['gradcams']
 
@@ -313,7 +327,6 @@ class PNPVQA(BaseModel):
         cap_cls = registry.get_model_class(cap_config.arch)
         qa_cls = registry.get_model_class(qa_config.arch)
 
-        ### pass in model directly
         image_question_matching_model = itm_cls.from_config(itm_config)
         image_captioning_model = cap_cls.from_config(cap_config)
         question_answering_model = qa_cls.from_config(qa_config)
@@ -321,6 +334,7 @@ class PNPVQA(BaseModel):
         model = cls(image_question_matching_model=image_question_matching_model,
                     image_captioning_model=image_captioning_model,
                     question_answering_model=question_answering_model,
+                    offload_model= True if model_config.model_type == '3b' else False,
                     )
 
         return model
