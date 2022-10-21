@@ -155,6 +155,11 @@ class VQATask(BaseTask):
                 )
                 metrics["ansType"] = vqa_scorer.accuracy["perAnswerType"][ans_type]
 
+            with open(
+                    os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a"
+            ) as f:
+                f.write(json.dumps(metrics) + "\n")
+
         return metrics
 
 
