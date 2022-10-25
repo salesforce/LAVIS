@@ -24,6 +24,10 @@
 
 # LAVIS - A Library for Language-Vision Intelligence
 
+## What's New: 🎉
+  - [Model Release] Oct 2022, released implementation of **PNP-VQA** (**EMNLP Findings 2022**, by Anthony T.M.H. et al), _"Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training"_, a modular zero-shot VQA framework that requires no PLMs training, achieving SoTA zero-shot VQA performance. ([Paper](https://arxiv.org/abs/2210.08773), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/pnp-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/pnp-vqa/pnp_vqa.ipynb))
+
+    
 ## Table of Contents
   - [Introduction](#introduction)
   - [Installation](#installation)
