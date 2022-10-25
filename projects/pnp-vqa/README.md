@@ -2,7 +2,7 @@
 
 <img src="pnp_vqa.png" width="700">
 
-This is the code for <a href="https://arxiv.org/abs/2210.08773">PNP-VQA paper</a>.
+This is the code for <a href="https://arxiv.org/abs/2210.08773">PNP-VQA paper</a>. We integrate the implementation into LAVIS.
 
 ### Demo
 We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/pnp-vqa/pnp_vqa.ipynb)
@@ -11,23 +11,93 @@ to show PNP-VQA inference workflow:
 2. Image captioning: generate question-guided captions based on the relevancy score.
 3. Question answering: answer the question by using the captions.
 
-### Visual Question Answering
-Evaluate PNP-VQA<sub>base</sub> as following:
+### Evaluation
+<table>
+<thead>
+  <tr>
+    <th rowspan="2">Model</th>
+    <th colspan="2">VQAv2 val</th>
+    <th colspan="2">VQAv2 test</th>
+    <th colspan="2">OK-VQA test</th>
+    <th colspan="2">GQA test-dev</th>
+  </tr>
+  <tr>
+    <th>Paper</th>
+    <th>LAVIS</th>
+    <th>Paper</th>
+    <th>LAVIS</th>
+    <th>Paper</th>
+    <th>LAVIS</th>
+    <th>Paper</th>
+    <th>LAVIS</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td> PNP-VQA<sub>base</sub> </td>
+    <td>54.3</td>
+    <td>54.2</td>
+    <td>55.2</td>
+    <td>55.3</td>
+    <td>23.0</td>
+    <td>23.3</td>
+    <td>34.6</td>
+    <td>34.9</td>
+  </tr>
+  <tr>
+    <td> PNP-VQA<sub>large</sub> </td>
+    <td>57.5</td>
+    <td>57.5</td>
+    <td>58.8</td>
+    <td>58.9</td>
+    <td>27.1</td>
+    <td>27.1</td>
+    <td>38.4</td>
+    <td>38.4</td>
+  </tr>
+  <tr>
+    <td> PNP-VQA<sub>3B</sub> </td>
+    <td>62.1</td>
+    <td>62.1</td>
+    <td>63.5</td>
+    <td>63.5</td>
+    <td>34.1</td>
+    <td>34.0</td>
+    <td>42.3</td>
+    <td>42.3</td>
+  </tr>
+</tbody>
+</table>
+
+Evaluate PNP-VQA of different size using the respective scripts. The details are as following:
 
 #### VQAv2 Val
-<pre> bash run_scripts/pnp-vqa/eval/eval_vqav2.sh </pre>
+```
+bash run_scripts/pnp-vqa/eval/eval_vqav2.sh ## 54.2
+bash run_scripts/pnp-vqa/eval/eval_vqav2_large.sh ## 57.5
+bash run_scripts/pnp-vqa/eval/eval_vqav2_3b.sh ## 62.1
+```
 
 #### VQAv2 Test
-<pre> bash run_scripts/pnp-vqa/eval/eval_vqav2_test.sh </pre>
+```
+bash run_scripts/pnp-vqa/eval/eval_vqav2_test.sh ## 55.3
+bash run_scripts/pnp-vqa/eval/eval_vqav2_test_large.sh ## 58.9
+bash run_scripts/pnp-vqa/eval/eval_vqav2_test_3b.sh ## 63.5
+```
 
 #### OK-VQA Test
-<pre> bash run_scripts/pnp-vqa/eval/eval_okvqa.sh </pre>
+```
+bash run_scripts/pnp-vqa/eval/eval_okvqa.sh ## 23.3
+bash run_scripts/pnp-vqa/eval/eval_okvqa_large.sh ## 27.1
+bash run_scripts/pnp-vqa/eval/eval_okvqa_3b.sh ## 34.0
+```
 
 #### GQA Test-dev
-<pre> bash run_scripts/pnp-vqa/eval/eval_gqa.sh </pre>
-
-For PNP-VQA<sub>large</sub> and PNP-VQA<sub>3B</sub>, run the respective scripts appended with ```large``` and ```3b```. 
-We reduce the number of captions for PNP-VQA<sub>3B</sub> to prevent OOM using NVIDIA A100 40GB.
+```
+bash run_scripts/pnp-vqa/eval/eval_gqa.sh ## 34.9
+bash run_scripts/pnp-vqa/eval/eval_gqa_large.sh ## 38.4
+bash run_scripts/pnp-vqa/eval/eval_gqa_3b.sh ## 42.3
+```
 
 ### Citation
 If you find this code to be useful for your research, please consider citing.
