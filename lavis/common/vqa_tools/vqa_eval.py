@@ -16,7 +16,7 @@ import re
 
 
 class VQAEval:
-    def __init__(self, vqa, vqaRes, n=2):
+    def __init__(self, vqa=None, vqaRes=None, n=2):
         self.n = n
         self.accuracy = {}
         self.evalQA = {}
@@ -24,7 +24,8 @@ class VQAEval:
         self.evalAnsType = {}
         self.vqa = vqa
         self.vqaRes = vqaRes
-        self.params = {"question_id": vqa.getQuesIds()}
+        if vqa is not None:
+            self.params = {"question_id": vqa.getQuesIds()}
         self.contractions = {
             "aint": "ain't",
             "arent": "aren't",
