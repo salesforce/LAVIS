@@ -33,4 +33,4 @@ datasets:
               - aokvqa/annotations/aokvqa_v1p0_test.json
               - aokvqa/annotations/large_vocab_train_lavis.json
       images:
-          storage: coco/images/
+          storage: gqa/images/

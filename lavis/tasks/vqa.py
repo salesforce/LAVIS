@@ -153,7 +153,12 @@ class VQATask(BaseTask):
                     "%s : %.02f"
                     % (ans_type, vqa_scorer.accuracy["perAnswerType"][ans_type])
                 )
-                metrics["ansType"] = vqa_scorer.accuracy["perAnswerType"][ans_type]
+                metrics[ans_type] = vqa_scorer.accuracy["perAnswerType"][ans_type]
+
+            with open(
+                    os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a"
+            ) as f:
+                f.write(json.dumps(metrics) + "\n")
 
         return metrics
 
