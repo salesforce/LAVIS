@@ -101,12 +101,11 @@ bash run_scripts/pnp-vqa/eval/eval_gqa_3b.sh ## 42.3
 
 ### Citation
 If you find this code to be useful for your research, please consider citing.
-<pre>
-@misc{tiong2022pnpvqa,
-      title={Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training}, 
-      author={Anthony Meng Huat Tiong, Junnan Li, Boyang Li, Silvio Savarese, and Steven C.H. Hoi},
-      year={2022},
-      eprint={2210.08773},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
-}</pre>
+```bibtex
+@article{tiong2022plug,
+  title={Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training},
+  author={Tiong, Anthony Meng Huat and Li, Junnan and Li, Boyang and Savarese, Silvio and Hoi, Steven CH},
+  journal={arXiv preprint arXiv:2210.08773},
+  year={2022}
+}
+```
