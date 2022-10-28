@@ -69,31 +69,36 @@ to show PNP-VQA inference workflow:
 </tbody>
 </table>
 
-Evaluate PNP-VQA of different size using the respective scripts. The details are as following:
+To reproduce these evaluation results of PNP-VQA with different sizes, following steps below:
+
+#### Navigate to the root directory
+```bash
+cd LAVIS
+```
 
 #### VQAv2 Val
-```
+```bash
 bash run_scripts/pnp-vqa/eval/eval_vqav2.sh ## 54.2
 bash run_scripts/pnp-vqa/eval/eval_vqav2_large.sh ## 57.5
 bash run_scripts/pnp-vqa/eval/eval_vqav2_3b.sh ## 62.1
 ```
 
 #### VQAv2 Test
-```
+```bash
 bash run_scripts/pnp-vqa/eval/eval_vqav2_test.sh ## 55.3
 bash run_scripts/pnp-vqa/eval/eval_vqav2_test_large.sh ## 58.9
 bash run_scripts/pnp-vqa/eval/eval_vqav2_test_3b.sh ## 63.5
 ```
 
 #### OK-VQA Test
-```
+```bash
 bash run_scripts/pnp-vqa/eval/eval_okvqa.sh ## 23.3
 bash run_scripts/pnp-vqa/eval/eval_okvqa_large.sh ## 27.1
 bash run_scripts/pnp-vqa/eval/eval_okvqa_3b.sh ## 34.0
 ```
 
 #### GQA Test-dev
-```
+```bash
 bash run_scripts/pnp-vqa/eval/eval_gqa.sh ## 34.9
 bash run_scripts/pnp-vqa/eval/eval_gqa_large.sh ## 38.4
 bash run_scripts/pnp-vqa/eval/eval_gqa_3b.sh ## 42.3
