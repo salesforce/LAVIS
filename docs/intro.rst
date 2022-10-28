@@ -89,7 +89,7 @@ Installation
 
 .. code-block:: bash
 
-   git clone https://github.com/MetaMind/LAVIS.git
+   git clone https://github.com/salesforce/LAVIS.git
    cd LAVIS
    pip install .
 
