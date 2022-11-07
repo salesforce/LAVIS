@@ -5,6 +5,7 @@
 
 model:
   arch: pnp_vqa
+  model_type: 3b
 
   image_question_matching_model:
     arch: blip_image_text_matching
