@@ -70,21 +70,27 @@ def app():
 
 
 def generate_caption(
-    model, image, use_nucleus_sampling=False, num_beams=3, max_length=40, min_length=5
+    model,
+    image,
+    use_nucleus_sampling=False,
+    num_beams=3,
+    max_length=40,
+    min_length=5,
+    num_captions=1,
 ):
     samples = {"image": image}
 
     captions = []
     if use_nucleus_sampling:
-        for _ in range(5):
-            caption = model.generate(
-                samples,
-                use_nucleus_sampling=True,
-                max_length=max_length,
-                min_length=min_length,
-                top_p=0.9,
-            )
-            captions.append(caption[0])
+        caption = model.generate(
+            samples,
+            use_nucleus_sampling=True,
+            max_length=max_length,
+            min_length=min_length,
+            top_p=0.9,
+            num_captions=num_captions,
+        )
+        captions.extend(caption)
     else:
         caption = model.generate(
             samples,
