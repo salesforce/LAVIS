@@ -8,6 +8,7 @@
 import logging
 import os
 import shutil
+import warnings
 
 import lavis.common.utils as utils
 import torch.distributed as dist
@@ -152,7 +153,7 @@ class BaseDatasetBuilder:
         storage_path = utils.get_cache_path(storage_path)
 
         if not os.path.exists(storage_path):
-            raise ValueError(
+            warnings.warn(
                 f"""
                 The specified path {storage_path} for visual inputs does not exist.
                 Please provide a correct path to the visual inputs or
@@ -212,7 +213,7 @@ class BaseDatasetBuilder:
                 vis_path = utils.get_cache_path(vis_path)
 
             if not os.path.exists(vis_path):
-                raise ValueError("storage path {} does not exist.".format(vis_path))
+                warnings.warn("storage path {} does not exist.".format(vis_path))
 
             # create datasets
             dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
