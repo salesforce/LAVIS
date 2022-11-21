@@ -18,9 +18,20 @@ from lavis.common.utils import (
 )
 
 
+# TODO
+# 1. Go to https://www.mediafire.com/file/czh8sezbo9s4692/test_videos.zip/file
+#      and https://www.mediafire.com/file/x3rrbe4hwp04e6w/train_val_videos.zip/file
+# 2. Right-click the Download button and copy the link address
+#      e.g.
+#    DATA_URL = {
+#        "train": "https://download1602.mediafire.com/xxxxxxxxxxxx/x3rrbe4hwp04e6w/train_val_videos.zip",
+#        "test": "https://download2390.mediafire.com/xxxxxxxxxxxx/czh8sezbo9s4692/test_videos.zip",
+#    }
+# 3. Paste the link address to DATA_URL
+
 DATA_URL = {
-    "train": "https://download1602.mediafire.com/jslug277m67g/x3rrbe4hwp04e6w/train_val_videos.zip",
-    "test": "https://download2390.mediafire.com/wmqiujhca16g/czh8sezbo9s4692/test_videos.zip",
+    "train": "https://download2295.mediafire.com/4bb7p74xrbgg/x3rrbe4hwp04e6w/train_val_videos.zip",
+    "test": "https://download2390.mediafire.com/79hfq3592lqg/czh8sezbo9s4692/test_videos.zip",
 }
 
 
