@@ -5,25 +5,49 @@
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
+import io
 import os
 import pathlib
-from omegaconf import OmegaConf
+import urllib
+import tqdm
 
-from lavis.common.utils import (
-    cleanup_dir,
-    download_and_extract_archive,
-    get_abs_path,
-    get_cache_path,
+from concurrent.futures import ThreadPoolExecutor
+
+from lavis.common.utils import get_abs_path, get_cache_path
+from lavis.datasets.builders import load_dataset
+from omegaconf import OmegaConf
+from PIL import Image
+
+# DATA_URL = {"train": "http://www.cs.rice.edu/~vo9/sbucaptions/sbu_images.tar"}
+
+USER_AGENT = (
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1"
 )
 
 
-DATA_URL = {"train": "http://www.cs.rice.edu/~vo9/sbucaptions/sbu_images.tar"}
+def fetch_single_image(image_url, timeout=None, retries=0):
+    for _ in range(retries + 1):
+        try:
+            request = urllib.request.Request(
+                image_url,
+                data=None,
+                headers={"user-agent": USER_AGENT},
+            )
+            with urllib.request.urlopen(request, timeout=timeout) as req:
+                image = Image.open(io.BytesIO(req.read()))
+            break
+        except Exception:
+            image = None
+    return image
 
 
-def download_datasets(root, url):
-    download_and_extract_archive(
-        url=url, download_root=root, extract_root=storage_dir.parent
-    )
+def download_and_save_image(ann, save_dir, timeout=None, retries=0):
+    image = fetch_single_image(ann["url"], timeout=timeout, retries=retries)
+
+    if image is not None:
+        image_path = os.path.join(save_dir, ann["image"])
+        print(image_path)
+        image.save(image_path)
 
 
 if __name__ == "__main__":
@@ -34,20 +58,25 @@ if __name__ == "__main__":
         config_path
     ).datasets.sbu_caption.build_info.images.storage
 
-    download_dir = pathlib.Path(get_cache_path(storage_dir)).parent / "download"
     storage_dir = pathlib.Path(get_cache_path(storage_dir))
 
     if storage_dir.exists():
         print(f"Dataset already exists at {storage_dir}. Aborting.")
         exit(0)
 
-    try:
-        for k, v in DATA_URL.items():
-            print("Downloading {} to {}".format(v, k))
-            download_datasets(download_dir, v)
-    except Exception as e:
-        # remove download dir if failed
-        cleanup_dir(download_dir)
-        print("Failed to download or extracting datasets. Aborting.")
+    storage_dir.mkdir(parents=True, exist_ok=True)
 
-    cleanup_dir(download_dir)
+    num_threads = 20
+    dset = load_dataset("sbu_caption")["train"].annotation
+
+    print("Downloading dataset...")
+    # multiprocessing
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        for ann in tqdm.tqdm(dset):
+            executor.submit(
+                download_and_save_image,
+                ann,
+                storage_dir,
+                timeout=30,
+                retries=10,
+            )
