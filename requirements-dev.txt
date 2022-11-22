@@ -25,3 +25,4 @@ transformers>=4.15.0,<4.22.0
 webdataset
 wheel
 sentencepiece
+flask==2.1.0

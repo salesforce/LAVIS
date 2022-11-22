@@ -2,9 +2,19 @@ import base64
 import io
 import os
 import torch
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, flash, redirect, url_for, render_template
+from flask_cors import CORS
 import numpy as np
 from PIL import Image
+from werkzeug.utils import secure_filename
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 from app.utils import (
     getAttMap,
@@ -21,8 +31,28 @@ from lavis.processors.blip_processors import (
 )
 
 app = Flask(__name__)
+CORS(app)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+
+
+@app.route("/api/upload", methods=["POST"])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        print(request.files)
+        if 'file' not in request.files:
+            return {'status': "error", 'message': "No file part"}
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit a empty part without filename
+        if file.filename == '':
+            return  {'status': "error", 'message': "No selected file", 'filename': file}
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return {'status': "success", 'message': "File uploaded successfully"}
+
 
 
 def decode_image(img_obj):
@@ -345,6 +375,9 @@ def generate_caption_api():
     )
 
     return {"caption": captions}
+
+
+
 
 
 if __name__ == "__main__":
