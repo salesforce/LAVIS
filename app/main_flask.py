@@ -51,11 +51,11 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return {'status': "success", 'message': "File uploaded successfully"}
+            return {'status': "success", 'message': "File uploaded successfully", 'path': os.path.join(app.config['UPLOAD_FOLDER'], filename)}
 
 
 
-def decode_image(img_obj):
+def decode_image0(img_obj):
     image_path = os.path.join(app.config["UPLOAD_FOLDER"], img_obj.filename)
 
     img_obj.save(image_path)
@@ -65,6 +65,11 @@ def decode_image(img_obj):
     # remove the image from the server
     os.remove(image_path)
 
+    return img
+
+def decode_image(image_path):
+    print('decode_image', image_path)
+    img = Image.open(image_path).convert("RGB")
     return img
 
 
@@ -331,11 +336,11 @@ def generate_caption_api():
 
     r = request
 
-    raw_image = r.files["image"]
+    #raw_image = r.files["image"]
 
     # required fields
     # decode image from form data
-    image = decode_image(raw_image)
+    
 
     request_dict = r.form.to_dict()
 
@@ -346,7 +351,8 @@ def generate_caption_api():
     max_length = int(request_dict.get("max_length", 40))
     min_length = int(request_dict.get("min_length", 5))
     num_captions = int(request_dict.get("num_captions", 1))
-
+    image_path = request_dict.get("image", None)
+    image = decode_image(image_path)
     # load model
     app.logger.info("Loading model...")
     model = load_model_cache(
@@ -384,7 +390,7 @@ if __name__ == "__main__":
     app.debug = True
 
     # UPLOAD FOLDER
-    app.config["UPLOAD_FOLDER"] = "uploads"
+    app.config["UPLOAD_FOLDER"] = "static/uploads"
 
     # make upload folder if not exists
     if not os.path.exists(app.config["UPLOAD_FOLDER"]):
