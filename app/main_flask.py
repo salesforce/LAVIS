@@ -67,11 +67,10 @@ def decode_image0(img_obj):
 
     return img
 
-def decode_image(image_path):
-    print('decode_image', image_path)
-    img = Image.open(image_path).convert("RGB")
-    return img
 
+def decode_image(img_obj):
+    img = Image.open(img_obj).convert("RGB")
+    return img
 
 def encode_image(img_obj, encoding="ascii"):
     assert type(img_obj) == np.ndarray
@@ -264,17 +263,17 @@ def text_localization_api():
     """
     r = request
 
-    raw_image = r.files["image"]
+    #raw_image = r.files["image"]
 
     request_dict = r.form.to_dict()
 
     # required fields
     query = request_dict["query"]
 
-    # decode image from form data
-    image = decode_image(raw_image)
+    
     request_dict = r.form.to_dict()
-
+    image_path = request_dict.get("image", None)
+    image = decode_image(image_path)    
     vis_processor = load_processor("blip_image_eval").build(image_size=384)
     text_processor = load_processor("blip_caption")
 
