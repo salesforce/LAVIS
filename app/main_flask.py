@@ -102,11 +102,12 @@ def classification_api():
 
     r = request
 
-    raw_image = r.files["image"]
-    image = decode_image(raw_image)
+    #raw_image = r.files["image"]
+    #image = decode_image(raw_image)
 
     request_dict = r.form.to_dict()
-
+    image_path = request_dict.get("image", None)
+    image = decode_image(image_path)
     # required fields
     model_type = request_dict.get("model_type", "BLIP_base")
     cls_names = request_dict["class_names"].split(",")
@@ -215,12 +216,13 @@ def vqa_api():
     """
     r = request
 
-    raw_image = r.files["image"]
+    #raw_image = r.files["image"]
 
-    image = decode_image(raw_image)
+    #image = decode_image(raw_image)
 
     request_dict = r.form.to_dict()
-
+    image_path = request_dict.get("image", None)
+    image = decode_image(image_path)
     question = request_dict["question"]
 
     model = load_model_cache(
