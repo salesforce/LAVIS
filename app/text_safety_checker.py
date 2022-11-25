@@ -122,7 +122,7 @@ rplc = {
     "grandmother": "grandparent",
     "handsome": "attractive",
     "he": "person",
-    "her": "person",
+    # "her": "person",
     "hero": "heroix",
     "heroine": "heroix",
     "hers": "person's",
