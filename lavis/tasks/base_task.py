@@ -10,7 +10,7 @@ import os
 
 import torch
 import torch.distributed as dist
-from lavis.common.dist_utils import get_rank, get_world_size, is_main_process
+from lavis.common.dist_utils import get_rank, get_world_size, is_main_process, is_dist_avail_and_initialized
 from lavis.common.logger import MetricLogger, SmoothedValue
 from lavis.common.registry import registry
 from lavis.datasets.data_utils import prepare_sample
@@ -90,7 +90,8 @@ class BaseTask:
             eval_output = self.valid_step(model=model, samples=samples)
             results.extend(eval_output)
 
-        dist.barrier()
+        if is_dist_avail_and_initialized():
+            dist.barrier()
 
         return results
 
@@ -247,7 +248,8 @@ class BaseTask:
 
         json.dump(result, open(result_file, "w"))
 
-        dist.barrier()
+        if is_dist_avail_and_initialized():
+            dist.barrier()
 
         if is_main_process():
             logging.warning("rank %d starts merging results." % get_rank())
