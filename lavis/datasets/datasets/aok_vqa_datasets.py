@@ -9,6 +9,7 @@ from collections import OrderedDict
 import json
 import os
 import torch
+import random
 
 from PIL import Image
 
@@ -36,25 +37,33 @@ class AOKVQADataset(VQADataset, __DisplMixin):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
-        ann = self.annotation[index]
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
 
-        image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+                image_path = os.path.join(self.vis_root, ann["image"])
+                image = Image.open(image_path).convert("RGB")
 
-        image = self.vis_processor(image)
-        question = self.text_processor(ann["question"])
+                image = self.vis_processor(image)
+                question = self.text_processor(ann["question"])
 
-        answer_key = "direct_answers"
+                answer_key = "direct_answers"
 
-        answer_weight = {}
-        for answer in ann[answer_key]:
-            if answer in answer_weight.keys():
-                answer_weight[answer] += 1 / len(ann[answer_key])
-            else:
-                answer_weight[answer] = 1 / len(ann[answer_key])
+                answer_weight = {}
+                for answer in ann[answer_key]:
+                    if answer in answer_weight.keys():
+                        answer_weight[answer] += 1 / len(ann[answer_key])
+                    else:
+                        answer_weight[answer] = 1 / len(ann[answer_key])
 
-        answers = list(answer_weight.keys())
-        weights = list(answer_weight.values())
+                answers = list(answer_weight.keys())
+                weights = list(answer_weight.values())
+
+                availabile = True
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
 
         return {
             "image": image,
@@ -124,24 +133,32 @@ class AOKVQAEvalDataset(VQAEvalDataset, __DisplMixin):
         }
 
     def __getitem__(self, index):
-        ann = self.annotation[index]
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
 
-        image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+                image_path = os.path.join(self.vis_root, ann["image"])
+                image = Image.open(image_path).convert("RGB")
 
-        image = self.vis_processor(image)
-        question = self.text_processor(ann["question"])
+                image = self.vis_processor(image)
+                question = self.text_processor(ann["question"])
 
-        choices = ann["choices"]
-        if "correct_choice_idx" in ann:
-            correct_choice_idx = ann["correct_choice_idx"]
-        else:
-            correct_choice_idx = None
+                choices = ann["choices"]
+                if "correct_choice_idx" in ann:
+                    correct_choice_idx = ann["correct_choice_idx"]
+                else:
+                    correct_choice_idx = None
 
-        if "direct_answers" in ann:
-            direct_answers = ann["direct_answers"]
-        else:
-            direct_answers = None
+                if "direct_answers" in ann:
+                    direct_answers = ann["direct_answers"]
+                else:
+                    direct_answers = None
+                
+                availabile = True
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
 
         return {
             "image": image,

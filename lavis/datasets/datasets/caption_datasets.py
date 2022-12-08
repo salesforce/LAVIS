@@ -6,6 +6,7 @@
 """
 
 import os
+import random
 from collections import OrderedDict
 
 from lavis.datasets.datasets.base_dataset import BaseDataset
@@ -42,15 +43,23 @@ class CaptionDataset(BaseDataset, __DisplMixin):
                 n += 1
 
     def __getitem__(self, index):
+        availabile = False
+        while not availabile:
+            try:
+                # TODO this assumes image input, not general enough
+                ann = self.annotation[index]
 
-        # TODO this assumes image input, not general enough
-        ann = self.annotation[index]
+                image_path = os.path.join(self.vis_root, ann["image"])
+                image = Image.open(image_path).convert("RGB")
 
-        image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+                image = self.vis_processor(image)
+                caption = self.text_processor(ann["caption"])
 
-        image = self.vis_processor(image)
-        caption = self.text_processor(ann["caption"])
+                availabile = True
+
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
 
         return {
             "image": image,
@@ -69,14 +78,20 @@ class CaptionEvalDataset(BaseDataset, __DisplMixin):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
 
-        ann = self.annotation[index]
+                image_path = os.path.join(self.vis_root, ann["image"])
+                image = Image.open(image_path).convert("RGB")
 
-        image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+                image = self.vis_processor(image)
+                availabile = True
 
-        image = self.vis_processor(image)
-
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
         return {
             "image": image,
             "image_id": ann["image_id"],
