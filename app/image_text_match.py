@@ -1,23 +1,18 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
-
 import numpy as np
 import streamlit as st
 import torch
-from lavis.models.blip_models.blip_image_text_matching import compute_gradcam
+from app import device, load_demo_image
+from app.utils import (
+    init_bert_tokenizer,
+    getAttMap,
+    load_blip_itm_model,
+)
 from lavis.processors import load_processor
 from PIL import Image
-
-from app import device, load_demo_image
-from app.utils import getAttMap, init_bert_tokenizer, load_blip_itm_model
-
+from lavis.models.blip_models.blip_image_text_matching import compute_gradcam
 
 def app():
-    model_type = st.sidebar.selectbox("Model:", ["BLIP_base", "BLIP_large"])
+    model_type = st.sidebar.selectbox("Model:", ["BLIP_large", "BLIP_base"])
 
     if model_type.startswith("BLIP"):
         blip_type = model_type.split("_")[1]
@@ -74,7 +69,7 @@ def app():
         qry_tok = tokenizer(qry, return_tensors="pt").to(device)
         gradcam, output = compute_gradcam(model, img, qry, qry_tok, block_num=layer_num)
 
-        avg_gradcam = getAttMap(norm_img, gradcam[0][1], blur=True)
+        avg_gradcam = getAttMap(norm_img, gradcam[1], blur=True)
 
         col2.image(avg_gradcam, use_column_width=True, clamp=True)
         # output = model(img, question)
