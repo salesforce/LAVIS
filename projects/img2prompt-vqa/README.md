@@ -13,7 +13,7 @@ The following images illustrate the technical procedures of answer extraction, q
 
 
 ### Demo
-We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/pnp_vqa.ipynb)
+We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/img2prompt_vqa.ipynb)
 to show Img2Prompt-VQA inference workflow:
 1. Image-question matching: compute the relevancy score of the image patches wrt the question, and remove the generated noisy captions with low relevancy score.
 2. Image captioning: generate question-guided captions based on the relevancy score.
