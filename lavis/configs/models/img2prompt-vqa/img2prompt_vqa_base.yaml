@@ -4,7 +4,7 @@
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
 model:
-  arch: pnp_vqa
+  arch: img2prompt_vqa
   model_type: base
 
   image_question_matching_model:
@@ -42,12 +42,11 @@ model:
 
     # generation configs
     prompt: "a picture of "
-  question_answering_model:
-    arch: pnp_unifiedqav2_fid
 
-    pretrained: "allenai/unifiedqa-v2-t5-base-1363200"
+  question_generation_moodel:
+    pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/projects/img2prompt/T5_large_QG.pth"
 
-    t5_config_path: "configs/models/pnp-vqa/unifiedqav2_base_config.json"
+
 
 preprocess:
   vis_processor:
