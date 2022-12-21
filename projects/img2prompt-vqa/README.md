@@ -1,4 +1,4 @@
-## Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training
+## From Images to Textual Prompts: Zero-shot VQA with Frozen Large Language Models
 
 This is the official code for <a href="https://openreview.net/forum?id=Ck1UtnVukP8&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2023%2FConference%2FAuthors%23your-submissions)">Img2Prompt-VQA paper</a>. We integrate the implementation into LAVIS.
 
@@ -107,8 +107,7 @@ To reproduce these evaluation results of Img2Prompt-VQA with different LLMs, you
 ### Citation
 If you find this code to be useful for your research, please consider citing.
 ```bibtex
-@misc{
-  guo2023from,
+@misc{guo2023from,
   title={From Images to Textual Prompts: Zero-shot {VQA} with Frozen Large Language Models},
   author={Jiaxian Guo and Junnan Li and Dongxu Li and Anthony Tiong and Boyang Li and Dacheng Tao and Steven HOI},
   year={2023},
