@@ -1,10 +1,16 @@
 ## Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training
 
+This is the official code for <a href="https://openreview.net/forum?id=Ck1UtnVukP8&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2023%2FConference%2FAuthors%23your-submissions)">Img2Prompt-VQA paper</a>. We integrate the implementation into LAVIS.
+
+Large language models (LLMs) have demonstrated excellent zero-shot generalization to new tasks. However, effective utilization of LLMs for zero-shot visual question-answering (VQA) remains challenging, primarily due to the modality disconnection and task disconnection between LLM and VQA task. We propose **Img2Prompt**, a plug-and-play module that provides the prompts that can bridge the these disconnections, so that LLMs can perform VQA tasks without end-to-end training.
+
 <img src="Illustration.png" width="700">
+
+The following images illustrate the technical procedures of answer extraction, question generation and caption prompts in Img2Prompt. See paper for details.
+
 <img src="QuestionGeneration.png" width="700">
 <img src="Caption.png" width="700">
 
-This is the code for <a href="https://openreview.net/forum?id=Ck1UtnVukP8&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2023%2FConference%2FAuthors%23your-submissions)">Img2Prompt-VQA paper</a>. We integrate the implementation into LAVIS.
 
 ### Demo
 We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/pnp_vqa.ipynb)
@@ -101,5 +107,11 @@ To reproduce these evaluation results of Img2Prompt-VQA with different LLMs, you
 ### Citation
 If you find this code to be useful for your research, please consider citing.
 ```bibtex
-
+@misc{
+  guo2023from,
+  title={From Images to Textual Prompts: Zero-shot {VQA} with Frozen Large Language Models},
+  author={Jiaxian Guo and Junnan Li and Dongxu Li and Anthony Tiong and Boyang Li and Dacheng Tao and Steven HOI},
+  year={2023},
+  url={https://openreview.net/forum?id=Ck1UtnVukP8}
+}
 ```
