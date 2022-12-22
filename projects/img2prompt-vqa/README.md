@@ -1,6 +1,6 @@
 ## From Images to Textual Prompts: Zero-shot VQA with Frozen Large Language Models
 
-This is the official code for <a href="https://openreview.net/forum?id=Ck1UtnVukP8&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DICLR.cc%2F2023%2FConference%2FAuthors%23your-submissions)">Img2Prompt-VQA paper</a>. We integrate the implementation into LAVIS.
+This is the official code for <a href="https://arxiv.org/abs/2212.11270">Img2Prompt-VQA paper</a>. We integrate the implementation into LAVIS.
 
 Large language models (LLMs) have demonstrated excellent zero-shot generalization to new tasks. However, effective utilization of LLMs for zero-shot visual question-answering (VQA) remains challenging, primarily due to the modality disconnection and task disconnection between LLM and VQA task. We propose **Img2Prompt**, a plug-and-play module that provides the prompts that can bridge the these disconnections, so that LLMs can perform VQA tasks without end-to-end training.
 
