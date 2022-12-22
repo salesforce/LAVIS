@@ -25,6 +25,7 @@
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## What's New: 🎉
+  - [Model Release] Dec 2022, released implementation of **Img2prompt-VQA**, a plug-and-play module that enables off-the-shelf use of Large Language Models (LLMs) for visual question answering (VQA). Our model Img2Prompt-VQA surpasses Flamingo on zero-shot VQA on VQAv2 (61.9 vs 56.3), while in contrast requiring no end-to-end training! ([Paper](https://arxiv.org/pdf/2212.10846.pdf), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/img2prompt-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/img2prompt_vqa.ipynb))
   - [Model Release] Oct 2022, released implementation of **PNP-VQA** (**EMNLP Findings 2022**, by Anthony T.M.H. et al), _"Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training"_, a modular zero-shot VQA framework that requires no PLMs training, achieving SoTA zero-shot VQA performance. ([Paper](https://arxiv.org/abs/2210.08773), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/pnp-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/pnp-vqa/pnp_vqa.ipynb))
 
     
