@@ -4,7 +4,7 @@
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
-
+import random
 import torch
 from lavis.datasets.datasets.dialogue_datasets import (
     DialogueDataset,
@@ -22,14 +22,18 @@ class AVSDDialDataset(DialogueDataset):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
+                vname = ann["image_id"]
+                video = self.vis_processor(self.vis_root, vname)
+                dialogue = self.text_processor(ann)
+                availabile = True
 
-        ann = self.annotation[index]
-
-        vname = ann["image_id"]
-
-        video = self.vis_processor(self.vis_root, vname)
-
-        dialogue = self.text_processor(ann)
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
 
         # "image_id" is kept to stay compatible with the COCO evaluation format
         return {
@@ -99,15 +103,21 @@ class AVSDDialEvalDataset(DialogueEvalDataset):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
 
-        ann = self.annotation[index]
+                vname = ann["image_id"]
 
-        vname = ann["image_id"]
+                video = self.vis_processor(self.vis_root, vname)
 
-        video = self.vis_processor(self.vis_root, vname)
+                dialogue = self.text_processor(ann)
 
-        dialogue = self.text_processor(ann)
-
+                availabile = True
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
         # "image_id" is kept to stay compatible with the COCO evaluation format
         return {
             "video_fts": video["video_fts"],

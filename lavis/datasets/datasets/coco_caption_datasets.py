@@ -7,6 +7,7 @@
 
 import os
 import json
+import random
 
 from PIL import Image
 from PIL import ImageFile
@@ -28,14 +29,21 @@ class COCOCapEvalDataset(CaptionEvalDataset):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
-        ann = self.annotation[index]
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
 
-        image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+                image_path = os.path.join(self.vis_root, ann["image"])
+                image = Image.open(image_path).convert("RGB")
 
-        image = self.vis_processor(image)
+                image = self.vis_processor(image)
+                img_id = ann["image"].split("/")[-1].strip(".jpg").split("_")[-1]
 
-        img_id = ann["image"].split("/")[-1].strip(".jpg").split("_")[-1]
+                availabile = True
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
 
         return {
             "image": image,
@@ -54,14 +62,21 @@ class NoCapsEvalDataset(CaptionEvalDataset):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
 
     def __getitem__(self, index):
-        ann = self.annotation[index]
+        availabile = False
+        while not availabile:
+            try:
+                ann = self.annotation[index]
 
-        image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+                image_path = os.path.join(self.vis_root, ann["image"])
+                image = Image.open(image_path).convert("RGB")
 
-        image = self.vis_processor(image)
+                image = self.vis_processor(image)
+                img_id = ann["img_id"]
 
-        img_id = ann["img_id"]
+                availabile = True
+            except Exception as e:
+                print(f"Error while read file idx {index} in  {e}")
+                index = random.randint(0, len(self.annotation) - 1)
 
         return {
             "image": image,
