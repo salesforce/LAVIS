@@ -4,6 +4,7 @@
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
+import os
 
 from setuptools import setup, find_namespace_packages
 import platform
@@ -34,3 +35,5 @@ setup(
     dependency_links=DEPENDENCY_LINKS,
     zip_safe=False,
 )
+
+os.system('python -m spacy download en_core_web_sm')
