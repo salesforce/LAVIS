@@ -18,7 +18,7 @@ python-magic
 scikit-image
 streamlit
 timm==0.4.12
-torch==1.10.0
+torch
 torchvision
 tqdm
 transformers>=4.15.0,<4.22.0
