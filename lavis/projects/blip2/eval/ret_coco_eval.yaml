@@ -22,9 +22,9 @@ datasets:
           name: "blip_caption"
         eval:
           name: "blip_caption"
-    build_info:
-        images:
-            storage: '/export/share/datasets/vision/coco/images/'
+#     build_info:
+#         images:
+#             storage: '/export/share/datasets/vision/coco/images/'
 run:
   task: retrieval
 
