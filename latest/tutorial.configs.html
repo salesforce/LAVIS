@@ -1,37 +1,74 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>Training Models on Task Datasets (Commands and Configurations) &mdash; LAVIS  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adding Datasets" href="tutorial.datasets.html" />
     <link rel="prev" title="Example on Finetuning BLIP on COCO-Captioning" href="tutorial.training-example.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
+
+          
             <a href="index.html" class="icon icon-home"> LAVIS
+          
+
+          
           </a>
+
+          
+            
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -39,7 +76,18 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
@@ -71,31 +119,73 @@
 </li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">LAVIS</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-          <li class="breadcrumb-item"><a href="tutorial.html">Tutorials</a></li>
-      <li class="breadcrumb-item active">Training Models on Task Datasets (Commands and Configurations)</li>
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+        
+      <li>Training Models on Task Datasets (Commands and Configurations)</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
+          
             <a href="_sources/tutorial.configs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+            
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -121,23 +211,23 @@
 }
 </style>
 <section id="training-models-on-task-datasets-commands-and-configurations">
-<span id="config"></span><h1>Training Models on Task Datasets (Commands and Configurations)<a class="headerlink" href="#training-models-on-task-datasets-commands-and-configurations" title="Permalink to this heading"></a></h1>
+<span id="config"></span><h1>Training Models on Task Datasets (Commands and Configurations)<a class="headerlink" href="#training-models-on-task-datasets-commands-and-configurations" title="Permalink to this heading">¶</a></h1>
 <p>LAVIS provides scripts to pre-train and finetune supported models on standard language-vision tasks, stored at <code class="docutils literal notranslate"><span class="pre">lavis/run_scripts/</span></code>.
 To replicate the experiments, just run these bash scripts. For example, to train BLIP model on the image-text retrieval task with MSCOCO dataset, we can run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="n">run_scripts</span><span class="o">/</span><span class="n">lavis</span><span class="o">/</span><span class="n">blip</span><span class="o">/</span><span class="n">train</span><span class="o">/</span><span class="n">train_retrieval_coco</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 <p>Inside the scripts, we can see</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python -m torch.distributed.run --nproc_per_node<span class="o">=</span><span class="m">8</span> train.py --cfg-path lavis/projects/blip/train/retrieval_coco_ft.yaml
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>torch.distributed.run<span class="w"> </span>--nproc_per_node<span class="o">=</span><span class="m">8</span><span class="w"> </span>train.py<span class="w"> </span>--cfg-path<span class="w"> </span>lavis/projects/blip/train/retrieval_coco_ft.yaml
 </pre></div>
 </div>
 <p>where we start a pytorch distributed training on 8 GPUs (you may change according to your own hardware setup). The <code class="docutils literal notranslate"><span class="pre">--cfg-path</span></code> specifys a <cite>runtime configuration file</cite>, specifying
 the task, model, dataset and training recipes.</p>
 <p>Available options and their descriptions are as below.</p>
-<table class="colwidths-given docutils align-default">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 43%" />
-<col style="width: 57%" />
+<col style="width: 42.9%" />
+<col style="width: 57.1%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Model Configurations</p></th>
@@ -189,10 +279,10 @@ the task, model, dataset and training recipes.</p>
 </tr>
 </tbody>
 </table>
-<table class="colwidths-given docutils align-default">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 38%" />
-<col style="width: 63%" />
+<col style="width: 37.5%" />
+<col style="width: 62.5%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Dataset Configurations</p></th>
@@ -223,10 +313,10 @@ the task, model, dataset and training recipes.</p>
 </tr>
 </tbody>
 </table>
-<table class="colwidths-given docutils align-default">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 38%" />
-<col style="width: 63%" />
+<col style="width: 37.5%" />
+<col style="width: 62.5%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Runtime Configurations</p></th>
@@ -397,10 +487,10 @@ the task, model, dataset and training recipes.</p>
 </tr>
 </tbody>
 </table>
-<table class="colwidths-given docutils align-default">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 44%" />
-<col style="width: 56%" />
+<col style="width: 44.4%" />
+<col style="width: 55.6%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Text Generation Configurations</p></th>
@@ -431,10 +521,10 @@ the task, model, dataset and training recipes.</p>
 </tr>
 </tbody>
 </table>
-<table class="colwidths-given docutils align-default">
+<table class="docutils align-default">
 <colgroup>
-<col style="width: 44%" />
-<col style="width: 56%" />
+<col style="width: 44.4%" />
+<col style="width: 55.6%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Multimodal Retrieval Configurations</p></th>
@@ -462,33 +552,50 @@ the task, model, dataset and training recipes.</p>
 
 
            </div>
+           
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="tutorial.training-example.html" class="btn btn-neutral float-left" title="Example on Finetuning BLIP on COCO-Captioning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="tutorial.datasets.html" class="btn btn-neutral float-right" title="Adding Datasets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial.training-example.html" class="btn btn-neutral float-left" title="Example on Finetuning BLIP on COCO-Captioning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, salesforce.com inc..</p>
-  </div>
+    <p>
+        &#169; Copyright 2022, salesforce.com inc..
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

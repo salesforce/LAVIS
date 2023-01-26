@@ -1,36 +1,73 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>Adding Tasks &mdash; LAVIS  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script src="_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Adding Models" href="tutorial.models.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
+
+          
             <a href="index.html" class="icon icon-home"> LAVIS
+          
+
+          
           </a>
+
+          
+            
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -38,7 +75,18 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
@@ -76,31 +124,73 @@
 </li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">LAVIS</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a></li>
-          <li class="breadcrumb-item"><a href="tutorial.html">Tutorials</a></li>
-      <li class="breadcrumb-item active">Adding Tasks</li>
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+        
+      <li>Adding Tasks</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
+          
             <a href="_sources/tutorial.tasks.rst.txt" rel="nofollow"> View page source</a>
+          
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+            
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -126,13 +216,13 @@
 }
 </style>
 <section id="adding-tasks">
-<h1>Adding Tasks<a class="headerlink" href="#adding-tasks" title="Permalink to this heading"></a></h1>
+<h1>Adding Tasks<a class="headerlink" href="#adding-tasks" title="Permalink to this heading">¶</a></h1>
 <p>This is a tutorial on adding new machine learning tasks using <code class="docutils literal notranslate"><span class="pre">lavis.tasks</span></code> module.</p>
 <p>The LAVIS library includes a standard task module that centralizes the model training and evaluation procedure of machine learning tasks.
 The <code class="docutils literal notranslate"><span class="pre">lavis.tasks</span></code> module is designed such that any new tasks can be added and integrated, catering to any customization in the training and testing procedures.
 In this tutorial, we will replicate the steps to add a new task into LAVIS for the <a class="reference external" href="https://arxiv.org/pdf/1901.09107.pdf">video-grounded dialogue tasks</a>.</p>
 <section id="base-task-lavis-tasks-base-task">
-<h2>Base Task <code class="docutils literal notranslate"><span class="pre">lavis.tasks.base_task</span></code><a class="headerlink" href="#base-task-lavis-tasks-base-task" title="Permalink to this heading"></a></h2>
+<h2>Base Task <code class="docutils literal notranslate"><span class="pre">lavis.tasks.base_task</span></code><a class="headerlink" href="#base-task-lavis-tasks-base-task" title="Permalink to this heading">¶</a></h2>
 <p>Note that any new model definition should inherit the base task class <code class="docutils literal notranslate"><span class="pre">BaseTask</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -160,7 +250,7 @@ In this tutorial, we will replicate the steps to add a new task into LAVIS for t
         <span class="k">return</span> <span class="n">model_cls</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">model_config</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">build_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cfg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a dictionary of datasets, keyed by split &#39;train&#39;, &#39;valid&#39;, &#39;test&#39;.</span>
 <span class="sd">        Download dataset and annotations automatically if not exist.</span>
 
@@ -199,7 +289,7 @@ Inheriting this base task class allows us to standardize operations of tasks acr
 We recommend users not change the implementation of the base task class as this will have an impact on all existing task subclasses.</p>
 </section>
 <section id="dialogue-task-lavis-tasks-dialogue">
-<h2>Dialogue Task <code class="docutils literal notranslate"><span class="pre">lavis.tasks.dialogue</span></code><a class="headerlink" href="#dialogue-task-lavis-tasks-dialogue" title="Permalink to this heading"></a></h2>
+<h2>Dialogue Task <code class="docutils literal notranslate"><span class="pre">lavis.tasks.dialogue</span></code><a class="headerlink" href="#dialogue-task-lavis-tasks-dialogue" title="Permalink to this heading">¶</a></h2>
 <p>In this step, we can define a new task class, e.g. under <code class="docutils literal notranslate"><span class="pre">lavis.tasks.dialogue</span></code>, for video-grounded dialogues.
 For instance, we define a new task class <code class="docutils literal notranslate"><span class="pre">DialogueTask</span></code> that inherits the super task class <code class="docutils literal notranslate"><span class="pre">BaseTask</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
@@ -260,7 +350,7 @@ Another method that should be considered is the <code class="docutils literal no
 This method will receive configurations that set task-specific parameters to initialize any task instance.</p>
 </section>
 <section id="registering-new-task-lavis-tasks-init">
-<h2>Registering New Task <code class="docutils literal notranslate"><span class="pre">lavis.tasks.__init__</span></code><a class="headerlink" href="#registering-new-task-lavis-tasks-init" title="Permalink to this heading"></a></h2>
+<h2>Registering New Task <code class="docutils literal notranslate"><span class="pre">lavis.tasks.__init__</span></code><a class="headerlink" href="#registering-new-task-lavis-tasks-init" title="Permalink to this heading">¶</a></h2>
 <p>Any new task must be officially registered as part of the <code class="docutils literal notranslate"><span class="pre">lavis.tasks</span></code> module. For instance, to add a new task for video-grounded dialogues, we can modify the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.tasks.dialogue</span> <span class="kn">import</span> <span class="n">DialogueTask</span>
 
@@ -273,25 +363,25 @@ This method will receive configurations that set task-specific parameters to ini
 </div>
 </section>
 <section id="assigning-task">
-<h2>Assigning Task<a class="headerlink" href="#assigning-task" title="Permalink to this heading"></a></h2>
+<h2>Assigning Task<a class="headerlink" href="#assigning-task" title="Permalink to this heading">¶</a></h2>
 <p>From the above example of task class, note that we define a <code class="docutils literal notranslate"><span class="pre">setup_task</span></code> method for each task class.
 This method will process a configuration file and pass specific parameters e.g. <code class="docutils literal notranslate"><span class="pre">num_beams</span></code> (for beam search generative tasks during the inference stage), to initialize the task classes properly.
 To assign and associate any task, we need to specify the correct registry of task classes in a configuration file.
 For instance, the following should be specified in a configuration file e.g. <code class="docutils literal notranslate"><span class="pre">dialogue_avsd_ft.yaml</span></code>:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">run</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dialogue</span><span class="w"> </span><span class="c1"># name of the task</span><span class="w"></span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">run</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dialogue</span><span class="w"> </span><span class="c1"># name of the task</span>
 
-<span class="w">  </span><span class="c1"># optimizer</span><span class="w"></span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># optimizer</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 
-<span class="w">  </span><span class="nt">max_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span><span class="w"></span>
-<span class="w">  </span><span class="nt">min_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w"></span>
-<span class="w">  </span><span class="nt">num_beams</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span><span class="w"></span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<span class="w">  </span><span class="nt">max_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+<span class="w">  </span><span class="nt">min_len</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">  </span><span class="nt">num_beams</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </pre></div>
 </div>
 <p>Subsequently, any processes (e.g. training) should load this configuration file to assign the correct task.</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python train.py --cfg-path dialogue_avsd_ft.yaml
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>train.py<span class="w"> </span>--cfg-path<span class="w"> </span>dialogue_avsd_ft.yaml
 </pre></div>
 </div>
 </section>
@@ -299,32 +389,49 @@ For instance, the following should be specified in a configuration file e.g. <co
 
 
            </div>
+           
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="tutorial.models.html" class="btn btn-neutral float-left" title="Adding Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, salesforce.com inc..</p>
-  </div>
+    <p>
+        &#169; Copyright 2022, salesforce.com inc..
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
