@@ -172,7 +172,7 @@ def compute_sim_matrix(model, data_loader, **kwargs):
     ):
 
         topk_sim, topk_idx = sims.topk(k=k_test, dim=0)
-        encoder_output = image_feats[topk_idx].to(model.device)
+        encoder_output = image_feats[topk_idx.cpu()].to(model.device)
         encoder_att = torch.ones(encoder_output.size()[:-1], dtype=torch.long).to(
             model.device
         )
