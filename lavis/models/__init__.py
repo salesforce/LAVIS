@@ -108,8 +108,10 @@ def load_model(name, model_type, is_eval=False, device="cpu", checkpoint=None):
 
     if is_eval:
         model.eval()
-    if device=="cpu":
+
+    if device == "cpu":
         model = model.float()
+
     return model.to(device)
 
 
@@ -206,9 +208,10 @@ def load_model_and_preprocess(name, model_type, is_eval=False, device="cpu"):
                 or it is not intended for direct use without finetuning.
             """
         )
-    if device=="cpu":
+
+    if device == "cpu":
         model = model.float()
-    
+
     return model.to(device), vis_processors, txt_processors
 
 
