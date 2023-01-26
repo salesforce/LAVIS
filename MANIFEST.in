@@ -1,5 +1,7 @@
 recursive-include lavis/configs *.yaml *.json
-recursive-include lavis/projects_release *.yaml *.json
+recursive-include lavis/projects *.yaml *.json
 
 recursive-exclude lavis/datasets/download_scripts *
 recursive-exclude lavis/output *
+
+include requirements.txt

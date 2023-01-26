@@ -18,7 +18,7 @@ from lavis.models.base_model import BaseModel
 from lavis.models.blip_models.blip_image_text_matching import compute_gradcam
 
 open_pos = ["NOUN", "VERB", "ADJ", "ADV", "NUM"]
-nlp = spacy.load("en_core_web_sm")
+
 
 
 @registry.register_model("img2prompt_vqa")
@@ -58,6 +58,7 @@ class Img2PromptVQA(BaseModel):
         self.question_generation_model = question_generation_model
         self.question_generation_tokenizer = question_generation_tokenizer
         self.offload_model = offload_model
+        self.nlp = spacy.load("en_core_web_sm")
 
     def forward_itm(self, samples, block_num=7):
         """
@@ -254,7 +255,7 @@ class Img2PromptVQA(BaseModel):
             cap_use += cap
             cap = cap.strip().strip(".")
             # print(cap)
-            cap = nlp(cap)
+            cap = self.nlp(cap)
             for token in cap:  # Noun /Verb/Adj//NUM
                 if token.pos_ in open_pos:
                     if token.text.lower() not in ans_to_cap_dict:
@@ -405,7 +406,7 @@ class Img2PromptVQA(BaseModel):
                 ]
 
                 Task_Prompt += "Question:"
-                doc = nlp(syn_ans_queid[(qa_idx) % len(syn_ans_queid)][:-1].lower())
+                doc = self.nlp(syn_ans_queid[(qa_idx) % len(syn_ans_queid)][:-1].lower())
                 if doc[-1].pos_ == "NOUN":
                     Task_Prompt += Noun_Questions[
                         random.randint(0, len(Noun_Questions) - 1)

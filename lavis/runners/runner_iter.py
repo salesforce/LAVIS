@@ -145,6 +145,7 @@ class RunnerIter(RunnerBase):
             model=self.model,
             data_loader=self.train_loader,
             optimizer=self.optimizer,
+            scaler=self.scaler,
             lr_scheduler=self.lr_scheduler,
             cuda_enabled=self.cuda_enabled,
             log_freq=self.log_freq,

@@ -29,6 +29,12 @@ from lavis.models.blip_models.blip_nlvr import BlipNLVR
 from lavis.models.blip_models.blip_pretrain import BlipPretrain
 from lavis.models.blip_models.blip_retrieval import BlipRetrieval
 from lavis.models.blip_models.blip_vqa import BlipVQA
+
+from lavis.models.blip2_models.blip2 import Blip2Base
+from lavis.models.blip2_models.blip2_opt import Blip2OPT
+from lavis.models.blip2_models.blip2_t5 import Blip2T5
+from lavis.models.blip2_models.blip2_qformer import Blip2Qformer
+
 from lavis.models.pnp_vqa_models.pnp_vqa import PNPVQA
 from lavis.models.pnp_vqa_models.pnp_unifiedqav2_fid import PNPUnifiedQAv2FiD
 from lavis.models.img2prompt_models.img2prompt_vqa import Img2PromptVQA
@@ -61,6 +67,10 @@ __all__ = [
     "BlipPretrain",
     "BlipRetrieval",
     "BlipVQA",
+    "Blip2Qformer",
+    "Blip2Base",
+    "Blip2OPT",
+    "Blip2T5",
     "PNPVQA",
     "Img2PromptVQA",
     "PNPUnifiedQAv2FiD",
@@ -98,6 +108,9 @@ def load_model(name, model_type, is_eval=False, device="cpu", checkpoint=None):
 
     if is_eval:
         model.eval()
+
+    if device == "cpu":
+        model = model.float()
 
     return model.to(device)
 
@@ -195,6 +208,9 @@ def load_model_and_preprocess(name, model_type, is_eval=False, device="cpu"):
                 or it is not intended for direct use without finetuning.
             """
         )
+
+    if device == "cpu":
+        model = model.float()
 
     return model.to(device), vis_processors, txt_processors
 
