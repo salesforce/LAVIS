@@ -1,0 +1,53 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+# Bleu_1: 0.831
+# Bleu_2: 0.689
+# Bleu_3: 0.552
+# Bleu_4: 0.434
+# METEOR: 0.316
+# ROUGE_L: 0.618
+# CIDEr: 1.451
+# SPICE: 0.251
+
+model:
+  arch: blip2_opt
+  model_type: caption_coco_opt6.7b
+  use_grad_checkpoint: False
+
+datasets:
+  coco_caption: # name of the dataset builder
+    vis_processor:
+        eval:
+          name: "blip_image_eval"
+          image_size: 364
+    text_processor:
+        eval:
+          name: "blip_caption"
+#     build_info:
+#         images:
+#             storage: '/export/share/datasets/vision/coco/images/'
+
+run:
+  task: captioning
+  # optimizer
+  batch_size_train: 32
+  batch_size_eval: 16
+  num_workers: 4
+
+  max_len: 30
+  min_len: 8
+  num_beams: 5
+
+  seed: 42
+  output_dir: "output/BLIP2/Caption_coco_opt6.7b"
+
+  evaluate: True
+  test_splits: ["test"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
