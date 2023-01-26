@@ -1,0 +1,26 @@
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lavis"
+version = "1.0.0"
+authors = [
+  { name="Dongxu Li"},
+  { name="Junnan Li"},
+  { name="Hung Le"},
+  { name="Guangsen Wang"},
+  { name="Silvio Savarese"},
+  { name="Steven C.H. Hoi"},
+]
+maintainers = [
+  { name="Dongxu Li", email="li.d@salesforce.com"},
+  { name="Junnan Li", email="junnan.li@salesforce.com"},
+  { name="Steven C.H. Hoi", email="shoi@salesforce.com"},
+]
+description = "LAVIS - A One-stop Library for Language-Vision Intelligence"
+readme = "README.md"
+requires-python = ">=3.7.0"
+
+[project.urls]
+Homepage = "https://github.com/salesforce/LAVIS/"
