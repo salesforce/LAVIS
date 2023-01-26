@@ -16,6 +16,8 @@ pycocoevalcap
 pycocotools
 python-magic
 scikit-image
+sentencepiece
+spacy
 streamlit
 timm==0.4.12
 torch>=1.10.0
@@ -24,4 +26,3 @@ tqdm
 transformers>=4.25.0
 webdataset
 wheel
-sentencepiece
