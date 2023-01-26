@@ -3,8 +3,17 @@
  # SPDX-License-Identifier: BSD-3-Clause
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
+# Bleu_1: 0.832
+# Bleu_2: 0.691
+# Bleu_3: 0.556
+# Bleu_4: 0.438
+# METEOR: 0.317
+# ROUGE_L: 0.620
+# CIDEr: 1.461
+# SPICE: 0.252
+
 model:
-  arch: blip_opt
+  arch: blip2_opt
   model_type: caption_coco_opt2.7b
   use_grad_checkpoint: False
 
@@ -33,7 +42,7 @@ run:
   num_beams: 5
 
   seed: 42
-  output_dir: "output/BLIP2/Caption_coco"
+  output_dir: "output/BLIP2/Caption_coco_opt2.7b"
 
   evaluate: True
   test_splits: ["test"]

@@ -16,13 +16,13 @@ model:
   use_grad_checkpoint: False
   vit_precision: "fp16"
   freeze_vit: True
-  
+
   # Q-Former
   num_query_token: 32
-  
+
   # OPT
   opt_model: "facebook/opt-6.7b"
-                    
+
   # generation configs
   prompt: ""
 

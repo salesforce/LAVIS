@@ -4,11 +4,11 @@
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
 model:
-  arch: caption_coco_opt6.7b
+  arch: caption_coco_flant5xl
   load_finetuned: True
 
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained_opt6.7b.pth"
-  finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_caption_opt6.7b.pth"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained_flant5xl.pth"
+  finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_caption_flant5xl.pth"
 
   # vit encoder
   image_size: 364
@@ -16,13 +16,13 @@ model:
   use_grad_checkpoint: False
   vit_precision: "fp32"
   freeze_vit: False
-  
+
   # Q-Former
   num_query_token: 32
-  
-  # OPT
-  opt_model: "facebook/opt-6.7b"
-                    
+
+  # T5
+  t5_model: "google/flan-t5-xl"
+
   # generation configs
   prompt: "a photo of"
 

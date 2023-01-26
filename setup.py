@@ -20,7 +20,7 @@ def fetch_requirements(filename):
 
 setup(
     name="lavis",
-    version="0.1.0",
+    version="1.0.0",
     author="Dongxu Li, Junnan Li, Hung Le, Guangsen Wang, Silvio Savarese, Steven C.H. Hoi",
     description="LAVIS - A Library for Language-Vision Intelligence",
     long_description=open("README.md", "r", encoding="utf-8").read(),
@@ -28,7 +28,7 @@ setup(
     keywords="Vision-Language, Deep Learning, Library",
     license="3-Clause BSD",
     packages=find_namespace_packages(include="lavis.*"),
-    install_requires=fetch_requirements("requirements-dev.txt"),
+    install_requires=fetch_requirements("requirements.txt"),
     python_requires=">=3.7.0",
     include_package_data=True,
     dependency_links=DEPENDENCY_LINKS,

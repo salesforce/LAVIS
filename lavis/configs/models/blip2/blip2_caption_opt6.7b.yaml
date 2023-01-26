@@ -4,37 +4,37 @@
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
 model:
-  arch: pretrain_flant5xxl
-  load_finetuned: False
+  arch: caption_coco_opt6.7b
+  load_finetuned: True
 
-  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained_flant5xxl.pth"
-  finetuned: ""
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained_opt6.7b.pth"
+  finetuned: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_caption_opt6.7b.pth"
 
   # vit encoder
-  image_size: 224
+  image_size: 364
   drop_path_rate: 0
   use_grad_checkpoint: False
-  vit_precision: "fp16"
-  freeze_vit: True
-  
+  vit_precision: "fp32"
+  freeze_vit: False
+
   # Q-Former
   num_query_token: 32
-  
-  # T5
-  t5_model: "google/flan-t5-xxl"
-                    
+
+  # OPT
+  opt_model: "facebook/opt-6.7b"
+
   # generation configs
-  prompt: ""
+  prompt: "a photo of"
 
 
 preprocess:
     vis_processor:
         train:
           name: "blip_image_train"
-          image_size: 224
+          image_size: 364
         eval:
           name: "blip_image_eval"
-          image_size: 224
+          image_size: 364
     text_processor:
         train:
           name: "blip_caption"
