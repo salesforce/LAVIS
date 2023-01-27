@@ -203,8 +203,9 @@ class Blip2T5(Blip2Base):
 
         encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
             
+        device_type = "cuda" if "cuda" in str(self.device) else "cpu"
         with torch.amp.autocast(
-            device_type=str(self.device), dtype=torch.bfloat16
+            device_type=device_type, dtype=torch.bfloat16
         ):
             inputs_embeds = self.t5_model.encoder.embed_tokens(input_tokens.input_ids)
             inputs_embeds = torch.cat([inputs_t5, inputs_embeds], dim=1)
