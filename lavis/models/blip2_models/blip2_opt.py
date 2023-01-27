@@ -146,7 +146,6 @@ class Blip2OPT(Blip2Base):
         return {"loss": loss}
 
     @torch.no_grad()
-    @autocast()
     def generate(
         self,
         samples,
@@ -175,7 +174,10 @@ class Blip2OPT(Blip2Base):
             captions (list): A list of strings of length batch_size * num_captions.
         """
         image = samples["image"]
-        image_embeds = self.ln_vision(self.visual_encoder(image))
+        with torch.cuda.amp.autocast(
+            enabled=(self.device != torch.device("cpu"))
+        ):          
+            image_embeds = self.ln_vision(self.visual_encoder(image))
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
         )
