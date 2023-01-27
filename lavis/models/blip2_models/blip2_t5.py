@@ -196,17 +196,16 @@ class Blip2T5(Blip2Base):
             prompt = self.prompt
 
         prompt = [prompt] * image.size(0)
+        
+        input_tokens = self.t5_tokenizer(
+            prompt, padding="longest", return_tensors="pt"
+        ).to(image.device)
 
-        with torch.cuda.amp.autocast(
-            enabled=(self.device != torch.device("cpu")), dtype=torch.bfloat16
+        encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
+            
+        with torch.amp.autocast(
+            device_type=str(self.device), dtype=torch.bfloat16
         ):
-
-            input_tokens = self.t5_tokenizer(
-                prompt, padding="longest", return_tensors="pt"
-            ).to(image.device)
-
-            encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
-
             inputs_embeds = self.t5_model.encoder.embed_tokens(input_tokens.input_ids)
             inputs_embeds = torch.cat([inputs_t5, inputs_embeds], dim=1)
 
