@@ -178,59 +178,59 @@ class Blip2OPT(Blip2Base):
             enabled=(self.device != torch.device("cpu"))
         ):          
             image_embeds = self.ln_vision(self.visual_encoder(image))
-            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-                image.device
-            )
+        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+            image.device
+        )
 
-            query_tokens = self.query_tokens.expand(image_embeds.shape[0], -1, -1)
-            query_output = self.Qformer.bert(
-                query_embeds=query_tokens,
-                encoder_hidden_states=image_embeds,
-                encoder_attention_mask=image_atts,
-                return_dict=True,
-            )
+        query_tokens = self.query_tokens.expand(image_embeds.shape[0], -1, -1)
+        query_output = self.Qformer.bert(
+            query_embeds=query_tokens,
+            encoder_hidden_states=image_embeds,
+            encoder_attention_mask=image_atts,
+            return_dict=True,
+        )
 
-            inputs_opt = self.opt_proj(query_output.last_hidden_state)
-            atts_opt = torch.ones(inputs_opt.size()[:-1], dtype=torch.long).to(image.device)
+        inputs_opt = self.opt_proj(query_output.last_hidden_state)
+        atts_opt = torch.ones(inputs_opt.size()[:-1], dtype=torch.long).to(image.device)
 
-            if "prompt" in samples.keys():
-                prompt = samples["prompt"]
-            else:
-                prompt = self.prompt
+        if "prompt" in samples.keys():
+            prompt = samples["prompt"]
+        else:
+            prompt = self.prompt
 
-            prompt = [prompt] * image.size(0)
+        prompt = [prompt] * image.size(0)
 
-            opt_tokens = self.opt_tokenizer(prompt, return_tensors="pt").to(image.device)
-            input_ids = opt_tokens.input_ids
-            attention_mask = torch.cat([atts_opt, opt_tokens.attention_mask], dim=1)
+        opt_tokens = self.opt_tokenizer(prompt, return_tensors="pt").to(image.device)
+        input_ids = opt_tokens.input_ids
+        attention_mask = torch.cat([atts_opt, opt_tokens.attention_mask], dim=1)
 
-            if use_nucleus_sampling:
-                query_embeds = inputs_opt.repeat_interleave(num_captions, dim=0)
-                num_beams = 1
-            else:
-                query_embeds = inputs_opt.repeat_interleave(num_beams, dim=0)
+        if use_nucleus_sampling:
+            query_embeds = inputs_opt.repeat_interleave(num_captions, dim=0)
+            num_beams = 1
+        else:
+            query_embeds = inputs_opt.repeat_interleave(num_beams, dim=0)
 
-            outputs = self.opt_model.generate(
-                input_ids=input_ids,
-                query_embeds=query_embeds,
-                attention_mask=attention_mask,
-                do_sample=use_nucleus_sampling,
-                top_p=top_p,
-                temperature=temperature,
-                num_beams=num_beams,
-                max_new_tokens=max_length,
-                min_length=min_length,
-                eos_token_id=self.eos_token_id,
-                repetition_penalty=repetition_penalty,
-                length_penalty=length_penalty,
-                num_return_sequences=num_captions,
-            )
+        outputs = self.opt_model.generate(
+            input_ids=input_ids,
+            query_embeds=query_embeds,
+            attention_mask=attention_mask,
+            do_sample=use_nucleus_sampling,
+            top_p=top_p,
+            temperature=temperature,
+            num_beams=num_beams,
+            max_new_tokens=max_length,
+            min_length=min_length,
+            eos_token_id=self.eos_token_id,
+            repetition_penalty=repetition_penalty,
+            length_penalty=length_penalty,
+            num_return_sequences=num_captions,
+        )
 
-            prompt_length = opt_tokens.input_ids.shape[1]
-            output_text = self.opt_tokenizer.batch_decode(
-                outputs[:, prompt_length:], skip_special_tokens=True
-            )
-            output_text = [text.strip() for text in output_text]
+        prompt_length = opt_tokens.input_ids.shape[1]
+        output_text = self.opt_tokenizer.batch_decode(
+            outputs[:, prompt_length:], skip_special_tokens=True
+        )
+        output_text = [text.strip() for text in output_text]
         return output_text
 
     @classmethod

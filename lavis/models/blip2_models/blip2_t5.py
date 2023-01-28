@@ -175,36 +175,36 @@ class Blip2T5(Blip2Base):
             enabled=(self.device != torch.device("cpu"))
         ):        
             image_embeds = self.ln_vision(self.visual_encoder(image))
-            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
-                image.device
-            )
+        image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+            image.device
+        )
 
-            query_tokens = self.query_tokens.expand(image_embeds.shape[0], -1, -1)
-            query_output = self.Qformer.bert(
-                query_embeds=query_tokens,
-                encoder_hidden_states=image_embeds,
-                encoder_attention_mask=image_atts,
-                return_dict=True,
-            )
+        query_tokens = self.query_tokens.expand(image_embeds.shape[0], -1, -1)
+        query_output = self.Qformer.bert(
+            query_embeds=query_tokens,
+            encoder_hidden_states=image_embeds,
+            encoder_attention_mask=image_atts,
+            return_dict=True,
+        )
 
-            inputs_t5 = self.t5_proj(query_output.last_hidden_state)
-            atts_t5 = torch.ones(inputs_t5.size()[:-1], dtype=torch.long).to(image.device)
+        inputs_t5 = self.t5_proj(query_output.last_hidden_state)
+        atts_t5 = torch.ones(inputs_t5.size()[:-1], dtype=torch.long).to(image.device)
 
-            if "prompt" in samples.keys():
-                prompt = samples["prompt"]
-            else:
-                prompt = self.prompt
+        if "prompt" in samples.keys():
+            prompt = samples["prompt"]
+        else:
+            prompt = self.prompt
 
-            prompt = [prompt] * image.size(0)
+        prompt = [prompt] * image.size(0)
+        
+        input_tokens = self.t5_tokenizer(
+            prompt, padding="longest", return_tensors="pt"
+        ).to(image.device)
 
-            input_tokens = self.t5_tokenizer(
-                prompt, padding="longest", return_tensors="pt"
-            ).to(image.device)
-
-            encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
+        encoder_atts = torch.cat([atts_t5, input_tokens.attention_mask], dim=1)
             
         with torch.amp.autocast(
-            device_type=str(self.device).split(':')[0], dtype=torch.bfloat16
+            device_type=str(self.device), dtype=torch.bfloat16
         ):
             inputs_embeds = self.t5_model.encoder.embed_tokens(input_tokens.input_ids)
             inputs_embeds = torch.cat([inputs_t5, inputs_embeds], dim=1)
