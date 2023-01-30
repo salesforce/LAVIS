@@ -10,6 +10,9 @@
   <img alt="docs" src="https://github.com/salesforce/LAVIS/actions/workflows/docs.yaml/badge.svg"/>
   <a href="https://opensource.org/licenses/BSD-3-Clause">
   <img alt="license" src="https://img.shields.io/badge/License-BSD_3--Clause-blue.svg"/>
+  </a> 
+  <a href="https://pepy.tech/project/salesforce-lavis">
+  <img alt="Downloads" src="https://pepy.tech/badge/salesforce-lavis">
   </a>
 </div>
 
@@ -21,12 +24,16 @@
 <a href="https://blog.salesforceairesearch.com/lavis-language-vision-library/">Blog</a>
 </div>
 
-
 # LAVIS - A Library for Language-Vision Intelligence
 
-## What's New: 🎉
-  - [Model Release] Dec 2022, released implementation of **Img2prompt-VQA**, a plug-and-play module that enables off-the-shelf use of Large Language Models (LLMs) for visual question answering (VQA). Our model Img2Prompt-VQA surpasses Flamingo on zero-shot VQA on VQAv2 (61.9 vs 56.3), while in contrast requiring no end-to-end training! ([Paper](https://arxiv.org/pdf/2212.10846.pdf), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/img2prompt-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/img2prompt_vqa.ipynb))
-  - [Model Release] Oct 2022, released implementation of **PNP-VQA** (**EMNLP Findings 2022**, by Anthony T.M.H. et al), _"Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training"_, a modular zero-shot VQA framework that requires no PLMs training, achieving SoTA zero-shot VQA performance. ([Paper](https://arxiv.org/abs/2210.08773), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/pnp-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/pnp-vqa/pnp_vqa.ipynb))
+## What's New: 🎉 
+  * [Model Release] Dec 2022, released implementation of **BLIP-2**, a generic and efficient pre-training strategy that easily harvests development of pretrained vision models and large language models (LLMs) for vision-language pretraining. BLIP-2 beats Flamingo on zero-shot VQAv2 (**65.0** vs **56.3**), establishing new state-of-the-art on zero-shot captioning (on NoCaps **121.6** CIDEr score vs previous best **113.2**). Equipped with powerful LLMs (e.g. OPT, FlanT5), BLIP-2 also unlocks the new **zero-shot instructed vision-to-language generation** capabilities for various interesting application!
+    + Paper (COMING SOON);
+    + [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/blip2);
+    + [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb) on instructed vision-to-language generation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb)
+  * Dec 2022, LAVIS is now available on [PyPI](https://pypi.org/project/salesforce-lavis/) for installation!
+  * [Model Release] Dec 2022, released implementation of **Img2prompt-VQA**, a plug-and-play module that enables off-the-shelf use of Large Language Models (LLMs) for visual question answering (VQA). Our model Img2Prompt-VQA surpasses Flamingo on zero-shot VQA on VQAv2 (61.9 vs 56.3), while in contrast requiring no end-to-end training! ([Paper](https://arxiv.org/pdf/2212.10846.pdf), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/img2prompt-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/img2prompt_vqa.ipynb))
+  * [Model Release] Oct 2022, released implementation of **PNP-VQA** (**EMNLP Findings 2022**, by Anthony T.M.H. et al), _"Plug-and-Play VQA: Zero-shot VQA by Conjoining Large Pretrained Models with Zero Training"_, a modular zero-shot VQA framework that requires no PLMs training, achieving SoTA zero-shot VQA performance. ([Paper](https://arxiv.org/abs/2210.08773), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/pnp-vqa), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/pnp-vqa/pnp_vqa.ipynb))
 
     
 ## Table of Contents
@@ -100,16 +107,16 @@ conda create -n lavis python=3.8
 conda activate lavis
 ```
 
-2. Cloning and building from source
+2. install from [PyPI](https://pypi.org/project/salesforce-lavis/)
+```bash
+pip install salesforce-lavis
+```
+    
+3. Or, for development, you may build from source
 
 ```bash
 git clone https://github.com/salesforce/LAVIS.git
 cd LAVIS
-pip install .
-```
-
-If you would like to develop on LAVIS, it is recommended to install in editable mode:
-```bash
 pip install -e .
 ```
 
