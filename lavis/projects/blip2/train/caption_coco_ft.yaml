@@ -4,8 +4,8 @@
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
 model:
-  arch: blip_opt
-  model_type: caption_opt2.7b
+  arch: blip2_opt
+  model_type: caption_coco_opt2.7b
   load_finetuned: False
   use_grad_checkpoint: True
 
