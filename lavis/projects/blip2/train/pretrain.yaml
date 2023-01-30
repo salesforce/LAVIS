@@ -5,7 +5,6 @@
 
 model:
   arch: blip2
-
   model_type: pretrain
   load_pretrained: False
 
