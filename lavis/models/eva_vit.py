@@ -1,4 +1,5 @@
-# Based on BEIT, timm and DeiT code bases
+# Based on EVA, BEIT, timm and DeiT code bases
+# https://github.com/baaivision/EVA
 # https://github.com/rwightman/pytorch-image-models/tree/master/timm
 # https://github.com/microsoft/unilm/tree/master/beit
 # https://github.com/facebookresearch/deit/
