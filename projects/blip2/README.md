@@ -1,5 +1,5 @@
 ## BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models
-This is the official implementation of the <a href="https://arxiv.org/abs/2301.12597">BLIP-2 paper</a>. We integrate BLIP-2 into LAVIS. 
+This is the official implementation of BLIP-2 [paper](https://arxiv.org/abs/2301.12597), a generic and efficient pre-training strategy that easily harvests development of pretrained vision models and large language models (LLMs) for vision-language pretraining. BLIP-2 beats Flamingo on zero-shot VQAv2 (**65.0** vs **56.3**), establishing new state-of-the-art on zero-shot captioning (on NoCaps **121.6** CIDEr score vs previous best **113.2**). Equipped with powerful LLMs (e.g. OPT, FlanT5), BLIP-2 also unlocks the new **zero-shot instructed vision-to-language generation** capabilities for various interesting application!
 
 ### Install:
 ```
@@ -8,8 +8,7 @@ pip install salesforce-lavis
 or install from source following LAVIS instruction.
 
 ### Demo:
-Try out our [Colab demo](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb)!
-Or run the [notebook](https://github.com/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb) on your own machine.
+Try out our [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb) on instructed vision-to-language generation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)]
 
 
 ### BLIP-2 Model Zoo 
