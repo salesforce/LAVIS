@@ -28,7 +28,7 @@
 
 ## What's New: 🎉 
   * [Model Release] Dec 2022, released implementation of **BLIP-2**, a generic and efficient pre-training strategy that easily harvests development of pretrained vision models and large language models (LLMs) for vision-language pretraining. BLIP-2 beats Flamingo on zero-shot VQAv2 (**65.0** vs **56.3**), establishing new state-of-the-art on zero-shot captioning (on NoCaps **121.6** CIDEr score vs previous best **113.2**). Equipped with powerful LLMs (e.g. OPT, FlanT5), BLIP-2 also unlocks the new **zero-shot instructed vision-to-language generation** capabilities for various interesting application!
-    + Paper (COMING SOON);
+    + [Paper](https://arxiv.org/abs/2301.12597);
     + [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/blip2);
     + [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb) on instructed vision-to-language generation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb)
   * Dec 2022, LAVIS is now available on [PyPI](https://pypi.org/project/salesforce-lavis/) for installation!
