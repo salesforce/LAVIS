@@ -1,5 +1,5 @@
 ## BLIP-2: Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models
-This is the official implementation of the <a href="https://arxiv.org/abs/2201.12086">BLIP-2 paper</a>. We integrate BLIP-2 into LAVIS. 
+This is the official implementation of the <a href="https://arxiv.org/abs/2301.12597">BLIP-2 paper</a>. We integrate BLIP-2 into LAVIS. 
 
 ### Install:
 ```
