@@ -107,7 +107,7 @@ class Blip2Qformer(Blip2Base):
             text,
             padding="max_length",
             truncation=True,
-            max_length=self.max_text_length,
+            max_length=self.max_txt_len,
             return_tensors="pt",
         ).to(image.device)
         text_output = self.Qformer.bert(
