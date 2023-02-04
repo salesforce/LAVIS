@@ -10,7 +10,7 @@ pip install salesforce-lavis
 or install from source following LAVIS instruction.
 
 ### Demo:
-Try out the [Web Demo](https://huggingface.co/spaces/Salesforce/BLIP2)!
+Try out the Web Demo! [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Salesforce/BLIP2)
 
 Try out our [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb) on instructed vision-to-language generation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/img2prompt_vqa.ipynb)
 
