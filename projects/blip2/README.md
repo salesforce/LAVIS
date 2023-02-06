@@ -25,7 +25,7 @@ Try out our [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/exampl
 # blip2                          pretrain, coco
 ```
 
-### Inference Example
+### Image-to-text Generation Example
 Let’s see how to use BLIP-2 models to perform zero-shot instructed image-to-text generation. We first load a sample image from local.
 ```python
 import torch
@@ -62,6 +62,8 @@ model.generate({
 ```
 
 
+
+
 Ask a follow-up question.
 ```python
 # prepare context prompt
@@ -77,6 +79,12 @@ print(prompt)
 model.generate({"image": image,"prompt": prompt})
 # 'merlion is a portmanteau of mermaid and lion'
 ```
+
+### Feature Extraction Example
+BLIP-2 supports the Unified Feature Extraction Interface of LAVIS. Checkout this [notebook](https://github.com/salesforce/LAVIS/blob/3446bac20c5646d35ae383ebe6d13cec4f8b00cb/examples/blip2_feature_extraction.ipynb) for an example.
+
+### Image-Text Matching Example
+BLIP-2 can compute the image-text matching score using the same interface as BLIP. Checkout this [notebook](https://github.com/salesforce/LAVIS/blob/3446bac20c5646d35ae383ebe6d13cec4f8b00cb/examples/blip2_image_text_matching.ipynb) for an example. 
 
 ### Benchmark Evaluation 
 Follow [Dataset Download](https://opensource.salesforce.com/LAVIS//latest/getting_started.html#auto-downloading-and-loading-datasets) to prepare common vision-language datasets.
