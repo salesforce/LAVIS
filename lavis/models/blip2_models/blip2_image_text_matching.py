@@ -23,10 +23,7 @@ class Blip2ITM(Blip2Qformer):
         >>> model = load_model("blip2_image_text_matching", "pretrained")
         >>> model = load_model("blip2_image_text_matching", "coco")
     """
-#     PRETRAINED_MODEL_CONFIG_DICT = {
-#         "pretrain": "configs/models/blip2/blip2_pretrain.yaml",
-#         "coco": "configs/models/blip2/blip2_coco.yaml",
-#     }
+
     def __init__(
         self,
         img_size=224,
@@ -38,8 +35,16 @@ class Blip2ITM(Blip2Qformer):
         embed_dim=256,
         max_txt_len=32,
     ):
-        super().__init__()
-        
+        super().__init__(
+            img_size=img_size,
+            drop_path_rate=drop_path_rate,
+            use_grad_checkpoint=use_grad_checkpoint,
+            vit_precision=vit_precision,
+            freeze_vit=freeze_vit,
+            num_query_token=num_query_token,
+            embed_dim=embed_dim,
+            max_txt_len=max_txt_len,
+        )
 
     def forward(self, samples, match_head="itm"):
         image = samples["image"]
@@ -56,7 +61,7 @@ class Blip2ITM(Blip2Qformer):
             max_length=self.max_txt_len,
             return_tensors="pt",
         ).to(image.device)
-        
+
         if match_head == "itm":
             query_tokens = self.query_tokens.expand(image_embeds.shape[0], -1, -1)
             query_atts = torch.ones(query_tokens.size()[:-1], dtype=torch.long).to(
@@ -89,7 +94,7 @@ class Blip2ITM(Blip2Qformer):
             image_feats = F.normalize(
                 self.vision_proj(query_output.last_hidden_state), dim=-1
             )
-            
+
             text_output = self.Qformer.bert(
                 text.input_ids,
                 attention_mask=text.attention_mask,
@@ -99,6 +104,7 @@ class Blip2ITM(Blip2Qformer):
                 self.text_proj(text_output.last_hidden_state[:, 0, :]), dim=-1
             )
 
-            sims = torch.bmm(image_feats,text_feat.unsqueeze(-1))
-            sim, _ = torch.max(sims,dim=1)
-            return sim        
+            sims = torch.bmm(image_feats, text_feat.unsqueeze(-1))
+            sim, _ = torch.max(sims, dim=1)
+
+            return sim

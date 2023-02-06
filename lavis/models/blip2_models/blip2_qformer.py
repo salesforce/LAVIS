@@ -19,7 +19,7 @@ from lavis.models.blip2_models.blip2 import (
     compute_sim_matrix,
     disabled_train,
 )
-from lavis.models.blip_models.blip_outputs import BlipOutput,BlipOutputFeatures
+from lavis.models.blip_models.blip_outputs import BlipOutput, BlipOutputFeatures
 
 
 @registry.register_model("blip2")
@@ -358,8 +358,7 @@ class Blip2Qformer(Blip2Base):
         itm_logit = self.itm_head(vl_embeddings)
         itm_logit = itm_logit[:, :, 1].mean(dim=1)
         return itm_logit
-    
-    
+
     @torch.no_grad()
     def extract_features(self, samples, mode="multimodal"):
         """
@@ -398,10 +397,12 @@ class Blip2Qformer(Blip2Base):
             ), "Image is not provided for mode 'image' or 'multimodal'"
             # return query features
             image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
-            image_atts = torch.ones(image_embeds_frozen.size()[:-1], dtype=torch.long).to(
-                self.device
-            )                    
-            query_tokens = self.query_tokens.expand(image_embeds_frozen.shape[0], -1, -1)
+            image_atts = torch.ones(
+                image_embeds_frozen.size()[:-1], dtype=torch.long
+            ).to(self.device)
+            query_tokens = self.query_tokens.expand(
+                image_embeds_frozen.shape[0], -1, -1
+            )
 
             query_output = self.Qformer.bert(
                 query_embeds=query_tokens,
@@ -416,7 +417,7 @@ class Blip2Qformer(Blip2Base):
             assert (
                 caption is not None
             ), "text input is None for mode 'text' or 'multimodal'"
-            
+
             # return text features
             text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
                 self.device
@@ -434,14 +435,16 @@ class Blip2Qformer(Blip2Base):
         elif mode == "multimodal":
             # return multimodel query features
             image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
-            image_atts = torch.ones(image_embeds_frozen.size()[:-1], dtype=torch.long).to(
-                self.device
-            )                    
-            query_tokens = self.query_tokens.expand(image_embeds_frozen.shape[0], -1, -1)
+            image_atts = torch.ones(
+                image_embeds_frozen.size()[:-1], dtype=torch.long
+            ).to(self.device)
+            query_tokens = self.query_tokens.expand(
+                image_embeds_frozen.shape[0], -1, -1
+            )
             query_atts = torch.ones(query_tokens.size()[:-1], dtype=torch.long).to(
                 self.device
             )
-  
+
             text = self.tokenizer(caption, return_tensors="pt", padding=True).to(
                 self.device
             )
@@ -465,12 +468,9 @@ class Blip2Qformer(Blip2Base):
             text_embeds_proj=text_features,
             multimodal_embeds=multimodal_embeds,
         )
-    
-    
 
     @classmethod
     def from_config(cls, cfg):
-
         img_size = cfg.get("image_size")
         num_query_token = cfg.get("num_query_token")
 
