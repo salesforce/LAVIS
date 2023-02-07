@@ -31,10 +31,10 @@ To evaluate pre-trained model, simply run
 
 .. code-block:: bash
 
-    bash run_scripts/lavis/blip/eval/eval_coco_cap.sh
+    bash run_scripts/blip/eval/eval_coco_cap.sh
 
 Or to evaluate a large model:
 
 .. code-block:: bash
 
-    bash run_scripts/lavis/blip/eval/eval_coco_cap_large.sh
+    bash run_scripts/blip/eval/eval_coco_cap_large.sh
