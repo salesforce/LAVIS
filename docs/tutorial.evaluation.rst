@@ -12,7 +12,7 @@ most of the public dataset, to download MSCOCO dataset, simply run
 
 .. code-block:: bash
 
-    cd lavis/datasets/download_scripts && bash download_coco.py
+    cd lavis/datasets/download_scripts && python download_coco.py
 
 This will put the downloaded dataset at a default cache location ``cache`` used by LAVIS.
 
