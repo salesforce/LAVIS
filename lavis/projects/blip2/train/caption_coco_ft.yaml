@@ -8,6 +8,7 @@ model:
   model_type: caption_coco_opt2.7b
   load_finetuned: False
   use_grad_checkpoint: True
+  freeze_vit: False
 
 datasets:
   coco_caption: # name of the dataset builder
@@ -41,6 +42,7 @@ run:
   batch_size_train: 16
   batch_size_eval: 16
   num_workers: 4
+  accum_grad_iters: 2
 
   max_len: 30
   min_len: 8

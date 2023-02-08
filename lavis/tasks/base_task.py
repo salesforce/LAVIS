@@ -222,8 +222,12 @@ class BaseTask:
 
             # update gradients every accum_grad_iters iterations
             if (i + 1) % accum_grad_iters == 0:
-                optimizer.step()
-                optimizer.zero_grad()
+                if use_amp:
+                    scaler.step(optimizer)
+                    scaler.update()                     
+                else:    
+                    optimizer.step()
+                    optimizer.zero_grad()
 
             metric_logger.update(loss=loss.item())
             metric_logger.update(lr=optimizer.param_groups[0]["lr"])
