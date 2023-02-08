@@ -227,7 +227,7 @@ class BaseTask:
                     scaler.update()                     
                 else:    
                     optimizer.step()
-                    optimizer.zero_grad()
+                optimizer.zero_grad()
 
             metric_logger.update(loss=loss.item())
             metric_logger.update(lr=optimizer.param_groups[0]["lr"])

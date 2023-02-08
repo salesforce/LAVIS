@@ -493,8 +493,7 @@ class Blip2Qformer(Blip2Base):
             num_query_token=num_query_token,
             max_txt_len=max_txt_len,
         )
-        if cfg.get("load_pretrained",True):
-            model.load_checkpoint_from_config(cfg)
+        model.load_checkpoint_from_config(cfg)
 
         return model
 

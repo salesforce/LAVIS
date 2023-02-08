@@ -25,9 +25,9 @@ datasets:
           prompt: "a photo of "
         eval:
           name: "blip_caption"
-    build_info:
-        images:
-            storage: '/export/share/datasets/vision/coco/images/'
+#     build_info:
+#         images:
+#             storage: '/export/share/datasets/vision/coco/images/'
             
 run:
   task: captioning
@@ -42,7 +42,7 @@ run:
   batch_size_train: 16
   batch_size_eval: 16
   num_workers: 4
-  accum_grad_iters: 2
+  accum_grad_iters: 1
 
   max_len: 30
   min_len: 8
