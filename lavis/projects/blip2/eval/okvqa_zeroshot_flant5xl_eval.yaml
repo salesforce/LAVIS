@@ -3,11 +3,15 @@
  # SPDX-License-Identifier: BSD-3-Clause
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
+# Overall Accuracy is: 41.22
 
 model:
   arch: blip2_t5
   model_type: pretrain_flant5xl
   use_grad_checkpoint: False
+
+  # for OKVQA evaluation
+  apply_lemmatizer: True
 
 datasets:
   ok_vqa: # name of the dataset builder
@@ -23,7 +27,7 @@ datasets:
 #             storage: '/export/share/datasets/vision/coco/images/'
 
 run:
-  task: okvqa
+  task: vqa
   # optimization-specific
   batch_size_train: 16
   batch_size_eval: 64

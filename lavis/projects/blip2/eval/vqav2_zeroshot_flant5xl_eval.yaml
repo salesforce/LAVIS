@@ -3,6 +3,12 @@
  # SPDX-License-Identifier: BSD-3-Clause
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
+# Overall Accuracy is: 63.13
+# Per Answer Type Accuracy is the following:
+# other : 52.90
+# yes/no : 84.28
+# number : 41.01
+
 model:
   arch: blip2_t5
   model_type: pretrain_flant5xl

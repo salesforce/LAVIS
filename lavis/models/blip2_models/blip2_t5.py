@@ -46,7 +46,11 @@ class Blip2T5(Blip2Base):
         t5_model="google/flan-t5-xl",
         prompt="",
         max_txt_len=32,
+        apply_lemmatizer=False,
     ):
+        """
+        apply_lemmatizer: when set to True, postprocess predict_answers() result with lemmas.
+        """
         super().__init__()
 
         self.tokenizer = self.init_tokenizer()
@@ -86,6 +90,9 @@ class Blip2T5(Blip2Base):
 
         self.max_txt_len = max_txt_len
         self.prompt = prompt
+
+        self._apply_lemmatizer = apply_lemmatizer
+        self._lemmatizer = None
 
     def forward(self, samples):
         image = samples["image"]
@@ -229,7 +236,6 @@ class Blip2T5(Blip2Base):
 
         return output_text
 
-    
     def predict_answers(
         self,
         samples,
@@ -243,7 +249,6 @@ class Blip2T5(Blip2Base):
         length_penalty=-1,
         **kwargs
     ):
-        
         image = samples["image"]
         with torch.cuda.amp.autocast(enabled=(self.device != torch.device("cpu"))):
             image_embeds = self.ln_vision(self.visual_encoder(image))
@@ -261,7 +266,7 @@ class Blip2T5(Blip2Base):
 
         inputs_t5 = self.t5_proj(query_output.last_hidden_state)
         atts_t5 = torch.ones(inputs_t5.size()[:-1], dtype=torch.long).to(image.device)
-        
+
         if isinstance(samples["text_input"], str):
             samples["text_input"] = [samples["text_input"]]
         if prompt:
@@ -293,9 +298,48 @@ class Blip2T5(Blip2Base):
                 outputs, skip_special_tokens=True
             )
 
+        if self._apply_lemmatizer:
+            output_text = self._lemmatize(output_text)
+
         return output_text
-    
-        
+
+    def _lemmatize(self, answers):
+        def apply(answer):
+            doc = self.lemmatizer(answer)
+
+            words = []
+            for token in doc:
+                if token.pos_ in ["NOUN", "VERB"]:
+                    words.append(token.lemma_)
+                else:
+                    words.append(token.text)
+            answer = " ".join(words)
+
+            return answer
+
+        return [apply(answer) for answer in answers]
+
+    @property
+    def lemmatizer(self):
+        if self._lemmatizer is None:
+            try:
+                import spacy
+
+                self._lemmatizer = spacy.load("en_core_web_sm")
+            except ImportError:
+                logging.error(
+                    """
+                    Please install spacy and en_core_web_sm model to apply lemmatization.
+                    python -m spacy download en_core_web_sm
+                    OR
+                    import spacy.cli
+                    spacy.cli.download("en_core_web_sm")
+                    """
+                )
+                exit(1)
+
+        return self._lemmatizer
+
     @classmethod
     def from_config(cls, cfg):
         img_size = cfg.get("image_size")
@@ -310,6 +354,8 @@ class Blip2T5(Blip2Base):
         prompt = cfg.get("prompt", "")
         max_txt_len = cfg.get("max_txt_len", 32)
 
+        apply_lemmatizer = cfg.get("apply_lemmatizer", False)
+
         model = cls(
             img_size=img_size,
             drop_path_rate=drop_path_rate,
@@ -320,6 +366,7 @@ class Blip2T5(Blip2Base):
             t5_model=t5_model,
             prompt=prompt,
             max_txt_len=max_txt_len,
+            apply_lemmatizer=apply_lemmatizer,
         )
         model.load_checkpoint_from_config(cfg)
 
