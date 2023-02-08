@@ -59,8 +59,10 @@ class Blip2Qformer(Blip2Base):
             img_size, drop_path_rate, use_grad_checkpoint, vit_precision
         )
         if freeze_vit:
+            for name, param in self.visual_encoder.named_parameters():
+                param.requires_grad = False                
             self.visual_encoder = self.visual_encoder.eval()
-            self.visual_encoder.train = disabled_train
+            self.visual_encoder.train = disabled_train            
             logging.info("freeze vision encoder")
         self.Qformer, self.query_tokens = self.init_Qformer(
             num_query_token, self.visual_encoder.num_features
@@ -83,8 +85,8 @@ class Blip2Qformer(Blip2Base):
 
     def forward(self, samples):
         image = samples["image"]
-        text = samples["text"]
-
+        text = samples["text_input"]
+        
         image_embeds = self.ln_vision(self.visual_encoder(image))
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
@@ -241,6 +243,7 @@ class Blip2Qformer(Blip2Base):
             return_dict=True,
             labels=labels,
         )
+        
         loss_lm = lm_output.loss
 
         return BlipOutput(
