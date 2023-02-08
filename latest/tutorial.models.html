@@ -1,93 +1,47 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Adding Models &mdash; LAVIS  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Adding Tasks" href="tutorial.tasks.html" />
     <link rel="prev" title="Adding Processors" href="tutorial.processors.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> LAVIS
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            LAVIS
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
@@ -125,73 +79,31 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">LAVIS</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-          <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
-        
-      <li>Adding Models</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="tutorial.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Adding Models</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/tutorial.models.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -217,14 +129,14 @@
 }
 </style>
 <section id="adding-models">
-<h1>Adding Models<a class="headerlink" href="#adding-models" title="Permalink to this heading">¶</a></h1>
+<h1>Adding Models<a class="headerlink" href="#adding-models" title="Permalink to this heading"></a></h1>
 <p>This is a tutorial on adding new models using <code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> module.</p>
 <p>The LAVIS library includes a standard model module that builds the foundation for many major language-vision models such as <a class="reference external" href="https://arxiv.org/pdf/2107.07651.pdf">ALBEF</a>,
 <a class="reference external" href="https://arxiv.org/pdf/2201.12086.pdf">BLIP</a>, <a class="reference external" href="https://arxiv.org/pdf/2112.09583.pdf">ALPRO</a>, and <a class="reference external" href="https://arxiv.org/pdf/2103.00020.pdf">CLIP</a>.
 The <code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> module is designed such that any new models can be added and integrated into the LAVIS library, with minimal steps to develop training and testing procedures.
 In this tutorial, we will replicate the steps to add a GPT-style model specifically for <a class="reference external" href="https://arxiv.org/pdf/1901.09107.pdf">video-grounded dialogue tasks</a>.</p>
 <section id="base-model-lavis-models-base-model">
-<h2>Base Model <code class="docutils literal notranslate"><span class="pre">lavis.models.base_model</span></code><a class="headerlink" href="#base-model-lavis-models-base-model" title="Permalink to this heading">¶</a></h2>
+<h2>Base Model <code class="docutils literal notranslate"><span class="pre">lavis.models.base_model</span></code><a class="headerlink" href="#base-model-lavis-models-base-model" title="Permalink to this heading"></a></h2>
 <p>Note that any new model definition should inherit the base model class <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">OmegaConf</span>
 
@@ -298,7 +210,7 @@ Inheriting this base model class allows us to standardize operations of models a
 We advise users not to change the implementation of the base model class as this will affect all existing model subclasses.</p>
 </section>
 <section id="gpt-style-video-grounded-dialogue-model-lavis-models-gpt-models-gpt-dialogue">
-<h2>GPT-style Video-grounded Dialogue Model <code class="docutils literal notranslate"><span class="pre">lavis.models.gpt_models.gpt_dialogue</span></code><a class="headerlink" href="#gpt-style-video-grounded-dialogue-model-lavis-models-gpt-models-gpt-dialogue" title="Permalink to this heading">¶</a></h2>
+<h2>GPT-style Video-grounded Dialogue Model <code class="docutils literal notranslate"><span class="pre">lavis.models.gpt_models.gpt_dialogue</span></code><a class="headerlink" href="#gpt-style-video-grounded-dialogue-model-lavis-models-gpt-models-gpt-dialogue" title="Permalink to this heading"></a></h2>
 <p>In this step, we can define a new model class, e.g. under <code class="docutils literal notranslate"><span class="pre">lavis.models.gpt_models.gpt_dialogue</span></code>, for GPT-based dialogue models designed specifically for video-grounded dialogues.
 Note that we assume the model class inherits from the standard model super class <code class="docutils literal notranslate"><span class="pre">GPT2LMHeadModel</span></code> from the <code class="docutils literal notranslate"><span class="pre">transformers</span></code> <a class="reference external" href="https://huggingface.co/docs/transformers/index">library</a>.
 We also enforce model integration to the LAVIS framework through the inheritance of the <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> from the LAVIS library, as the secondary super class.</p>
@@ -390,7 +302,7 @@ For instance, in GPT models for video-grounded dialogue tasks, we want the forwa
 </div>
 </section>
 <section id="registering-new-model-lavis-models-init">
-<h2>Registering New Model <code class="docutils literal notranslate"><span class="pre">lavis.models.__init__</span></code><a class="headerlink" href="#registering-new-model-lavis-models-init" title="Permalink to this heading">¶</a></h2>
+<h2>Registering New Model <code class="docutils literal notranslate"><span class="pre">lavis.models.__init__</span></code><a class="headerlink" href="#registering-new-model-lavis-models-init" title="Permalink to this heading"></a></h2>
 <p>Any new model must be officially registered as part of the <code class="docutils literal notranslate"><span class="pre">lavis.models</span></code> module.
 For instance, to add a model class for GPT-based dialogue models, we can modify the <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models.gpt_models.gpt_dialogue</span> <span class="kn">import</span> <span class="n">GPTDialogue</span>
@@ -403,7 +315,7 @@ For instance, to add a model class for GPT-based dialogue models, we can modify 
 </div>
 </section>
 <section id="assigning-model">
-<h2>Assigning Model<a class="headerlink" href="#assigning-model" title="Permalink to this heading">¶</a></h2>
+<h2>Assigning Model<a class="headerlink" href="#assigning-model" title="Permalink to this heading"></a></h2>
 <p>From the above example of a model class, note that we define a <code class="docutils literal notranslate"><span class="pre">from_config</span> <span class="pre">method</span></code> for the new model class.
 This method will process a configuration file and pass specific parameters to initialize the model classes properly.
 To do this, we can assign/ associate the correct registry of model classes in a configuration file.
@@ -440,50 +352,33 @@ By default, the LAVIS framework will search for configurations from each model c
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="tutorial.tasks.html" class="btn btn-neutral float-right" title="Adding Tasks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tutorial.processors.html" class="btn btn-neutral float-left" title="Adding Processors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.tasks.html" class="btn btn-neutral float-right" title="Adding Tasks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2022, salesforce.com inc..
-
-    </p>
+    <p>&#169; Copyright 2022, salesforce.com inc..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

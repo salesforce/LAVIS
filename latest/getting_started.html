@@ -1,93 +1,47 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
   <title>Dataset Zoo &mdash; LAVIS  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Benchmark" href="benchmark.html" />
     <link rel="prev" title="What is LAVIS?" href="intro.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> LAVIS
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            LAVIS
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">What is LAVIS?</a></li>
@@ -113,71 +67,30 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">LAVIS</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Dataset Zoo</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Dataset Zoo</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -203,7 +116,7 @@
 }
 </style>
 <section id="dataset-zoo">
-<h1>Dataset Zoo<a class="headerlink" href="#dataset-zoo" title="Permalink to this heading">¶</a></h1>
+<h1>Dataset Zoo<a class="headerlink" href="#dataset-zoo" title="Permalink to this heading"></a></h1>
 <p>LAVIS inherently supports a wide variety of common language-vision datasets by providing automatic download scripts to help download and organize these datasets;
 and implements PyTorch datasets for these datasets. To view supported datasets, use the following code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.datasets.builders</span> <span class="kn">import</span> <span class="n">dataset_zoo</span>
@@ -219,7 +132,7 @@ and implements PyTorch datasets for these datasets. To view supported datasets, 
 </div>
 </section>
 <section id="auto-downloading-and-loading-datasets">
-<h1>Auto-Downloading and Loading Datasets<a class="headerlink" href="#auto-downloading-and-loading-datasets" title="Permalink to this heading">¶</a></h1>
+<h1>Auto-Downloading and Loading Datasets<a class="headerlink" href="#auto-downloading-and-loading-datasets" title="Permalink to this heading"></a></h1>
 <p>We now take COCO caption dataset as an example to demonstrate how to download and prepare the dataset.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">lavis/datasets/download_scripts/</span></code>, we provide tools to download most common public language-vision datasets supported by LAVIS.
 The COCO caption dataset uses images from COCO dataset. Therefore, we first download COCO images via:</p>
@@ -250,7 +163,7 @@ The default cache location is <code class="docutils literal notranslate"><span c
 </div>
 </section>
 <section id="model-zoo">
-<h1>Model Zoo<a class="headerlink" href="#model-zoo" title="Permalink to this heading">¶</a></h1>
+<h1>Model Zoo<a class="headerlink" href="#model-zoo" title="Permalink to this heading"></a></h1>
 <p>LAVIS supports a growing list of pre-trained models for different tasks,
 datatsets and of varying sizes. Let’s get started by viewing the supported models.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">model_zoo</span>
@@ -281,7 +194,7 @@ datatsets and of varying sizes. Let’s get started by viewing the supported mod
 </div>
 </section>
 <section id="inference-with-pre-trained-models">
-<h1>Inference with Pre-trained Models<a class="headerlink" href="#inference-with-pre-trained-models" title="Permalink to this heading">¶</a></h1>
+<h1>Inference with Pre-trained Models<a class="headerlink" href="#inference-with-pre-trained-models" title="Permalink to this heading"></a></h1>
 <p>Now let’s see how to use models in LAVIS to perform inference on example data. We first
 load a sample image from local.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
@@ -296,7 +209,7 @@ load a sample image from local.</p>
 <p>This example image shows <a class="reference external" href="https://en.wikipedia.org/wiki/Merlion">Merlion park</a> (<a class="reference external" href="https://theculturetrip.com/asia/singapore/articles/what-exactly-is-singapores-merlion-anyway/">image credit</a>), a landmark in Singapore.</p>
 <img alt="_images/merlion.png" src="_images/merlion.png" />
 <section id="image-captioning">
-<h2>Image Captioning<a class="headerlink" href="#image-captioning" title="Permalink to this heading">¶</a></h2>
+<h2>Image Captioning<a class="headerlink" href="#image-captioning" title="Permalink to this heading"></a></h2>
 <p>We now use the BLIP model to generate a caption for the image. To make inference even easier, we also associate each
 pre-trained model with its preprocessors (transforms),  we use <code class="docutils literal notranslate"><span class="pre">load_model_and_preprocess()</span></code> with the following arguments:</p>
 <ul class="simple">
@@ -335,7 +248,7 @@ In BLIP, you can also generate diverse captions by turning nucleus sampling on.<
 </div>
 </section>
 <section id="visual-question-answering-vqa">
-<h2>Visual question answering (VQA)<a class="headerlink" href="#visual-question-answering-vqa" title="Permalink to this heading">¶</a></h2>
+<h2>Visual question answering (VQA)<a class="headerlink" href="#visual-question-answering-vqa" title="Permalink to this heading"></a></h2>
 <p>BLIP model is able to answer free-form questions about images in natural language.
 To access the VQA model, simply replace the <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">model_type</span></code> arguments
 passed to <code class="docutils literal notranslate"><span class="pre">load_model_and_preprocess()</span></code>.</p>
@@ -355,7 +268,7 @@ passed to <code class="docutils literal notranslate"><span class="pre">load_mode
 </section>
 </section>
 <section id="unified-feature-extraction-interface">
-<h1>Unified Feature Extraction Interface<a class="headerlink" href="#unified-feature-extraction-interface" title="Permalink to this heading">¶</a></h1>
+<h1>Unified Feature Extraction Interface<a class="headerlink" href="#unified-feature-extraction-interface" title="Permalink to this heading"></a></h1>
 <p>LAVIS provides a unified interface to extract multimodal features from each architecture.
 To extract features, we load the feature extractor variants of each model.
 The multimodal feature can be used for multimodal classification. The low-dimensional unimodal features can be used to compute cross-modal similarity.</p>
@@ -411,50 +324,33 @@ to use ALBEF as the feature extractor, one only needs to change the following li
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="benchmark.html" class="btn btn-neutral float-right" title="Benchmark" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="intro.html" class="btn btn-neutral float-left" title="What is LAVIS?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="benchmark.html" class="btn btn-neutral float-right" title="Benchmark" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2022, salesforce.com inc..
-
-    </p>
+    <p>&#169; Copyright 2022, salesforce.com inc..</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
