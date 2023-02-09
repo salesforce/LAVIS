@@ -166,6 +166,69 @@ class VQATask(BaseTask):
 
         return metrics
 
+@registry.register_task("gqa")
+class GQATask(VQATask):
+    def valid_step(self, model, samples):
+        answers = model.predict_answers(
+            samples=samples,
+            answer_list=self.answer_list,
+            inference_method=self.inference_method,
+            num_beams=self.num_beams,
+            max_len=self.max_len,
+            min_len=self.min_len,
+            num_ans_candidates=self.num_ans_candidates,
+            prompt=self.prompt,
+        )
+        pred_qa_pairs = []
+
+        question_id = samples["question_id"]
+        gt_answers = samples["answer"]
+        
+        for answer, ques_id, gt_answer in zip(answers, question_id, gt_answers):
+            ques_id = int(ques_id.item())
+            pred_qa_pairs.append({"question_id": ques_id, "pred_ans": answer, "gt_ans": gt_answer})
+
+        return pred_qa_pairs
+        
+    @dist_utils.main_process
+    def _report_metrics(self, result_file, split):
+        """
+        TODO: add other evaluation metrics for GQA
+        """
+
+        results = json.load(open(result_file, "r"))
+        acc = []
+        vqa_tool = VQAEval()
+
+        for res in results:
+            if res["gt_ans"] is None:
+                # prepare test results for leaderboard evaluation
+                self._save_result_leaderboard(results)
+                return
+
+            gt_ans = res["gt_ans"]
+            pred = res["pred_ans"]
+
+            if self.inference_method == "generate":
+                pred = vqa_tool.processPunctuation(pred)
+                pred = vqa_tool.processDigitArticle(pred)
+
+            vqa_acc = 1 if pred == gt_ans else 0
+
+            acc.append(vqa_acc)
+
+        accuracy = sum(acc) / len(acc) * 100
+        metrics = {"agg_metrics": accuracy, "acc": accuracy}
+
+        with open(
+            os.path.join(registry.get_path("output_dir"), "evaluate.txt"), "a"
+        ) as f:
+            f.write(json.dumps(metrics) + "\n")
+
+        logging.info(metrics)
+
+        return metrics
+        
 
 @registry.register_task("aok_vqa")
 class AOKVQATask(VQATask):
