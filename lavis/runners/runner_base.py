@@ -100,10 +100,12 @@ class RunnerBase:
     def optimizer(self):
         # TODO make optimizer class and configurations
         if self._optimizer is None:
+            beta2 = self.config.run_cfg.get("beta2",0.999)
             self._optimizer = torch.optim.AdamW(
                 params=self.model.parameters(),
                 lr=float(self.config.run_cfg.init_lr),
                 weight_decay=float(self.config.run_cfg.weight_decay),
+                betas=(0.9,beta2),
             )
 
         return self._optimizer
@@ -547,8 +549,15 @@ class RunnerBase:
         """
         Save the checkpoint at the current epoch.
         """
+        model_no_ddp = self.unwrap_dist_model(self.model)
+        param_grad_dic = {k:v.requires_grad for (k,v) in model_no_ddp.named_parameters()}
+        state_dict = model_no_ddp.state_dict()
+        for k in list(state_dict.keys()):
+            if k in param_grad_dic.keys() and not param_grad_dic[k]:
+                # delete parameters that do not require gradient
+                del state_dict[k]               
         save_obj = {
-            "model": self.unwrap_dist_model(self.model).state_dict(),
+            "model": state_dict,
             "optimizer": self.optimizer.state_dict(),
             "config": self.config.to_dict(),
             "scaler": self.scaler.state_dict() if self.scaler else None,
