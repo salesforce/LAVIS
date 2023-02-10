@@ -11,7 +11,7 @@ from app import image_text_match as itm
 from app import text_localization as tl
 from app import multimodal_search as ms
 from app import classification as cl
-
+from app import image_to_text_generation as itg
 
 if __name__ == "__main__":
     app = MultiPage()
@@ -22,4 +22,5 @@ if __name__ == "__main__":
     app.add_page("Image Text Matching", itm.app)
     app.add_page("Text Localization", tl.app)
     app.add_page("Classification", cl.app)
+    app.add_page("Image-to-Text Generation", itg.app)
     app.run()
