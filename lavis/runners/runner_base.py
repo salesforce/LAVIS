@@ -100,9 +100,24 @@ class RunnerBase:
     def optimizer(self):
         # TODO make optimizer class and configurations
         if self._optimizer is None:
+            num_parameters = 0
+            p_wd, p_non_wd = [], []
+            for n, p in self.model.named_parameters():
+                if not p.requires_grad:
+                    continue  # frozen weights
+                if p.ndim < 2 or 'bias' in n or 'ln' in n or 'bn' in n:
+                    p_non_wd.append(p)
+                else:
+                    p_wd.append(p)
+                num_parameters += p.data.nelement()     
+            logging.info(
+                "number of trainable parameters: %d"%num_parameters
+            )
+            optim_params = [{"params": p_wd, "weight_decay": float(self.config.run_cfg.weight_decay)},
+                            {"params": p_non_wd, "weight_decay": 0}]    
             beta2 = self.config.run_cfg.get("beta2",0.999)
             self._optimizer = torch.optim.AdamW(
-                params=self.model.parameters(),
+                optim_params,
                 lr=float(self.config.run_cfg.init_lr),
                 weight_decay=float(self.config.run_cfg.weight_decay),
                 betas=(0.9,beta2),
