@@ -6,6 +6,7 @@
 model:
   arch: blip2
   model_type: pretrain
+  # TODO: support stage 1 pretraining from scratch (load_pretrained=False does not have effect as of now)
   load_pretrained: False
   freeze_vit: True
 
@@ -14,7 +15,7 @@ datasets:
   coco_caption:
     vis_processor:
         train:
-          name: "blip_image_train"
+          name: "blip2_image_train"
           image_size: 224
     text_processor:
         train:
