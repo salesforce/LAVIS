@@ -13,6 +13,7 @@ from lavis.processors.alpro_processors import (
 )
 from lavis.processors.blip_processors import (
     BlipImageTrainProcessor,
+    Blip2ImageTrainProcessor,
     BlipImageEvalProcessor,
     BlipCaptionProcessor,
 )
@@ -31,6 +32,7 @@ __all__ = [
     "AlproVideoEvalProcessor",
     # BLIP
     "BlipImageTrainProcessor",
+    "Blip2ImageTrainProcessor",
     "BlipImageEvalProcessor",
     "BlipCaptionProcessor",
     "ClipImageTrainProcessor",
