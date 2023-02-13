@@ -105,22 +105,25 @@ class RunnerBase:
             for n, p in self.model.named_parameters():
                 if not p.requires_grad:
                     continue  # frozen weights
-                if p.ndim < 2 or 'bias' in n or 'ln' in n or 'bn' in n:
+                if p.ndim < 2 or "bias" in n or "ln" in n or "bn" in n:
                     p_non_wd.append(p)
                 else:
                     p_wd.append(p)
-                num_parameters += p.data.nelement()     
-            logging.info(
-                "number of trainable parameters: %d"%num_parameters
-            )
-            optim_params = [{"params": p_wd, "weight_decay": float(self.config.run_cfg.weight_decay)},
-                            {"params": p_non_wd, "weight_decay": 0}]    
-            beta2 = self.config.run_cfg.get("beta2",0.999)
+                num_parameters += p.data.nelement()
+            logging.info("number of trainable parameters: %d" % num_parameters)
+            optim_params = [
+                {
+                    "params": p_wd,
+                    "weight_decay": float(self.config.run_cfg.weight_decay),
+                },
+                {"params": p_non_wd, "weight_decay": 0},
+            ]
+            beta2 = self.config.run_cfg.get("beta2", 0.999)
             self._optimizer = torch.optim.AdamW(
                 optim_params,
                 lr=float(self.config.run_cfg.init_lr),
                 weight_decay=float(self.config.run_cfg.weight_decay),
-                betas=(0.9,beta2),
+                betas=(0.9, beta2),
             )
 
         return self._optimizer
@@ -565,12 +568,14 @@ class RunnerBase:
         Save the checkpoint at the current epoch.
         """
         model_no_ddp = self.unwrap_dist_model(self.model)
-        param_grad_dic = {k:v.requires_grad for (k,v) in model_no_ddp.named_parameters()}
+        param_grad_dic = {
+            k: v.requires_grad for (k, v) in model_no_ddp.named_parameters()
+        }
         state_dict = model_no_ddp.state_dict()
         for k in list(state_dict.keys()):
             if k in param_grad_dic.keys() and not param_grad_dic[k]:
                 # delete parameters that do not require gradient
-                del state_dict[k]               
+                del state_dict[k]
         save_obj = {
             "model": state_dict,
             "optimizer": self.optimizer.state_dict(),
@@ -592,8 +597,17 @@ class RunnerBase:
         checkpoint_path = os.path.join(self.output_dir, "checkpoint_best.pth")
 
         logging.info("Loading checkpoint from {}.".format(checkpoint_path))
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
-        model.load_state_dict(checkpoint["model"])
+        checkpoint = torch.load(checkpoint_path, map_location="cpu")
+        try:
+            model.load_state_dict(checkpoint["model"])
+        except RuntimeError as e:
+            logging.warning(
+                """
+                Key mismatch when loading checkpoint. This is expected if only part of the model is saved.
+                Trying to load the model with strict=False.
+                """
+            )
+            model.load_state_dict(checkpoint["model"], strict=False)
         return model
 
     def _load_checkpoint(self, url_or_filename):
