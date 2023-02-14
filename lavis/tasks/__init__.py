@@ -8,14 +8,13 @@
 from lavis.common.registry import registry
 from lavis.tasks.base_task import BaseTask
 from lavis.tasks.captioning import CaptionTask
-from lavis.tasks.image_text_pretrain import ImageTextPretrainTask
-from lavis.tasks.multimodal_classification import (
-    MultimodalClassificationTask,
-)
-from lavis.tasks.retrieval import RetrievalTask
-from lavis.tasks.vqa import VQATask, GQATask, AOKVQATask
-from lavis.tasks.vqa_reading_comprehension import VQARCTask, GQARCTask
 from lavis.tasks.dialogue import DialogueTask
+from lavis.tasks.image_text_pretrain import ImageTextPretrainTask
+from lavis.tasks.instruct_tuning_task import InstructTuningTask
+from lavis.tasks.multimodal_classification import MultimodalClassificationTask
+from lavis.tasks.retrieval import RetrievalTask
+from lavis.tasks.vqa import AOKVQATask, GQATask, VQATask
+from lavis.tasks.vqa_reading_comprehension import GQARCTask, VQARCTask
 
 
 def setup_task(cfg):
@@ -42,4 +41,5 @@ __all__ = [
     # "VisualEntailmentTask",
     "ImageTextPretrainTask",
     "DialogueTask",
+    "InstructTuningTask",
 ]

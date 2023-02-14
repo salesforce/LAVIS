@@ -15,24 +15,23 @@ from lavis.tasks.base_task import BaseTask
 
 @registry.register_task("captioning")
 class CaptionTask(BaseTask):
-    def __init__(self, num_beams, max_len, min_len, evaluate, report_metric=True):
+    def __init__(self, num_beams, max_len, min_len, report_metric=True):
         super().__init__()
 
         self.num_beams = num_beams
         self.max_len = max_len
         self.min_len = min_len
-        self.evaluate = evaluate
 
         self.report_metric = report_metric
 
     @classmethod
     def setup_task(cls, cfg):
-        run_cfg = cfg.run_cfg
+        run_cfg = cfg.get("run_cfg", cfg)
 
-        num_beams = run_cfg.num_beams
-        max_len = run_cfg.max_len
-        min_len = run_cfg.min_len
-        evaluate = run_cfg.evaluate
+        # rewrite above to use get
+        max_len = run_cfg.get("max_len", 20)
+        min_len = run_cfg.get("min_len", 5)
+        num_beams = run_cfg.get("num_beams", 3)
 
         report_metric = run_cfg.get("report_metric", True)
 
@@ -40,7 +39,6 @@ class CaptionTask(BaseTask):
             num_beams=num_beams,
             max_len=max_len,
             min_len=min_len,
-            evaluate=evaluate,
             report_metric=report_metric,
         )
 
@@ -81,7 +79,6 @@ class CaptionTask(BaseTask):
 
     @main_process
     def _report_metrics(self, eval_result_file, split_name):
-
         # TODO better way to define this
         coco_gt_root = os.path.join(registry.get_path("cache_root"), "coco_gt")
         coco_val = coco_caption_eval(coco_gt_root, eval_result_file, split_name)

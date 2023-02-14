@@ -481,6 +481,52 @@ class RunnerBase:
         else:
             return model
 
+    def _create_single_loader(self, dataset, num_workers, bsz, is_train, collate_fn):
+        # create a single dataloader for each split
+        if isinstance(dataset, ChainDataset) or isinstance(dataset, wds.DataPipeline):
+            # wds.WebdDataset instance are chained together
+            # webdataset.DataPipeline has its own sampler and collate_fn
+            loader = iter(
+                DataLoader(
+                    dataset,
+                    batch_size=bsz,
+                    num_workers=num_workers,
+                    pin_memory=True,
+                )
+            )
+        else:
+            # map-style dataset are concatenated together
+            # setup distributed sampler
+            if self.use_distributed:
+                sampler = DistributedSampler(
+                    dataset,
+                    shuffle=is_train,
+                    num_replicas=get_world_size(),
+                    rank=get_rank(),
+                )
+                if not self.use_dist_eval_sampler:
+                    # e.g. retrieval evaluation
+                    sampler = sampler if is_train else None
+            else:
+                sampler = None
+
+            loader = DataLoader(
+                dataset,
+                batch_size=bsz,
+                num_workers=num_workers,
+                pin_memory=True,
+                sampler=sampler,
+                shuffle=sampler is None and is_train,
+                collate_fn=collate_fn,
+                drop_last=True if is_train else False,
+            )
+            loader = PrefetchLoader(loader)
+
+            if is_train:
+                loader = IterLoader(loader, use_distributed=self.use_distributed)
+
+        return loader
+
     def create_loaders(
         self,
         datasets,
@@ -494,54 +540,6 @@ class RunnerBase:
         Create dataloaders for training and validation.
         """
 
-        def _create_loader(dataset, num_workers, bsz, is_train, collate_fn):
-            # create a single dataloader for each split
-            if isinstance(dataset, ChainDataset) or isinstance(
-                dataset, wds.DataPipeline
-            ):
-                # wds.WebdDataset instance are chained together
-                # webdataset.DataPipeline has its own sampler and collate_fn
-                loader = iter(
-                    DataLoader(
-                        dataset,
-                        batch_size=bsz,
-                        num_workers=num_workers,
-                        pin_memory=True,
-                    )
-                )
-            else:
-                # map-style dataset are concatenated together
-                # setup distributed sampler
-                if self.use_distributed:
-                    sampler = DistributedSampler(
-                        dataset,
-                        shuffle=is_train,
-                        num_replicas=get_world_size(),
-                        rank=get_rank(),
-                    )
-                    if not self.use_dist_eval_sampler:
-                        # e.g. retrieval evaluation
-                        sampler = sampler if is_train else None
-                else:
-                    sampler = None
-
-                loader = DataLoader(
-                    dataset,
-                    batch_size=bsz,
-                    num_workers=num_workers,
-                    pin_memory=True,
-                    sampler=sampler,
-                    shuffle=sampler is None and is_train,
-                    collate_fn=collate_fn,
-                    drop_last=True if is_train else False,
-                )
-                loader = PrefetchLoader(loader)
-
-                if is_train:
-                    loader = IterLoader(loader, use_distributed=self.use_distributed)
-
-            return loader
-
         loaders = []
 
         for dataset, bsz, is_train, collate_fn in zip(
@@ -550,13 +548,17 @@ class RunnerBase:
             if isinstance(dataset, list) or isinstance(dataset, tuple):
                 loader = MultiIterLoader(
                     loaders=[
-                        _create_loader(d, num_workers, bsz, is_train, collate_fn[i])
+                        self._create_single_loader(
+                            d, num_workers, bsz, is_train, collate_fn[i]
+                        )
                         for i, d in enumerate(dataset)
                     ],
                     ratios=dataset_ratios,
                 )
             else:
-                loader = _create_loader(dataset, num_workers, bsz, is_train, collate_fn)
+                loader = self._create_single_loader(
+                    dataset, num_workers, bsz, is_train, collate_fn
+                )
 
             loaders.append(loader)
 

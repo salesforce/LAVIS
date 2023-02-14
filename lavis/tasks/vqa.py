@@ -23,7 +23,6 @@ class VQATask(BaseTask):
         num_beams,
         max_len,
         min_len,
-        evaluate,
         num_ans_candidates,
         inference_method="rank",
         prompt="",
@@ -34,7 +33,6 @@ class VQATask(BaseTask):
         self.max_len = max_len
         self.min_len = min_len
 
-        self.evaluate = evaluate
         self.inference_method = inference_method
         self.num_ans_candidates = num_ans_candidates
         self.prompt = prompt
@@ -46,13 +44,11 @@ class VQATask(BaseTask):
 
     @classmethod
     def setup_task(cls, cfg):
-        run_cfg = cfg.run_cfg
+        run_cfg = cfg.get("run_cfg", cfg)
 
         num_beams = run_cfg.get("num_beams", 3)
         max_len = run_cfg.get("max_len", 10)
         min_len = run_cfg.get("min_len", 1)
-
-        evaluate = run_cfg.get("evaluate", False)
 
         inference_method = run_cfg.get("inference_method", "rank")
         num_ans_candidates = run_cfg.get("num_ans_candidates", 128)
@@ -62,7 +58,6 @@ class VQATask(BaseTask):
             num_beams=num_beams,
             max_len=max_len,
             min_len=min_len,
-            evaluate=evaluate,
             num_ans_candidates=num_ans_candidates,
             inference_method=inference_method,
             prompt=prompt,
@@ -70,8 +65,12 @@ class VQATask(BaseTask):
 
     def build_datasets(self, cfg):
         datasets = super().build_datasets(cfg)
+        datasets = self.after_build_datasets(datasets)
 
         # get question file, annotation file and anwser list in COCO format
+        return datasets
+
+    def after_build_datasets(self, datasets):
         for dataset in datasets.values():
             for split in dataset:
                 if (
@@ -166,6 +165,7 @@ class VQATask(BaseTask):
 
         return metrics
 
+
 @registry.register_task("gqa")
 class GQATask(VQATask):
     def valid_step(self, model, samples):
@@ -183,13 +183,15 @@ class GQATask(VQATask):
 
         question_id = samples["question_id"]
         gt_answers = samples["answer"]
-        
+
         for answer, ques_id, gt_answer in zip(answers, question_id, gt_answers):
             ques_id = int(ques_id.item())
-            pred_qa_pairs.append({"question_id": ques_id, "pred_ans": answer, "gt_ans": gt_answer})
+            pred_qa_pairs.append(
+                {"question_id": ques_id, "pred_ans": answer, "gt_ans": gt_answer}
+            )
 
         return pred_qa_pairs
-        
+
     @dist_utils.main_process
     def _report_metrics(self, result_file, split):
         """
@@ -228,7 +230,7 @@ class GQATask(VQATask):
         logging.info(metrics)
 
         return metrics
-        
+
 
 @registry.register_task("aok_vqa")
 class AOKVQATask(VQATask):
