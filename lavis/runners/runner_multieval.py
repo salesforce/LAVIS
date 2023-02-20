@@ -91,7 +91,7 @@ class RunnerMultiEval(RunnerIter):
             model = self._reload_best_model(model)
         model.eval()
 
-        results = self.task.evaluation(model, eval_loaders)
+        results = self.task.evaluation(cur_epoch, model, eval_loaders)
 
         if results is not None:
             return self.task.after_evaluation(

@@ -60,6 +60,9 @@ class BaseTask:
 
         return datasets
 
+    def after_build_datasets(self, datasets):
+        return datasets
+
     def train_step(self, model, samples):
         loss = model(samples)["loss"]
         return loss
@@ -224,8 +227,8 @@ class BaseTask:
             if (i + 1) % accum_grad_iters == 0:
                 if use_amp:
                     scaler.step(optimizer)
-                    scaler.update()                     
-                else:    
+                    scaler.update()
+                else:
                     optimizer.step()
                 optimizer.zero_grad()
 

@@ -32,7 +32,7 @@ class InstructTuningTask(BaseTask):
     def train_dataset_ratios(self):
         return list(self.train_dataset_name2ratio.values())
 
-    def evaluation(self, model, dataloaders, cuda_enabled=True):
+    def evaluation(self, cur_epoch, model, dataloaders, cuda_enabled=True):
         """
         dataloaders: a dict of {split: {dataset_name: dataloader}}
 
@@ -49,11 +49,13 @@ class InstructTuningTask(BaseTask):
             )
 
         all_val_results = []
+        print('InstructTuning Eval_task_list: ', self.eval_task_list)
+        print('InstructTuning Eval_dataset_list: ', self.eval_dataset_list)
 
         for task, split, dataloader in task_split_dataloader:
             val_results = task.evaluation(model, dataloader, cuda_enabled=cuda_enabled)
             # TODO (wenliang) please properly name the split_name
-            metrics = task.after_evaluation(val_results, split_name=split)
+            metrics = task.after_evaluation(val_results, split_name=split, epoch=cur_epoch)
             all_val_results.append(metrics)
 
         print("all_val_results: ", all_val_results)
@@ -66,9 +68,11 @@ class InstructTuningTask(BaseTask):
         for task, dataset in zip(self.eval_task_list, self.eval_dataset_list):
             dataset_name, _ = dataset
 
-            datasets[dataset_name] = task.after_build_datasets(
-                {dataset_name: datasets[dataset_name]}
-            )[dataset_name]
+            # Some tasks do not have the after_build_datasets hook
+            if hasattr(task, 'after_build_datasets'):
+                datasets[dataset_name] = task.after_build_datasets(
+                    {dataset_name: datasets[dataset_name]}
+                )[dataset_name]
 
         return datasets
 
