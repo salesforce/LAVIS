@@ -24,6 +24,9 @@ Try out our [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/exampl
 # blip2_t5                       pretrain_flant5xl, caption_coco_flant5xl, pretrain_flant5xxl
 # blip2                          pretrain, coco
 ```
+- Use ```pretrained_{LLM}``` model types for zero-shot image-to-text generation with prompts.
+- Use ```caption_coco_{LLM}``` model types to generate coco-style captions.
+- Use ```blip2``` model architecture for image-text feature extraction and retrieval.
 
 ### Image-to-text Generation Example
 Let’s see how to use BLIP-2 models to perform zero-shot instructed image-to-text generation. We first load a sample image from local.
