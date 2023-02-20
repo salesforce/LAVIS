@@ -1,3 +1,6 @@
+import os
+import json
+import lavis.common.dist_utils as dist_utils
 from lavis.common.registry import Registry, registry
 from lavis.tasks.base_task import BaseTask
 
@@ -35,7 +38,6 @@ class InstructTuningTask(BaseTask):
     def evaluation(self, cur_epoch, model, dataloaders, cuda_enabled=True):
         """
         dataloaders: a dict of {split: {dataset_name: dataloader}}
-
         """
         task_split_dataloader = []
 
@@ -48,18 +50,36 @@ class InstructTuningTask(BaseTask):
                 (task, split, dataloaders[split][dataset_name])
             )
 
-        all_val_results = []
+        all_results = []
         print('InstructTuning Eval_task_list: ', self.eval_task_list)
         print('InstructTuning Eval_dataset_list: ', self.eval_dataset_list)
 
         for task, split, dataloader in task_split_dataloader:
-            val_results = task.evaluation(model, dataloader, cuda_enabled=cuda_enabled)
-            # TODO (wenliang) please properly name the split_name
-            metrics = task.after_evaluation(val_results, split_name=split, epoch=cur_epoch)
-            all_val_results.append(metrics)
+            results = task.evaluation(model, dataloader, cuda_enabled=cuda_enabled)
+            all_results.append(results)
 
-        print("all_val_results: ", all_val_results)
-        return all_val_results
+        return all_results
+
+    def after_evaluation(self, results, epoch):
+        all_metrics = []
+
+        for i, task in enumerate(self.eval_task_list):
+            dataset_name, split = self.eval_dataset_list[i]
+            metrics = task.after_evaluation(results[i], split_name=split, epoch=epoch)
+            all_metrics.append(metrics)
+
+        self._report_metrics(all_metrics)
+        print("all_metrics: ", all_metrics)
+        return all_metrics
+
+    @dist_utils.main_process
+    def _report_metrics(self, all_metrics):
+        f = open(os.path.join(registry.get_path("output_dir"), "evaluate_instruct_tuning.txt"), "a")
+        for i, task in enumerate(self.eval_task_list):
+            dataset_name, split = self.eval_dataset_list[i]
+            f.write(f'{dataset_name} [{split}] - ' + json.dumps(all_metrics[i]) + "\n")
+        f.close()
+
 
     def build_datasets(self, cfg):
         datasets = super().build_datasets(cfg)

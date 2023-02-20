@@ -29,31 +29,31 @@ datasets:
       images:
         storage: '/export/share/datasets/vision/coco/images/'
 
-  # vg_caption: # name of the dataset builder
-  #   vis_processor:
-  #     train:
-  #       name: "blip_image_train"
-  #       image_size: 224
-  #   text_processor:
-  #     train:
-  #       name: "blip_caption"
-  #   build_info:
-  #     images:
-  #       storage: '/export/share/datasets/vision/visual-genome/image/'
+  vg_caption:
+    vis_processor:
+      train:
+        name: "blip_image_train"
+        image_size: 224
+    text_processor:
+      train:
+        name: "blip_caption"
+    build_info:
+      images:
+        storage: '/export/share/datasets/vision/visual-genome/image/'
 
-  # ok_vqa: # name of the dataset builder
-  #   vis_processor:
-  #     eval:
-  #       name: "blip_image_eval"
-  #       image_size: 480
-  #   text_processor:
-  #     eval:
-  #       name: "blip_question"
-  #   build_info:
-  #     images:
-  #       storage: '/export/share/datasets/vision/coco/images/'
+  ok_vqa:
+    vis_processor:
+      eval:
+        name: "blip_image_eval"
+        image_size: 224
+    text_processor:
+      eval:
+        name: "blip_question"
+    build_info:
+      images:
+        storage: '/export/share/datasets/vision/coco/images/'
 
-  # coco_vqa: # name of the dataset builder
+  # coco_vqa:
   #   type: eval
   #   vis_processor:
   #     eval:
@@ -89,15 +89,15 @@ run:
       #     split: val
 
       # OKVQA
-      # - vqa:
-      #     dataset: ok_vqa
-      #     split: test
-      #     args:
-      #       max_len: 10
-      #       min_len: 1
-      #       num_beams: 3
-      #       num_ans_candidates: 128
-      #       inference_method: "rank"
+      - vqa:
+          dataset: ok_vqa
+          split: test
+          args:
+            max_len: 10
+            min_len: 1
+            num_beams: 3
+            num_ans_candidates: 128
+            inference_method: "rank"
 
       # OKVQA
       # - vqa:
@@ -133,7 +133,7 @@ run:
   iters_per_inner_epoch: 5e4
 
   batch_size_train: 8
-  batch_size_eval: 16
+  batch_size_eval: 24
   num_workers: 4
   warmup_steps: 5000
 

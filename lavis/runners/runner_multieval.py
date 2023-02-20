@@ -95,7 +95,7 @@ class RunnerMultiEval(RunnerIter):
 
         if results is not None:
             return self.task.after_evaluation(
-                val_result=results,
+                results=results,
                 epoch=cur_epoch,
             )
 
