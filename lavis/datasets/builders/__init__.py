@@ -17,6 +17,7 @@ from lavis.datasets.builders.image_text_pair_builder import (
     ConceptualCaption3MBuilder,
     VGCaptionBuilder,
     SBUCaptionBuilder,
+    CoyoBuilder,
 )
 from lavis.datasets.builders.classification_builder import (
     NLVRBuilder,
@@ -58,6 +59,7 @@ __all__ = [
     "NLVRBuilder",
     "OKVQABuilder",
     "SBUCaptionBuilder",
+    "CoyoBuilder",
     "SNLIVisualEntailmentBuilder",
     "VATEXCapBuilder",
     "VGCaptionBuilder",
