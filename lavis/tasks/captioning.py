@@ -26,7 +26,10 @@ class CaptionTask(BaseTask):
 
     @classmethod
     def setup_task(cls, cfg):
-        run_cfg = cfg.get("run_cfg", cfg)
+        if hasattr(cfg, "run_cfg"):
+            run_cfg = cfg.run_cfg
+        else:
+            run_cfg = cfg.get("run_cfg", cfg)
 
         # rewrite above to use get
         max_len = run_cfg.get("max_len", 20)
