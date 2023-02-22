@@ -247,7 +247,7 @@ class RunnerIter(RunnerBase):
                 self.datasets = reorg_datasets_by_split(self.datasets)
                 # to keep the same structure as return value of concat_datasets
                 self.datasets = {
-                    k: v[0] if len(v) == 1 else v for k, v in datasets.items()
+                    k: v[0] if len(v) == 1 else v for k, v in self.datasets.items()
                 }
 
             # print dataset statistics after concatenation/chaining
