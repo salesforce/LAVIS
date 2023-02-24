@@ -6,11 +6,14 @@
 """
 
 from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+from lavis.datasets.builders.base_instruct_dataset_builder import BaseInstructDatasetBuilder
 from lavis.datasets.datasets.coco_caption_datasets import (
     COCOCapDataset,
     COCOCapEvalDataset,
     NoCapsEvalDataset,
 )
+
+from lavis.datasets.datasets.instruct_wrappers.caption import CaptionDatasetInstructWrapper
 
 from lavis.common.registry import registry
 from lavis.datasets.datasets.video_caption_datasets import (
@@ -26,6 +29,16 @@ class COCOCapBuilder(BaseDatasetBuilder):
 
     DATASET_CONFIG_DICT = {
         "default": "configs/datasets/coco/defaults_cap.yaml",
+    }
+
+
+@registry.register_builder("coco_caption_instruct")
+class COCOCapInstructBuilder(BaseInstructDatasetBuilder):
+    train_dataset_cls = CaptionDatasetInstructWrapper
+    eval_dataset_cls = COCOCapEvalDataset
+
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/coco/defaults_cap_instruct.yaml",
     }
 
 

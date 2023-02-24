@@ -74,12 +74,11 @@ class InstructTuningTask(BaseTask):
 
     @dist_utils.main_process
     def _report_metrics(self, all_metrics):
-        f = open(os.path.join(registry.get_path("output_dir"), "evaluate_instruct_tuning.txt"), "a")
-        for i, task in enumerate(self.eval_task_list):
-            dataset_name, split = self.eval_dataset_list[i]
-            f.write(f'{dataset_name} [{split}] - ' + json.dumps(all_metrics[i]) + "\n")
-        f.close()
-
+        logging_path = os.path.join(registry.get_path("output_dir"), "evaluate_instruct_tuning.txt")
+        with open(logging_path, "a") as f:
+            for i, task in enumerate(self.eval_task_list):
+                dataset_name, split = self.eval_dataset_list[i]
+                f.write(f'{dataset_name} [{split}] - ' + json.dumps(all_metrics[i]) + "\n")
 
     def build_datasets(self, cfg):
         datasets = super().build_datasets(cfg)

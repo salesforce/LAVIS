@@ -8,6 +8,7 @@
 from lavis.datasets.builders.base_dataset_builder import load_dataset_config
 from lavis.datasets.builders.caption_builder import (
     COCOCapBuilder,
+    COCOCapInstructBuilder,
     MSRVTTCapBuilder,
     MSVDCapBuilder,
     VATEXCapBuilder,
@@ -43,6 +44,7 @@ from lavis.common.registry import registry
 
 __all__ = [
     "COCOCapBuilder",
+    "COCOCapInstructBuilder",
     "COCORetrievalBuilder",
     "COCOVQABuilder",
     "ConceptualCaption12MBuilder",

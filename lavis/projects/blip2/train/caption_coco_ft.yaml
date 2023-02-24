@@ -25,9 +25,9 @@ datasets:
           prompt: "a photo of "
         eval:
           name: "blip_caption"
-    # build_info:
-    #     images:
-    #         storage: '/export/share/datasets/vision/coco/images/'
+    build_info:
+        images:
+            storage: '/export/share/datasets/vision/coco/images/'
 
 run:
   task: captioning
