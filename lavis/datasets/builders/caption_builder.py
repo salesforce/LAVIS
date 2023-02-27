@@ -13,7 +13,7 @@ from lavis.datasets.datasets.coco_caption_datasets import (
     NoCapsEvalDataset,
 )
 
-from lavis.datasets.datasets.instruct_wrappers.caption import CaptionDatasetInstructWrapper
+from lavis.datasets.datasets.instruct_wrappers.coco_caption_instruct_datasets import COCOCapInstructDataset
 
 from lavis.common.registry import registry
 from lavis.datasets.datasets.video_caption_datasets import (
@@ -34,7 +34,7 @@ class COCOCapBuilder(BaseDatasetBuilder):
 
 @registry.register_builder("coco_caption_instruct")
 class COCOCapInstructBuilder(BaseInstructDatasetBuilder):
-    train_dataset_cls = CaptionDatasetInstructWrapper
+    train_dataset_cls = COCOCapInstructDataset
     eval_dataset_cls = COCOCapEvalDataset
 
     DATASET_CONFIG_DICT = {

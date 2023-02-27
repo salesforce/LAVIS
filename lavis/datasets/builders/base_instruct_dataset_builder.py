@@ -84,14 +84,6 @@ class BaseInstructDatasetBuilder(BaseDatasetBuilder):
                 warnings.warn("storage path {} does not exist.".format(vis_path))
 
             # create datasets
-            # dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
-            # datasets[split] = dataset_cls(
-            #     vis_processor=vis_processor,
-            #     text_processor=text_processor,
-            #     ann_paths=ann_paths,
-            #     vis_root=vis_path,
-            #     instruction_path=self.config.instruction_path,
-            # )
             if is_train:
                 datasets[split] = self.train_dataset_cls(
                     vis_processor=vis_processor,
