@@ -1,0 +1,10 @@
+Respond to the question below based on the image provided: {} Your answer:
+Utilize the image given to answer the following inquiry: {} Response:
+With the image provided, please answer the following question: {} Your answer:
+The image given below should be used to respond to the following prompt: {} Provide your answer:
+Given the image below, provide your response to the following question: {} Answer:
+Your task is to answer the following question using the image provided: {} Answer with:
+You have been given an image to aid you in answering the question below: {} Answer as follows:
+Use the image provided to answer the question below: {} Provide your answer:
+The question below can be answered using the following image: {} Respond with:
+Your answer to the following question should be based on the image provided: {} Answer as follows:
