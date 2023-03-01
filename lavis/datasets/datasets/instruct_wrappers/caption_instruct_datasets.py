@@ -15,7 +15,7 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 from torch.utils.data import Dataset
-from lavis.datasets.datasets.caption_datasets import CaptionDataset, CaptionEvalDataset
+from lavis.datasets.datasets.caption_datasets import CaptionDataset
 
 
 class CaptionDatasetInstructWrapper(Dataset):
@@ -33,11 +33,11 @@ class CaptionDatasetInstructWrapper(Dataset):
 
         self.dataset = CaptionDataset(vis_processor, text_processor, vis_root, ann_paths)
 
-    def sampleInstruction(self):
+    def sample_instruction(self):
         instruction = self.instructions[random.randint(0, len(self.instructions) - 1)]
         return instruction
 
-    def processInstruction(self, instruction):
+    def process_instruction(self, instruction):
         instruction = instruction.lower()
         instruction = instruction.rstrip("\n")
         instruction = instruction.strip(" ")
@@ -48,8 +48,8 @@ class CaptionDatasetInstructWrapper(Dataset):
 
     def __getitem__(self, index):
         data = self.dataset.__getitem__(index)
-        instruction = self.sampleInstruction()
-        instruction = self.processInstruction(instruction)
+        instruction = self.sample_instruction()
+        instruction = self.process_instruction(instruction)
 
         return {
             "image": data["image"],
