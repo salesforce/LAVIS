@@ -37,17 +37,22 @@ class CaptionDatasetInstructWrapper(Dataset):
         instruction = self.instructions[random.randint(0, len(self.instructions) - 1)]
         return instruction
 
+    def processInstruction(self, instruction):
+        instruction = instruction.lower()
+        instruction = instruction.rstrip("\n")
+        instruction = instruction.strip(" ")
+        return instruction
+
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, index):
         data = self.dataset.__getitem__(index)
-
         instruction = self.sampleInstruction()
+        instruction = self.processInstruction(instruction)
 
         return {
             "image": data["image"],
             "text_input": instruction,
             "text_output": data["text_input"],
-            "image_id": data["image_id"],
         }
