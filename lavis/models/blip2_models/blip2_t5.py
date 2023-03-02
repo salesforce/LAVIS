@@ -9,11 +9,10 @@ import logging
 import torch
 import torch.nn as nn
 from torch.cuda.amp import autocast as autocast
-from transformers import T5TokenizerFast
+from transformers import T5ForConditionalGeneration, T5TokenizerFast, T5Config
 
 from lavis.common.registry import registry
 from lavis.models.blip2_models.blip2 import Blip2Base, disabled_train
-from lavis.models.blip2_models.modeling_t5 import T5Config, T5ForConditionalGeneration
 
 
 @registry.register_model("blip2_t5")
@@ -119,14 +118,14 @@ class Blip2T5(Blip2Base):
                 samples["text_input"],
                 padding="longest",
                 truncation=True,
-                max_length=self.max_text_length,
+                max_length=self.max_txt_len,
                 return_tensors="pt",
             ).to(image.device)
             output_tokens = self.t5_tokenizer(
                 samples["text_output"],
                 padding="longest",
                 truncation=True,
-                max_length=self.max_text_length,
+                max_length=self.max_txt_len,
                 return_tensors="pt",
             ).to(image.device)
 
