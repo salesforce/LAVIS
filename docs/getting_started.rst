@@ -116,7 +116,7 @@ pre-trained model with its preprocessors (transforms),  we use ``load_model_and_
 - ``name``: The name of the model to load. This could be a pre-trained model, task model, or feature extractor. See ``model_zoo`` for a full list of model names.
 - ``model_type``: Each architecture has variants trained on different datasets and at different scale. See Types column in ``model_zoo`` for a full list of model types.
 - ``is_eval``: if `True`, set the model to evaluation mode. This is desired for inference or feature extraction.
-- ``devce``: device to load the model to.
+- ``device``: device to load the model to.
 
 .. code-block:: python
 
