@@ -216,7 +216,7 @@ pre-trained model with its preprocessors (transforms),  we use <code class="docu
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: The name of the model to load. This could be a pre-trained model, task model, or feature extractor. See <code class="docutils literal notranslate"><span class="pre">model_zoo</span></code> for a full list of model names.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">model_type</span></code>: Each architecture has variants trained on different datasets and at different scale. See Types column in <code class="docutils literal notranslate"><span class="pre">model_zoo</span></code> for a full list of model types.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">is_eval</span></code>: if <cite>True</cite>, set the model to evaluation mode. This is desired for inference or feature extraction.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">devce</span></code>: device to load the model to.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">device</span></code>: device to load the model to.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lavis.models</span> <span class="kn">import</span> <span class="n">load_model_and_preprocess</span>
 <span class="c1"># loads BLIP caption base model, with finetuned checkpoints on MSCOCO captioning dataset.</span>
