@@ -39,6 +39,7 @@ class Blip2OPT(Blip2Base):
 
     def __init__(
         self,
+        vit_model="eva_clip_g",
         img_size=224,
         drop_path_rate=0,
         use_grad_checkpoint=False,
@@ -54,7 +55,7 @@ class Blip2OPT(Blip2Base):
         self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder, self.ln_vision = self.init_vision_encoder(
-            img_size, drop_path_rate, use_grad_checkpoint, vit_precision
+            vit_model, img_size, drop_path_rate, use_grad_checkpoint, vit_precision
         )
         if freeze_vit:
             for name, param in self.visual_encoder.named_parameters():
@@ -237,7 +238,7 @@ class Blip2OPT(Blip2Base):
 
     @classmethod
     def from_config(cls, cfg):
-
+        vit_model = cfg.get("vit_model","eva_clip_g")
         img_size = cfg.get("image_size")
         num_query_token = cfg.get("num_query_token")
         opt_model = cfg.get("opt_model")
@@ -251,6 +252,7 @@ class Blip2OPT(Blip2Base):
         max_txt_len = cfg.get("max_txt_len", 32)
 
         model = cls(
+            vit_model=vit_model,
             img_size=img_size,
             drop_path_rate=drop_path_rate,
             use_grad_checkpoint=use_grad_checkpoint,

@@ -28,7 +28,8 @@ class Blip2Qformer(Blip2Base):
     """
     BLIP2 first-stage model with Q-former and ViT.
     Supported model types:
-        - pretrained: pretrained model
+        - pretrained: pretrained model with vit-g
+        - pretrain_vitL: pretrained model with vit-large
         - coco: fintuned model on coco
     Usage:
         >>> from lavis.models import load_model
@@ -37,17 +38,20 @@ class Blip2Qformer(Blip2Base):
 
     PRETRAINED_MODEL_CONFIG_DICT = {
         "pretrain": "configs/models/blip2/blip2_pretrain.yaml",
+        "pretrain_vitL": "configs/models/blip2/blip2_pretrain_vitL.yaml",
         "coco": "configs/models/blip2/blip2_coco.yaml",
     }
 
     def __init__(
         self,
+        vit_model="eva_clip_g",
         img_size=224,
         drop_path_rate=0,
         use_grad_checkpoint=False,
         vit_precision="fp16",
         freeze_vit=True,
         num_query_token=32,
+        cross_attention_freq=2,
         embed_dim=256,
         max_txt_len=32,
     ):
@@ -56,7 +60,7 @@ class Blip2Qformer(Blip2Base):
         self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder, self.ln_vision = self.init_vision_encoder(
-            img_size, drop_path_rate, use_grad_checkpoint, vit_precision
+            vit_model, img_size, drop_path_rate, use_grad_checkpoint, vit_precision
         )
         if freeze_vit:
             for name, param in self.visual_encoder.named_parameters():
@@ -65,7 +69,7 @@ class Blip2Qformer(Blip2Base):
             self.visual_encoder.train = disabled_train            
             logging.info("freeze vision encoder")
         self.Qformer, self.query_tokens = self.init_Qformer(
-            num_query_token, self.visual_encoder.num_features
+            num_query_token, self.visual_encoder.num_features, cross_attention_freq
         )
         self.Qformer.resize_token_embeddings(len(self.tokenizer))
         state_dict = self.Qformer.state_dict()
@@ -399,7 +403,9 @@ class Blip2Qformer(Blip2Base):
                 image is not None
             ), "Image is not provided for mode 'image' or 'multimodal'"
             # return query features
-            image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
+            with torch.cuda.amp.autocast(enabled=(self.device != torch.device("cpu"))):
+                image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
+            image_embeds_frozen = image_embeds_frozen.float()      
             image_atts = torch.ones(
                 image_embeds_frozen.size()[:-1], dtype=torch.long
             ).to(self.device)
@@ -437,7 +443,9 @@ class Blip2Qformer(Blip2Base):
 
         elif mode == "multimodal":
             # return multimodel query features
-            image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
+            with torch.cuda.amp.autocast(enabled=(self.device != torch.device("cpu"))):
+                image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
+            image_embeds_frozen = image_embeds_frozen.float()      
             image_atts = torch.ones(
                 image_embeds_frozen.size()[:-1], dtype=torch.long
             ).to(self.device)
@@ -474,8 +482,10 @@ class Blip2Qformer(Blip2Base):
 
     @classmethod
     def from_config(cls, cfg):
+        vit_model = cfg.get("vit_model","eva_clip_g")
         img_size = cfg.get("image_size")
         num_query_token = cfg.get("num_query_token")
+        cross_attention_freq = cfg.get("cross_attention_freq",2)
 
         drop_path_rate = cfg.get("drop_path_rate", 0)
         use_grad_checkpoint = cfg.get("use_grad_checkpoint", False)
@@ -485,12 +495,14 @@ class Blip2Qformer(Blip2Base):
         max_txt_len = cfg.get("max_txt_len", 32)
 
         model = cls(
+            vit_model=vit_model,
             img_size=img_size,
             drop_path_rate=drop_path_rate,
             use_grad_checkpoint=use_grad_checkpoint,
             vit_precision=vit_precision,
             freeze_vit=freeze_vit,
             num_query_token=num_query_token,
+            cross_attention_freq=cross_attention_freq,
             max_txt_len=max_txt_len,
         )
         model.load_checkpoint_from_config(cfg)
