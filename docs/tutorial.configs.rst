@@ -8,7 +8,7 @@ To replicate the experiments, just run these bash scripts. For example, to train
 
 .. code-block::
 
-    bash run_scripts/lavis/blip/train/train_retrieval_coco.sh
+    bash run_scripts/blip/train/train_retrieval_coco.sh
 
 Inside the scripts, we can see 
 
