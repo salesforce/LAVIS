@@ -31,7 +31,7 @@ class CaptionDatasetInstructWrapper(Dataset):
         with open(instruction_path) as f:
             self.instructions = f.read().splitlines()
 
-        self.dataset = CaptionDataset(vis_processor, text_processor, vis_root, ann_paths)
+        self.dataset = None
 
     def sample_instruction(self):
         instruction = self.instructions[random.randint(0, len(self.instructions) - 1)]

@@ -11,14 +11,4 @@ class COCOVQAInstructDataset(VQADatasetInstructWrapper):
             n_fs = k  # the number of examples
         """
         super().__init__(vis_processor, text_processor, vis_root, ann_paths, instruction_path)
-
         self.dataset = COCOVQADataset(vis_processor, text_processor, vis_root, ann_paths)
-
-    def __getitem__(self, index):
-        data = self.dataset.__getitem__(index)
-
-        instruction = self.sample_instruction()
-        instruction = self.process_instruction(instruction)
-
-        data["instruction"] = instruction
-        return data
