@@ -7,7 +7,7 @@ To finetune the model, we have prepared a run script for you, which can run as f
 
 .. code-block:: bash
 
-    bash run_scripts/lavis/blip/train/train_caption_coco_large.sh
+    bash run_scripts/blip/train/train_caption_coco_large.sh
 
 This will finetune the pre-trained BLIP large model into a new model that can be used for captioning.
 
