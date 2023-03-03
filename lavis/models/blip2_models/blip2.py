@@ -21,6 +21,7 @@ from lavis.common.logger import MetricLogger
 from lavis.models.base_model import BaseModel
 from lavis.models.blip2_models.Qformer import BertConfig, BertLMHeadModel
 from lavis.models.eva_vit import create_eva_vit_g
+from lavis.models.clip_vit import create_clip_vit_L
 from transformers import BertTokenizer
 
 
@@ -32,12 +33,12 @@ class Blip2Base(BaseModel):
         return tokenizer
 
     @classmethod
-    def init_Qformer(cls, num_query_token, vision_width):
+    def init_Qformer(cls, num_query_token, vision_width, cross_attention_freq=2):
         encoder_config = BertConfig.from_pretrained("bert-base-uncased")
         encoder_config.encoder_width = vision_width
         # insert cross-attention layer every other block
         encoder_config.add_cross_attention = True
-        encoder_config.cross_attention_freq = 2
+        encoder_config.cross_attention_freq = cross_attention_freq
         encoder_config.query_length = num_query_token
         Qformer = BertLMHeadModel.from_pretrained(
             "bert-base-uncased", config=encoder_config
@@ -50,11 +51,17 @@ class Blip2Base(BaseModel):
 
     @classmethod
     def init_vision_encoder(
-        cls, img_size, drop_path_rate, use_grad_checkpoint, precision
-    ):
-        visual_encoder = create_eva_vit_g(
-            img_size, drop_path_rate, use_grad_checkpoint, precision
-        )
+        cls, model_name, img_size, drop_path_rate, use_grad_checkpoint, precision
+    ):  
+        assert model_name in ["eva_clip_g","clip_L"], "vit model must be eva_clip_g or clip_L" 
+        if model_name=="eva_clip_g":
+            visual_encoder = create_eva_vit_g(
+                img_size, drop_path_rate, use_grad_checkpoint, precision
+            )
+        elif model_name=="clip_L":
+             visual_encoder = create_clip_vit_L(
+                img_size, use_grad_checkpoint, precision
+            )               
         ln_vision = LayerNorm(visual_encoder.num_features)
         return visual_encoder, ln_vision
 
