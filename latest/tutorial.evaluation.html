@@ -134,7 +134,7 @@ Let’s now see an example to evaluate BLIP model on the captioning task, using 
 <span id="prep-coco"></span><h2>Preparing Datasets<a class="headerlink" href="#preparing-datasets" title="Permalink to this heading"></a></h2>
 <p>First, let’s download the dataset. LAVIS provides <cite>automatic downloading scripts</cite> to help prepare
 most of the public dataset, to download MSCOCO dataset, simply run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>lavis/datasets/download_scripts<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>bash<span class="w"> </span>download_coco.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>lavis/datasets/download_scripts<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>download_coco.py
 </pre></div>
 </div>
 <p>This will put the downloaded dataset at a default cache location <code class="docutils literal notranslate"><span class="pre">cache</span></code> used by LAVIS.</p>
@@ -147,11 +147,11 @@ most of the public dataset, to download MSCOCO dataset, simply run</p>
 <section id="evaluating-pre-trained-models">
 <h2>Evaluating pre-trained models<a class="headerlink" href="#evaluating-pre-trained-models" title="Permalink to this heading"></a></h2>
 <p>To evaluate pre-trained model, simply run</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>run_scripts/lavis/blip/eval/eval_coco_cap.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>run_scripts/blip/eval/eval_coco_cap.sh
 </pre></div>
 </div>
 <p>Or to evaluate a large model:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>run_scripts/lavis/blip/eval/eval_coco_cap_large.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>run_scripts/blip/eval/eval_coco_cap_large.sh
 </pre></div>
 </div>
 </section>
