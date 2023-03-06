@@ -64,9 +64,9 @@ class Blip2Qformer(Blip2Base):
         )
         if freeze_vit:
             for name, param in self.visual_encoder.named_parameters():
-                param.requires_grad = False                
+                param.requires_grad = False
             self.visual_encoder = self.visual_encoder.eval()
-            self.visual_encoder.train = disabled_train            
+            self.visual_encoder.train = disabled_train
             logging.info("freeze vision encoder")
         self.Qformer, self.query_tokens = self.init_Qformer(
             num_query_token, self.visual_encoder.num_features, cross_attention_freq
@@ -90,7 +90,7 @@ class Blip2Qformer(Blip2Base):
     def forward(self, samples):
         image = samples["image"]
         text = samples["text_input"]
-        
+
         image_embeds = self.ln_vision(self.visual_encoder(image))
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
@@ -247,7 +247,7 @@ class Blip2Qformer(Blip2Base):
             return_dict=True,
             labels=labels,
         )
-        
+
         loss_lm = lm_output.loss
 
         return BlipOutput(
@@ -403,9 +403,9 @@ class Blip2Qformer(Blip2Base):
                 image is not None
             ), "Image is not provided for mode 'image' or 'multimodal'"
             # return query features
-            with torch.cuda.amp.autocast(enabled=(self.device != torch.device("cpu"))):
+            with self.maybe_autocast():
                 image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
-            image_embeds_frozen = image_embeds_frozen.float()      
+            image_embeds_frozen = image_embeds_frozen.float()
             image_atts = torch.ones(
                 image_embeds_frozen.size()[:-1], dtype=torch.long
             ).to(self.device)
@@ -443,9 +443,9 @@ class Blip2Qformer(Blip2Base):
 
         elif mode == "multimodal":
             # return multimodel query features
-            with torch.cuda.amp.autocast(enabled=(self.device != torch.device("cpu"))):
+            with self.maybe_autocast():
                 image_embeds_frozen = self.ln_vision(self.visual_encoder(image))
-            image_embeds_frozen = image_embeds_frozen.float()      
+            image_embeds_frozen = image_embeds_frozen.float()
             image_atts = torch.ones(
                 image_embeds_frozen.size()[:-1], dtype=torch.long
             ).to(self.device)
@@ -482,10 +482,10 @@ class Blip2Qformer(Blip2Base):
 
     @classmethod
     def from_config(cls, cfg):
-        vit_model = cfg.get("vit_model","eva_clip_g")
+        vit_model = cfg.get("vit_model", "eva_clip_g")
         img_size = cfg.get("image_size")
         num_query_token = cfg.get("num_query_token")
-        cross_attention_freq = cfg.get("cross_attention_freq",2)
+        cross_attention_freq = cfg.get("cross_attention_freq", 2)
 
         drop_path_rate = cfg.get("drop_path_rate", 0)
         use_grad_checkpoint = cfg.get("use_grad_checkpoint", False)
