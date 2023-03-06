@@ -59,7 +59,7 @@ class Blip2OPT(Blip2Base):
         )
         if freeze_vit:
             for name, param in self.visual_encoder.named_parameters():
-                param.requires_grad = False               
+                param.requires_grad = False
             self.visual_encoder = self.visual_encoder.eval()
             self.visual_encoder.train = disabled_train
             logging.info("freeze vision encoder")
@@ -95,7 +95,8 @@ class Blip2OPT(Blip2Base):
 
     def forward(self, samples):
         image = samples["image"]
-        image_embeds = self.ln_vision(self.visual_encoder(image))
+        with self.maybe_autocast():
+            image_embeds = self.ln_vision(self.visual_encoder(image))
         image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
             image.device
         )
@@ -177,9 +178,7 @@ class Blip2OPT(Blip2Base):
             captions (list): A list of strings of length batch_size * num_captions.
         """
         image = samples["image"]
-        with torch.cuda.amp.autocast(
-            enabled=(self.device != torch.device("cpu"))
-        ):          
+        with self.maybe_autocast():
             image_embeds = self.ln_vision(self.visual_encoder(image))
             image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
                 image.device
@@ -194,7 +193,9 @@ class Blip2OPT(Blip2Base):
             )
 
             inputs_opt = self.opt_proj(query_output.last_hidden_state)
-            atts_opt = torch.ones(inputs_opt.size()[:-1], dtype=torch.long).to(image.device)
+            atts_opt = torch.ones(inputs_opt.size()[:-1], dtype=torch.long).to(
+                image.device
+            )
 
             if "prompt" in samples.keys():
                 prompt = samples["prompt"]
@@ -203,7 +204,9 @@ class Blip2OPT(Blip2Base):
 
             prompt = [prompt] * image.size(0)
 
-            opt_tokens = self.opt_tokenizer(prompt, return_tensors="pt").to(image.device)
+            opt_tokens = self.opt_tokenizer(prompt, return_tensors="pt").to(
+                image.device
+            )
             input_ids = opt_tokens.input_ids
             attention_mask = torch.cat([atts_opt, opt_tokens.attention_mask], dim=1)
 
@@ -238,7 +241,7 @@ class Blip2OPT(Blip2Base):
 
     @classmethod
     def from_config(cls, cfg):
-        vit_model = cfg.get("vit_model","eva_clip_g")
+        vit_model = cfg.get("vit_model", "eva_clip_g")
         img_size = cfg.get("image_size")
         num_query_token = cfg.get("num_query_token")
         opt_model = cfg.get("opt_model")
