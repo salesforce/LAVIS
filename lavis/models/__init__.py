@@ -6,6 +6,7 @@
 """
 
 import logging
+import torch
 from omegaconf import OmegaConf
 from lavis.common.registry import registry
 
@@ -211,7 +212,7 @@ def load_model_and_preprocess(name, model_type, is_eval=False, device="cpu"):
             """
         )
 
-    if device == "cpu":
+    if device == "cpu" or device == torch.device("cpu"):
         model = model.float()
 
     return model.to(device), vis_processors, txt_processors
