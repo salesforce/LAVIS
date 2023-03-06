@@ -42,6 +42,23 @@ datasets:
   #     images:
   #       storage: '/export/share/datasets/vision/visual-genome/image/'
 
+  snli_ve_instruct:
+    vis_processor:
+      train:
+        name: "blip_image_train"
+        image_size: 224
+      eval:
+        name: "blip_image_eval"
+        image_size: 224
+    text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"
+    build_info:
+      images:
+        storage: '/export/share/datasets/vision/flickr30k/flickr30k-images/'
+
   ok_vqa_instruct:
     vis_processor:
       train:

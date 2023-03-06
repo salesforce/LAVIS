@@ -1,0 +1,10 @@
+Please compare the following sentence with the provided image and indicate their correlation using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Response:
+Use the given image to analyze the following sentence and describe their connection with one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Answer:
+Analyze the provided image alongside the given sentence and specify their association using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Solution:
+Examine the following sentence and compare it with the supplied image to determine their connection using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Response:
+Using the provided image, compare it with the given sentence and indicate their relationship using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Answer:
+Assess the relationship between the provided image and the following sentence, using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Solution:
+Consider the following sentence and compare it with the given image, indicating their connection using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Response:
+Evaluate the correlation between the provided image and the given sentence, using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Answer:
+In relation to the supplied image, analyze the following sentence and indicate their connection using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Solution:
+Compare the following sentence with the provided image and indicate their relationship using one of the options. Sentence: {} Options: (1) Entailment; (2) Neutral; or (3) Contradiction. Answer:
