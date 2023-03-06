@@ -2,7 +2,7 @@ from lavis.datasets.datasets.instruct_wrappers.vqa_instruct_datasets import VQAD
 from lavis.datasets.datasets.coco_vqa_datasets import COCOVQADataset
 
 
-class COCOVQAInstructDataset(VQADatasetInstructWrapper):
+class OKVQAInstructDataset(VQADatasetInstructWrapper):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths, instruction_path):
         """
         TODO:

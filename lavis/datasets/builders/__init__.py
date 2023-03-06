@@ -31,6 +31,8 @@ from lavis.datasets.builders.vqa_builder import (
     OKVQABuilder,
     VGVQABuilder,
     GQABuilder,
+    COCOVQAInstructBuilder,
+    OKVQAInstructBuilder,
 )
 from lavis.datasets.builders.retrieval_builder import (
     MSRVTTRetrievalBuilder,
@@ -47,6 +49,8 @@ __all__ = [
     "COCOCapInstructBuilder",
     "COCORetrievalBuilder",
     "COCOVQABuilder",
+    "COCOVQAInstructBuilder",
+    "OKVQAInstructBuilder",
     "ConceptualCaption12MBuilder",
     "ConceptualCaption3MBuilder",
     "DiDeMoRetrievalBuilder",

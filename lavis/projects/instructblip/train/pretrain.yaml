@@ -42,17 +42,22 @@ datasets:
   #     images:
   #       storage: '/export/share/datasets/vision/visual-genome/image/'
 
-  # ok_vqa:
-  #   vis_processor:
-  #     eval:
-  #       name: "blip_image_eval"
-  #       image_size: 224
-  #   text_processor:
-  #     eval:
-  #       name: "blip_question"
-  #   build_info:
-  #     images:
-  #       storage: '/export/share/datasets/vision/coco/images/'
+  ok_vqa_instruct:
+    vis_processor:
+      train:
+        name: "blip_image_train"
+        image_size: 224
+      eval:
+        name: "blip_image_eval"
+        image_size: 224
+    text_processor:
+      train:
+        name: "blip_question"
+      eval:
+        name: "blip_question"
+    build_info:
+      images:
+        storage: '/export/share/datasets/vision/coco/images/'
 
   coco_vqa_instruct:
     instruction_path: '/export/home/InstructBLIP/lavis/datasets/datasets/instructions/vqa_instructions.txt'
@@ -81,6 +86,7 @@ run:
       dataset_name2ratio: {
         "coco_vqa_instruct": 1,
         "coco_caption_instruct": 1,
+        "ok_vqa_instruct": 1,
         # "vg_caption": 1,
         # "laion2B_multi": 1,
       }

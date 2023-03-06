@@ -15,6 +15,7 @@ from lavis.datasets.datasets.vg_vqa_datasets import VGVQADataset
 from lavis.datasets.datasets.gqa_datasets import GQADataset, GQAEvalDataset
 
 from lavis.datasets.datasets.instruct_wrappers.coco_vqa_instruct_datasets import COCOVQAInstructDataset
+from lavis.datasets.datasets.instruct_wrappers.okvqa_instruct_datasets import OKVQAInstructDataset
 
 @registry.register_builder("coco_vqa")
 class COCOVQABuilder(BaseDatasetBuilder):
@@ -47,6 +48,16 @@ class VGVQABuilder(BaseDatasetBuilder):
 class OKVQABuilder(COCOVQABuilder):
     DATASET_CONFIG_DICT = {
         "default": "configs/datasets/okvqa/defaults.yaml",
+    }
+
+
+@registry.register_builder("ok_vqa_instruct")
+class OKVQAInstructBuilder(BaseInstructDatasetBuilder):
+    train_dataset_cls = OKVQAInstructDataset
+    eval_dataset_cls = COCOVQAEvalDataset
+
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/okvqa/instruct_defaults.yaml",
     }
 
 
