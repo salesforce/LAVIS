@@ -9,7 +9,6 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 import torch
 from torch.utils.data import Dataset
-from lavis.datasets.datasets.vqa_datasets import VQADataset
 
 class VQADatasetInstructWrapper(Dataset):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths, instruction_path):

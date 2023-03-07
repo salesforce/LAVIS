@@ -47,6 +47,7 @@ def parse_args():
 
 def main():
     args = parse_args()
+
     dataset = load_dataset(args.dataset_name, data_type=args.data_type, vis_path=args.vis_path)
     model, vis_processors, _ = load_model_and_preprocess(
         name="blip2_t5",
@@ -55,7 +56,10 @@ def main():
         device="cpu",
     )
 
-    print("=" * 30)
+    print("=" * 10, f"Testing for {args.dataset_name} dataset:", "=" * 10)
+
+    for k, v in dataset.items():
+        print(f"{k}: {len(v)}")
 
     for i in range(4):
         print("Text Input:", dataset['train'][i]['text_input'])
@@ -70,7 +74,7 @@ def main():
     })['loss']
     print('loss:', loss)
 
-    print("=" * 30)
+    print("=" * 55)
     print('Finished!')
 
 

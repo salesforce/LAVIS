@@ -23,6 +23,7 @@ from lavis.datasets.builders.image_text_pair_builder import (
 from lavis.datasets.builders.classification_builder import (
     NLVRBuilder,
     SNLIVisualEntailmentBuilder,
+    SNLIVisualEntailmentInstructBuilder,
 )
 from lavis.datasets.builders.imagefolder_builder import ImageNetBuilder
 from lavis.datasets.builders.video_qa_builder import MSRVTTQABuilder, MSVDQABuilder
@@ -67,6 +68,7 @@ __all__ = [
     "SBUCaptionBuilder",
     "CoyoBuilder",
     "SNLIVisualEntailmentBuilder",
+    "SNLIVisualEntailmentInstructBuilder",
     "VATEXCapBuilder",
     "VGCaptionBuilder",
     "VGVQABuilder",
