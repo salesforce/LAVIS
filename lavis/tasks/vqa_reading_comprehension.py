@@ -179,10 +179,10 @@ class GQARCTask(VQARCTask):
         sample_gradcams = []
 
         question_id = samples["question_id"]
-        gt_answers = samples["answer"]
+        gt_answers = samples["answers"]
 
         for pred_answer, caption, gradcam, ques_id, gt_answer in zip(answers, captions, gradcams, question_id, gt_answers):
-            ques_id = int(ques_id.item())
+            ques_id = int(ques_id)
             pred_qa_pairs.append({"question_id": ques_id, "pred_ans": pred_answer, "gt_ans": gt_answer})
             sample_captions.append({"question_id": ques_id, "caption": caption})
             sample_gradcams.append({"question_id": ques_id, "gradcam": gradcam})

@@ -185,10 +185,10 @@ class GQATask(VQATask):
         pred_qa_pairs = []
 
         question_id = samples["question_id"]
-        gt_answers = samples["answer"]
+        gt_answers = samples["answers"]
 
         for answer, ques_id, gt_answer in zip(answers, question_id, gt_answers):
-            ques_id = int(ques_id.item())
+            ques_id = int(ques_id)
             pred_qa_pairs.append(
                 {"question_id": ques_id, "pred_ans": answer, "gt_ans": gt_answer}
             )
@@ -233,6 +233,25 @@ class GQATask(VQATask):
         logging.info(metrics)
 
         return metrics
+
+    @dist_utils.main_process
+    def _save_result_leaderboard(self, results):
+        """
+        Saving the results in the format required for leaderboard evaluation.
+        """
+        result_leaderboard = []
+        for res in results:
+            result_leaderboard.append({
+                "questionId": str(res['question_id']),
+                "prediction": str(res["pred_ans"]),
+            })
+
+        result_file = registry.get_path("result_dir") + "_leaderboard.json"
+
+        with open(result_file, "w") as f:
+            json.dump(result_leaderboard, f)
+
+        logging.info(f"Saved results for leaderboard evaluation at {result_file}")
 
 
 @registry.register_task("aok_vqa")

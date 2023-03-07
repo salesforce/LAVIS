@@ -7,6 +7,7 @@
 
 import os
 import json
+import torch
 
 from PIL import Image
 
@@ -77,6 +78,30 @@ class GQAEvalDataset(VQAEvalDataset, __DisplMixin):
 
         self._add_instance_ids()
 
+    def collater(self, samples):
+        (
+            image_list,
+            question_list,
+            question_id_list,
+            instance_id_list,
+            answers_list,
+        ) = ([], [], [], [], [])
+
+        for sample in samples:
+            image_list.append(sample["image"])
+            question_list.append(sample["text_input"])
+            question_id_list.append(sample["question_id"])
+            instance_id_list.append(sample["instance_id"])
+            answers_list.append(sample["answers"])
+
+        return {
+            "image": torch.stack(image_list, dim=0),
+            "text_input": question_list,
+            "question_id": question_id_list,
+            "instance_id": instance_id_list,
+            "answers": answers_list,
+        }
+
     def __getitem__(self, index):
         ann = self.annotation[index]
 
@@ -95,7 +120,7 @@ class GQAEvalDataset(VQAEvalDataset, __DisplMixin):
         return {
             "image": image,
             "text_input": question,
-            "answer": answer,
+            "answers": answer,
             "question_id": ann["question_id"],
             "instance_id": ann["instance_id"],
         }
