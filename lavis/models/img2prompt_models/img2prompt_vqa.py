@@ -3,6 +3,11 @@
  All rights reserved.
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+ (CVPR 23') From Images to Textual Prompts: Zero-shot VQA with Frozen Large Language Models,
+ by Jiaxian Guo, Junnan Li, Dongxu Li, Anthony Meng Huat Tiong, Boyang Li, Dacheng Tao, Steven CH Hoi
+
+ Initially referred as Img2prompt_vqa, later Img2LLM_vqa.
 """
 
 import random
