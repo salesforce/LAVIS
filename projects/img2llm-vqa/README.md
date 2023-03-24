@@ -1,20 +1,20 @@
 ## From Images to Textual Prompts: Zero-shot VQA with Frozen Large Language Models
 
-This is the official code for <a href="https://arxiv.org/abs/2212.10846">Img2Prompt-VQA paper</a>. We integrate the implementation into LAVIS.
+This is the official code for <a href="https://arxiv.org/abs/2212.10846">Img2LLM-VQA paper</a>. We integrate the implementation into LAVIS.
 
-Large language models (LLMs) have demonstrated excellent zero-shot generalization to new tasks. However, effective utilization of LLMs for zero-shot visual question-answering (VQA) remains challenging, primarily due to the modality disconnection and task disconnection between LLM and VQA task. We propose **Img2Prompt**, a plug-and-play module that provides the prompts that can bridge the these disconnections, so that LLMs can perform VQA tasks without end-to-end training.
+Large language models (LLMs) have demonstrated excellent zero-shot generalization to new tasks. However, effective utilization of LLMs for zero-shot visual question-answering (VQA) remains challenging, primarily due to the modality disconnection and task disconnection between LLM and VQA task. We propose **Img2LLM**, a plug-and-play module that provides the prompts that can bridge the these disconnections, so that LLMs can perform VQA tasks without end-to-end training.
 
 <img src="Illustration.png" width="700">
 
-The following images illustrate the technical procedures of answer extraction, question generation and caption prompts in Img2Prompt. See paper for details.
+The following images illustrate the technical procedures of answer extraction, question generation and caption prompts in Img2LLM. See paper for details.
 
 <img src="QuestionGeneration.png" width="700">
 <img src="Caption.png" width="700">
 
 
 ### Demo
-We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2prompt-vqa/img2prompt_vqa.ipynb)
-to show Img2Prompt-VQA inference workflow:
+We include an interactive demo [Colab notebook](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/img2llm-vqa/img2llm_vqa.ipynb)
+to show Img2LLM-VQA inference workflow:
 1. Image-question matching: compute the relevancy score of the image patches wrt the question, and remove the generated noisy captions with low relevancy score.
 2. Image captioning: generate question-guided captions based on the relevancy score.
 3. Question Generation: generate questions based on the synthetic answers and captions.
@@ -63,7 +63,7 @@ to show Img2Prompt-VQA inference workflow:
 <td>-</td>
   </tr>
   <tr>
-    <td> Img2Prompt-VQA-OPT<sub>13B</sub> </td>
+    <td> Img2LLM-VQA-OPT<sub>13B</sub> </td>
 <td> x</td> 
     <td>57.1</td>
     <td>57.3 </td>
@@ -72,7 +72,7 @@ to show Img2Prompt-VQA inference workflow:
 <td>33.0</td>
   </tr>
   <tr>
-    <td> Img2Prompt-VQA-OPT<sub>30B</td>
+    <td> Img2LLM-VQA-OPT<sub>30B</td>
 <td> x</td> 
     <td>59.5</td>
     <td>60.4 </td>
@@ -81,7 +81,7 @@ to show Img2Prompt-VQA inference workflow:
 <td>36.0 </td>
   </tr>
   <tr>
-    <td> Img2Prompt-VQA-OPT<sub>66B</td>
+    <td> Img2LLM-VQA-OPT<sub>66B</td>
 <td> x</td> 
     <td>59.9</td>
     <td>60.3 </td>
@@ -90,7 +90,7 @@ to show Img2Prompt-VQA inference workflow:
 <td>38.2</td>
   </tr>
   <tr>
-   <td> Img2Prompt-VQA-OPT<sub>175B</td>
+   <td> Img2LLM-VQA-OPT<sub>175B</td>
 <td> x</td> 
     <td>60.6</td>
     <td>61.9</td>
@@ -101,7 +101,7 @@ to show Img2Prompt-VQA inference workflow:
 </tbody>
 </table>
 
-To reproduce these evaluation results of Img2Prompt-VQA with different LLMs, you can follow this [folder](https://github.com/CR-Gjx/Img2Prompt) :
+To reproduce these evaluation results of Img2LLM-VQA with different LLMs, you can follow this [folder](https://github.com/CR-Gjx/Img2LLM) :
 
 
 ### Citation
