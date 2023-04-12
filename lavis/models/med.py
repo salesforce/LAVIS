@@ -1331,6 +1331,9 @@ class XBertLMHeadDecoder(BertLMHeadModel):
         if not use_nucleus_sampling:
             num_beams = num_beams
             visual_embeds = visual_embeds.repeat_interleave(num_beams, dim=0)
+            tokenized_prompt.input_ids = tokenized_prompt.input_ids.repeat_interleave(num_beams, dim=0)
+            # Make sure that the prompt is repeated same number of times as the visual_embeds
+            assert visual_embeds.size(0) == tokenized_prompt.input_ids.size(0)
 
         image_atts = torch.ones(visual_embeds.size()[:-1], dtype=torch.long).to(
             self.device
