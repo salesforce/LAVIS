@@ -12,8 +12,8 @@ import torch.nn as nn
 
 from lavis.common.registry import registry
 from lavis.models.blip2_models.blip2 import Blip2Base, disabled_train
-from lavis.models.blip2_models.modeling_opt import OPTForCausalLM, OPTConfig
-from transformers import AutoTokenizer
+# from lavis.models.blip2_models.modeling_opt import OPTForCausalLM, OPTConfig
+from transformers import AutoTokenizer, OPTForCausalLM, OPTConfig
 
 
 @registry.register_model("blip2_opt")
@@ -208,35 +208,58 @@ class Blip2OPT(Blip2Base):
             opt_tokens = self.opt_tokenizer(prompt, return_tensors="pt").to(
                 image.device
             )
-            input_ids = opt_tokens.input_ids
             attention_mask = torch.cat([atts_opt, opt_tokens.attention_mask], dim=1)
-
-            if use_nucleus_sampling:
-                query_embeds = inputs_opt.repeat_interleave(num_captions, dim=0)
-                num_beams = 1
-            else:
-                query_embeds = inputs_opt.repeat_interleave(num_beams, dim=0)
-
+            
+            # new version for transformers>=4.27
+            inputs_embeds = self.opt_model.get_input_embeddings()(opt_tokens.input_ids)
+            inputs_embeds = torch.cat([inputs_opt,inputs_embeds],dim=1)
+            
             outputs = self.opt_model.generate(
-                input_ids=input_ids,
-                query_embeds=query_embeds,
+                inputs_embeds=inputs_embeds, 
                 attention_mask=attention_mask,
                 do_sample=use_nucleus_sampling,
                 top_p=top_p,
                 temperature=temperature,
                 num_beams=num_beams,
-                max_new_tokens=max_length,
+                max_length=max_length,
                 min_length=min_length,
                 eos_token_id=self.eos_token_id,
                 repetition_penalty=repetition_penalty,
                 length_penalty=length_penalty,
                 num_return_sequences=num_captions,
             )
-
-            prompt_length = opt_tokens.input_ids.shape[1]
             output_text = self.opt_tokenizer.batch_decode(
-                outputs[:, prompt_length:], skip_special_tokens=True
+                outputs, skip_special_tokens=True
             )
+                            
+            # previous version for transformers<4.27
+            # if use_nucleus_sampling:
+            #     query_embeds = inputs_opt.repeat_interleave(num_captions, dim=0)
+            #     num_beams = 1
+            # else:
+            #     query_embeds = inputs_opt.repeat_interleave(num_beams, dim=0)
+
+            # outputs = self.opt_model.generate(
+            #     input_ids=input_ids,
+            #     query_embeds=query_embeds,
+            #     attention_mask=attention_mask,
+            #     do_sample=use_nucleus_sampling,
+            #     top_p=top_p,
+            #     temperature=temperature,
+            #     num_beams=num_beams,
+            #     max_new_tokens=max_length,
+            #     min_length=min_length,
+            #     eos_token_id=self.eos_token_id,
+            #     repetition_penalty=repetition_penalty,
+            #     length_penalty=length_penalty,
+            #     num_return_sequences=num_captions,
+            # )
+
+            # prompt_length = opt_tokens.input_ids.shape[1]
+            # output_text = self.opt_tokenizer.batch_decode(
+            #     outputs[:, prompt_length:], skip_special_tokens=True
+            # )
+            
             output_text = [text.strip() for text in output_text]
             return output_text
 
