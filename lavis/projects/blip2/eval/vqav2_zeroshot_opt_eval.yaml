@@ -1,0 +1,51 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+# Overall Accuracy is: 51.88 (result different from BLIP-2 paper due to different implementation and transformers version)
+
+model:
+  arch: blip2_opt
+  model_type: pretrain_opt2.7b
+  use_grad_checkpoint: False
+
+datasets:
+  coco_vqa: # name of the dataset builder
+    type: eval
+    vis_processor:
+        eval:
+          name: "blip_image_eval"
+          image_size: 224
+    text_processor:
+        eval:
+          name: "blip_question"
+    # build_info:
+    #     images:
+    #         storage: '/export/share/datasets/vision/coco/images/'
+
+run:
+  task: vqa
+  # optimization-specific
+  batch_size_train: 16
+  batch_size_eval: 64
+  num_workers: 4
+
+  # inference-specific
+  max_len: 10
+  min_len: 1
+  num_beams: 5
+  inference_method: "generate"
+  prompt: "Question: {} Short answer:"
+
+  seed: 42
+  output_dir: "output/BLIP2/VQA"
+
+  evaluate: True
+  test_splits: ["val"]
+
+  # distribution-specific
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
