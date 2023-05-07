@@ -3,15 +3,16 @@ Requires Transformer 4.28 and above, implementation may change according the Lla
 """
 import logging
 import string
+from packaging import version
 
 import torch
 from torch.cuda.amp import autocast as autocast
 import torch.nn as nn
 
+import transformers
+
 from lavis.common.registry import registry
 from lavis.models.blip2_models.blip2 import Blip2Base, disabled_train
-from transformers import LlamaTokenizer
-from lavis.models.blip2_models.modeling_llama import LlamaForCausalLM
 
 @registry.register_model("blip2_vicuna_instruct")
 class Blip2VicunaInstruct(Blip2Base):
@@ -47,7 +48,11 @@ class Blip2VicunaInstruct(Blip2Base):
         qformer_text_input=True,
     ):
         super().__init__()
-
+        transformers_version = version.parse(transformers.__version__)
+        assert transformers_version >= version.parse("4.28"), "BLIP-2 Vicuna requires transformers>=4.28"        
+        from transformers import LlamaTokenizer
+        from lavis.models.blip2_models.modeling_llama import LlamaForCausalLM
+        
         self.tokenizer = self.init_tokenizer(truncation_side="left")
 
         self.visual_encoder, self.ln_vision = self.init_vision_encoder(
