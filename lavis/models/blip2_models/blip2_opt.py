@@ -5,6 +5,7 @@
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 import logging
+from packaging import version
 
 import torch
 from torch.cuda.amp import autocast as autocast
@@ -14,6 +15,7 @@ from lavis.common.registry import registry
 from lavis.models.blip2_models.blip2 import Blip2Base, disabled_train
 # from lavis.models.blip2_models.modeling_opt import OPTForCausalLM, OPTConfig
 from transformers import AutoTokenizer, OPTForCausalLM, OPTConfig
+import transformers
 
 
 @registry.register_model("blip2_opt")
@@ -55,7 +57,9 @@ class Blip2OPT(Blip2Base):
         apply_lemmatizer: when set to True, postprocess predict_answers() result with lemmas.
         """
         super().__init__()
-
+        transformers_version = version.parse(transformers.__version__)
+        assert transformers_version >= version.parse("4.27"), "BLIP-2 OPT requires transformers>=4.27"
+        
         self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder, self.ln_vision = self.init_vision_encoder(

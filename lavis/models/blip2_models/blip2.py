@@ -22,7 +22,6 @@ from lavis.common.logger import MetricLogger
 from lavis.models.base_model import BaseModel
 from lavis.models.blip2_models.Qformer import BertConfig, BertLMHeadModel
 from lavis.models.eva_vit import create_eva_vit_g
-# from lavis.models.eva2_vit import create_eva2_vit_L
 from lavis.models.clip_vit import create_clip_vit_L
 from transformers import BertTokenizer
 
