@@ -7,6 +7,7 @@
 
 import logging
 import os
+from packaging import version
 
 import torch
 from lavis.common.dist_utils import download_cached_file
@@ -14,9 +15,14 @@ from lavis.common.utils import is_url
 from lavis.models.base_model import BaseModel
 from lavis.models.vit import interpolate_pos_embed
 from transformers import BertTokenizer
-
+import transformers
 
 class BlipBase(BaseModel):
+    def __init__(self):
+        super().__init__()
+        transformers_version = version.parse(transformers.__version__)
+        assert transformers_version < version.parse("4.27"), "BLIP models are not compatible with transformers>=4.27, run pip install transformers==4.25 to downgrade"
+        
     @classmethod
     def init_tokenizer(cls):
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
