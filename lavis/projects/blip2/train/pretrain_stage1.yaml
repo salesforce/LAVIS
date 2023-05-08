@@ -6,8 +6,7 @@
 model:
   arch: blip2
   model_type: pretrain
-  # TODO: support stage 1 pretraining from scratch (load_pretrained=False does not have effect as of now)
-  load_pretrained: False
+  load_pretrained: False #pretrain from scratch
   freeze_vit: True
 
 
