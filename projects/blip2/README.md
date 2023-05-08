@@ -92,7 +92,26 @@ Follow [Dataset Download](https://opensource.salesforce.com/LAVIS//latest/gettin
 
 Run [these scripts](https://github.com/salesforce/LAVIS/tree/main/run_scripts/blip2/eval) for evaluating pretrained and finetuned models. 
 
-For model training, please follow LAVIS documentation.
+### Training
+Stage-1 Pre-training (from scratch): 
+```bash run_scripts/blip2/train/pretrain_stage1.sh```
+
+Stage-2 Pre-training: 
+```bash run_scripts/blip2/train/pretrain_stage2.sh```
+
+Finetune for image captioning: 
+```bash run_scripts/blip2/train/train_caption_coco.sh```
+
+The [config files](https://github.com/salesforce/LAVIS/tree/main/lavis/projects/blip2/train) can be modified for customized training.
+
+### Citing BLIP-2
+<pre>
+@inproceedings{li2023blip2,
+      title={{BLIP-2:} Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models}, 
+      author={Junnan Li and Dongxu Li and Silvio Savarese and Steven Hoi},
+      year={2023},
+      booktitle={ICML},
+}</pre>
 
 ###  🤗 Hugging Face integration
 
