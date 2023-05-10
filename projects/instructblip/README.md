@@ -33,7 +33,7 @@ from PIL import Image
 # setup device to use
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 # load sample image
-raw_image = Image.open("../docs/_static/Confusing-Pictures.jpg").convert("RGB")
+raw_image = Image.open("../../docs/_static/Confusing-Pictures.jpg").convert("RGB")
 display(raw_image.resize((596, 437)))
 ```
 <img src="../../docs/_static/Confusing-Pictures.jpg" width="350">
