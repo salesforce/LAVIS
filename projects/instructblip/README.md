@@ -4,11 +4,13 @@ InstructBLIP proposes a new vision-language instruction-tuning framework using B
 
 <img src="showcase.png" width="600">
 
-### Install:
+### Install from source:
 ```
-pip install salesforce-lavis
+git clone https://github.com/salesforce/LAVIS.git
+cd LAVIS
+pip install -e .
 ```
-or install from source following LAVIS instruction.
+We will soon support installing InstructBLIP with PyPI
 
 
 ### InstructBLIP Model Zoo 
