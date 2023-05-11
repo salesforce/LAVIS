@@ -2,7 +2,7 @@
 This is the official implementation of InstructBLIP [paper](https://arxiv.org/abs/2301.12597). 
 InstructBLIP proposes a new vision-language instruction-tuning framework using BLIP-2 models, achieving state-of-the-art zero-shot generalization performance on a wide range of vision-language tasks.
 
-<img src="showcase.png" width="800">
+<img src="showcase.png" width="1000">
 
 ### Install from source:
 ```
