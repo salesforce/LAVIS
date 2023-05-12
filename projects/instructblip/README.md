@@ -95,6 +95,7 @@ are obtained from their respective papers, while the official demo is used for M
 <img src="comparison.png" width="600">
 
 ### BibTeX
+```
 @misc{instructblip,
       title={InstructBLIP: Towards General-purpose Vision-Language Models with Instruction Tuning}, 
       author={Wenliang Dai and Junnan Li and Dongxu Li and Anthony Meng Huat Tiong and Junqi Zhao and Weisheng Wang and Boyang Li and Pascale Fung and Steven Hoi},
@@ -103,6 +104,6 @@ are obtained from their respective papers, while the official demo is used for M
       archivePrefix={arXiv},
       primaryClass={cs.CV}
 }
-
+```
 ### Usage and License: 
 The model is intended and licensed for research use only. InstructBLIP w/ Vicuna models are restricted to uses that follow the license agreement of LLaMA and Vicuna. The models have been trained on the [LLaVA](https://llava-vl.github.io/) dataset which is CC BY NC 4.0 (allowing only non-commercial use).
