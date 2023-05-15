@@ -164,7 +164,7 @@ class VisionTransformer(nn.Module):
         self.positional_embedding = nn.Parameter(scale * torch.randn(self.num_patches + 1, width))
         self.ln_pre = LayerNorm(width)
         
-        self.transformer = Transformer(width, layers-1, heads, use_grad_checkpointing=use_grad_checkpointing)
+        self.transformer = Transformer(width, layers, heads, use_grad_checkpointing=use_grad_checkpointing)
            
 #         self.ln_final = LayerNorm(width)
 
