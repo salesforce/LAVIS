@@ -235,7 +235,7 @@ def create_clip_vit_L(img_size=224,use_checkpoint=False,precision="fp16"):
             input_resolution=img_size,
             patch_size=14,
             width=1024,
-            layers=22,
+            layers=23,
             heads=16,
             use_grad_checkpointing=use_checkpoint,
         )         
