@@ -61,9 +61,12 @@ class BaseTask:
         return datasets
 
     def train_step(self, model, samples):
-        loss_dict = model(samples)
-        loss = loss_dict["loss"]
-        return loss, loss_dict
+        output = model(samples)
+        loss_dict = {}
+        for k,v in output.items():
+            if "loss" in k:
+                loss_dict[k] = v
+        return output["loss"], loss_dict
 
     def valid_step(self, model, samples):
         raise NotImplementedError
