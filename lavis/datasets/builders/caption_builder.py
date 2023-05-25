@@ -17,6 +17,10 @@ from lavis.datasets.datasets.video_caption_datasets import (
     VideoCaptionDataset,
     VideoCaptionEvalDataset,
 )
+from lavis.datasets.datasets.sherlock_dataset import (
+    SherlockDataset,
+    SherlockEvalDataset
+)
 
 
 @registry.register_builder("coco_caption")
@@ -65,4 +69,13 @@ class VATEXCapBuilder(BaseDatasetBuilder):
 
     DATASET_CONFIG_DICT = {
         "default": "configs/datasets/vatex/defaults_cap.yaml",
+    }
+
+@registry.register_builder("sherlock_caption")
+class SherlockCapBuilder(BaseDatasetBuilder):
+    train_dataset_cls = SherlockDataset
+    eval_dataset_cls = SherlockEvalDataset
+
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/sherlock/sherlock_1.yaml",
     }
