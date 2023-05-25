@@ -209,9 +209,9 @@ class GQATask(VQATask):
             gt_ans = res["gt_ans"]
             pred = res["pred_ans"]
 
-            if self.inference_method == "generate":
-                pred = vqa_tool.processPunctuation(pred)
-                pred = vqa_tool.processDigitArticle(pred)
+            # if self.inference_method == "generate":
+            pred = vqa_tool.processPunctuation(pred)
+            pred = vqa_tool.processDigitArticle(pred)
 
             vqa_acc = 1 if pred == gt_ans else 0
 
