@@ -45,18 +45,18 @@ class SherlockDataset(BaseDataset):
             image_path = os.path.join(self.vis_root, "vg/images", input_path_simple)
 
         image = Image.open(image_path).convert("RGB")
+        image = self.highlight_region(image, ann["inputs"]["bboxes"])
+
         image = self.vis_processor(image)
         caption = self.text_processor(ann["targets"]["inference"])
 
-        image_highlighted = self.highlight_region(image, ann["inputs"]["bboxes"])
-
         return {
-            "image": image_highlighted,
+            "image": image,
             "text_input": caption,
             "image_id": ann["inputs"]["obs_idx"],   #복잡한거 -> 정수 바꿔서 주므로 간단한거
         }
     
-    def highlight_region(image, bboxes):
+    def highlight_region(self, image, bboxes):
         image = image.convert('RGBA')
         overlay = Image.new('RGBA', image.size, '#00000000')
         draw = ImageDraw.Draw(overlay, 'RGBA')
@@ -92,16 +92,17 @@ class SherlockEvalDataset(CaptionEvalDataset):
             image_path = os.path.join(self.vis_root, "vg/images", input_path_simple)
 
         image = Image.open(image_path).convert("RGB")
+        image = self.highlight_region(image, ann["inputs"]["bboxes"])
+
         image = self.vis_processor(image)
-        image_highlighted = self.highlight_region(image, ann["inputs"]["bboxes"])
 
         return {
-            "image": image_highlighted,
+            "image": image,
             "image_id": ann["instance_id"], #복잡
             "instance_id": ann["split_idx"],    #간단한 정수
         }
     
-    def highlight_region(image, bboxes):
+    def highlight_region(self, image, bboxes):
         image = image.convert('RGBA')
         overlay = Image.new('RGBA', image.size, '#00000000')
         draw = ImageDraw.Draw(overlay, 'RGBA')

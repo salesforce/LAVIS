@@ -8,7 +8,7 @@ model:
   model_type: caption_coco_opt2.7b
   load_finetuned: False
   use_grad_checkpoint: True
-  freeze_vit: False
+  freeze_vit: True
 
 datasets:
   sherlock_caption: # name of the dataset builder
@@ -39,7 +39,7 @@ run:
   warmup_steps: 1000
   weight_decay: 0.05
   max_epoch: 5
-  batch_size_train: 16
+  batch_size_train: 8
   batch_size_eval: 8
   num_workers: 4
   accum_grad_iters: 1
