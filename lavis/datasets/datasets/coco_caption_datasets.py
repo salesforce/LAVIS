@@ -35,12 +35,12 @@ class COCOCapEvalDataset(CaptionEvalDataset):
 
         image = self.vis_processor(image)
 
-        img_id = ann["image"].split("/")[-1].strip(".jpg").split("_")[-1]
+        img_id = ann["image"].split("/")[-1].strip(".jpg").split("_")[-1]   #요고만 다르다, val에는 image_id 가 없어서 그런 듯 
 
         return {
             "image": image,
             "image_id": img_id,
-            "instance_id": ann["instance_id"],
+            "instance_id": ann["instance_id"],  
         }
 
 

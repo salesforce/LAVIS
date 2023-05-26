@@ -15,6 +15,8 @@ from lavis.common.logger import MetricLogger, SmoothedValue
 from lavis.common.registry import registry
 from lavis.datasets.data_utils import prepare_sample
 
+import ipdb 
+
 
 class BaseTask:
     def __init__(self, **kwargs):
@@ -53,6 +55,8 @@ class BaseTask:
         for name in datasets_config:
             dataset_config = datasets_config[name]
 
+            ipdb.set_trace(cond=True)
+            
             builder = registry.get_builder_class(name)(dataset_config)
             dataset = builder.build_datasets()
 
