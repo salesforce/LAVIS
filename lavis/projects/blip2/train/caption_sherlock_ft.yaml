@@ -11,7 +11,7 @@ model:
   freeze_vit: False
 
 datasets:
-  coco_caption: # name of the dataset builder
+  sherlock_caption: # name of the dataset builder
     vis_processor:
         train:
           name: "blip2_image_train"

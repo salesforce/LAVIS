@@ -8,7 +8,7 @@
 import os
 import json
 
-from PIL import Image
+from PIL import Image, ImageDraw
 from PIL import ImageFile
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -45,11 +45,27 @@ class SherlockDataset(BaseDataset):
         image = self.vis_processor(image)
         caption = self.text_processor(ann["targets"]["inference"])
 
+        image_highlighted = self.highlight_region(image, ann["inputs"]["bboxes"])
+
         return {
-            "image": image,
+            "image": image_highlighted,
             "text_input": caption,
             "image_id": ann["inputs"]["obs_idx"],   #복잡한거 -> 정수 바꿔서 주므로 간단한거
         }
+    
+    def highlight_region(image, bboxes):
+        image = image.convert('RGBA')
+        overlay = Image.new('RGBA', image.size, '#00000000')
+        draw = ImageDraw.Draw(overlay, 'RGBA')
+        for bbox in bboxes:
+            x = bbox['left']
+            y = bbox['top']
+            draw.rectangle([(x, y), (x+bbox['width'], y+bbox['height'])],
+                            fill='#ff05cd3c', outline='#05ff37ff', width=3)
+        
+        image = Image.alpha_composite(image, overlay)
+        convert_to_RGB = image.convert('RGB') # TODO test
+        return convert_to_RGB
 
 class SherlockEvalDataset(CaptionEvalDataset):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
@@ -71,9 +87,26 @@ class SherlockEvalDataset(CaptionEvalDataset):
         image = Image.open(image_path).convert("RGB")
 
         image = self.vis_processor(image)
+        image_highlighted = self.highlight_region(image, ann["inputs"]["bboxes"])
 
         return {
-            "image": image,
+            "image": image_highlighted,
             "image_id": ann["instance_id"], #복잡
             "instance_id": ann["split_idx"],    #간단한 정수
         }
+    
+    def highlight_region(image, bboxes):
+        image = image.convert('RGBA')
+        overlay = Image.new('RGBA', image.size, '#00000000')
+        draw = ImageDraw.Draw(overlay, 'RGBA')
+        for bbox in bboxes:
+            x = bbox['left']
+            y = bbox['top']
+            draw.rectangle([(x, y), (x+bbox['width'], y+bbox['height'])],
+                            fill='#ff05cd3c', outline='#05ff37ff', width=3)
+        
+        image = Image.alpha_composite(image, overlay)
+        convert_to_RGB = image.convert('RGB') # TODO test
+        return convert_to_RGB
+
+

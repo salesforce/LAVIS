@@ -4,7 +4,7 @@
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
 datasets:
-  sherlock: # name of the dataset builder
+  sherlock_caption: # name of the dataset builder
     data_type: images #extracted features of videos (I3D, VGGish) # [images|videos|features]
 
     build_info:
