@@ -27,7 +27,7 @@ datasets:
           name: "blip_caption"
     build_info:
         images:
-          storage: '/gallery_tate/wonjae.roh/vcr1images'
+          storage: '/gallery_tate/wonjae.roh'
 
 run:
   task: captioning

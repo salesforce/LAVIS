@@ -36,12 +36,15 @@ class SherlockDataset(BaseDataset):
 
         ann = self.annotation[index]
 
-        input_path_raw = ann["inputs"]["image"]["url"]
-        input_path_simple = input_path_raw.split("/")[-2] + "/" + input_path_raw.split("/")[-1]
+        input_path_split = ann["inputs"]["image"]["url"].split("/")
+        if input_path_split[-3]=="vcr1images":
+            input_path_simple = input_path_split[-3] + "/" + input_path_split[-2] + "/" + input_path_split[-1]
+            image_path = os.path.join(self.vis_root, input_path_simple)
+        else:
+            input_path_simple = input_path_split[-2] + "/" + input_path_split[-1]
+            image_path = os.path.join(self.vis_root, "vg/images", input_path_simple)
 
-        image_path = os.path.join(self.vis_root, input_path_simple)
         image = Image.open(image_path).convert("RGB")
-
         image = self.vis_processor(image)
         caption = self.text_processor(ann["targets"]["inference"])
 
@@ -80,12 +83,15 @@ class SherlockEvalDataset(CaptionEvalDataset):
         
         ann = self.annotation[index]
 
-        input_path_raw = ann["inputs"]["image"]["url"]
-        input_path_simple = input_path_raw.split("/")[-2] + "/" + input_path_raw.split("/")[-1]
+        input_path_split = ann["inputs"]["image"]["url"].split("/")
+        if input_path_split[-3]=="vcr1images":
+            input_path_simple = input_path_split[-3] + "/" + input_path_split[-2] + "/" + input_path_split[-1]
+            image_path = os.path.join(self.vis_root, input_path_simple)
+        else:
+            input_path_simple = input_path_split[-2] + "/" + input_path_split[-1]
+            image_path = os.path.join(self.vis_root, "vg/images", input_path_simple)
 
-        image_path = os.path.join(self.vis_root, input_path_simple)
         image = Image.open(image_path).convert("RGB")
-
         image = self.vis_processor(image)
         image_highlighted = self.highlight_region(image, ann["inputs"]["bboxes"])
 
