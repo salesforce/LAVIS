@@ -1,0 +1,24 @@
+model:
+  num_query_token: 16
+  vit_model: "clip_L"
+  cross_attention_freq: 1
+
+  load_finetuned: False
+
+  load_pretrained: True
+  pretrained: "/export/share/dongxuli/zerobooth/500000-renamed/"
+
+  sd_train_text_encoder: False
+  sd_pretrained_model_name_or_path: "runwayml/stable-diffusion-v1-5" 
+
+preprocess:
+  vis_processor:
+    train:
+      name: "blip_diffusion_image_eval"
+    eval:
+      name: "blip_diffusion_image_eval"
+  text_processor:
+    train:
+      name: "blip_caption"
+    eval:
+      name: "blip_caption"
