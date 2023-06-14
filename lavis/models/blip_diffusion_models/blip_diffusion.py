@@ -58,21 +58,21 @@ class BlipDiffusion(BaseModel):
     def __init__(
         self,
         vit_model="clip_L",
-        num_query_token=16,
-        cross_attention_freq=1,
+        qformer_num_query_token=16,
+        qformer_cross_attention_freq=1,
         qformer_pretrained_path="/export/share/junnan-li/BLIP2/checkpoint/clip_q16.pth",
         sd_pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5",
         sd_train_text_encoder=False,
     ):
         super().__init__()
 
-        self.num_query_token = num_query_token
+        self.num_query_token = qformer_num_query_token
 
         # BLIP-2
         self.blip = Blip2Qformer(
             vit_model=vit_model,
-            num_query_token=num_query_token,
-            cross_attention_freq=cross_attention_freq,
+            num_query_token=qformer_num_query_token,
+            cross_attention_freq=qformer_cross_attention_freq,
         )
         if qformer_pretrained_path is not None:
             state_dict = torch.load(qformer_pretrained_path, map_location="cpu")[
@@ -90,11 +90,7 @@ class BlipDiffusion(BaseModel):
 
         # projection layer
         self.proj_layer = ProjLayer(
-            in_dim=768,
-            out_dim=768,
-            hidden_dim=3072,
-            drop_p=0.1,
-            eps=1e-12,
+            in_dim=768, out_dim=768, hidden_dim=3072, drop_p=0.1, eps=1e-12
         )
 
         # stable diffusion
@@ -159,6 +155,15 @@ class BlipDiffusion(BaseModel):
             rv.append(", ".join([prompt] * int(prompt_strength * self._PROMPT_REPS)))
 
         return rv
+
+    def _predict_noise(
+        self, samples, t, latent_model_input, text_embeddings, width=512, height=512
+    ):
+        noise_pred = self.unet(
+            latent_model_input, timestep=t, encoder_hidden_states=text_embeddings
+        )["sample"]
+
+        return noise_pred
 
     @torch.no_grad()
     def generate(
@@ -266,9 +271,14 @@ class BlipDiffusion(BaseModel):
             )
 
             # predict the noise residual
-            noise_pred = self.unet(
-                latent_model_input, t, encoder_hidden_states=text_embeddings
-            )["sample"]
+            noise_pred = self._predict_noise(
+                samples=samples,
+                t=t,
+                latent_model_input=latent_model_input,
+                text_embeddings=text_embeddings,
+                width=width,
+                height=height,
+            )
 
             # perform guidance
             if do_classifier_free_guidance:
@@ -347,8 +357,9 @@ class BlipDiffusion(BaseModel):
     @classmethod
     def from_config(cls, cfg):
         vit_model = cfg.get("vit_model", "clip_L")
-        cross_attention_freq = cfg.get("cross_attention_freq", 1)
-        num_query_token = cfg.get("num_query_token", 16)
+
+        qformer_cross_attention_freq = cfg.get("qformer_cross_attention_freq", 1)
+        qformer_num_query_token = cfg.get("qformer_num_query_token", 16)
 
         sd_train_text_encoder = cfg.get("sd_train_text_encoder", False)
         sd_pretrained_model_name_or_path = cfg.get(
@@ -357,8 +368,8 @@ class BlipDiffusion(BaseModel):
 
         model = cls(
             vit_model=vit_model,
-            cross_attention_freq=cross_attention_freq,
-            num_query_token=num_query_token,
+            qformer_cross_attention_freq=qformer_cross_attention_freq,
+            qformer_num_query_token=qformer_num_query_token,
             sd_train_text_encoder=sd_train_text_encoder,
             sd_pretrained_model_name_or_path=sd_pretrained_model_name_or_path,
         )
