@@ -217,7 +217,9 @@ class BlipDiffusion(BaseModel):
                 (1, self.unet.in_channels, height // 8, width // 8),
                 generator=generator,
             )
-            latent = latent.expand(batch_size,  self.unet.in_channels, height // 8, width // 8).to(self.device)
+            latent = latent.expand(
+                batch_size, self.unet.in_channels, height // 8, width // 8
+            ).to(self.device)
         else:
             latent = latent.to(self.device)
         return latent
@@ -512,7 +514,7 @@ class BlipDiffusion(BaseModel):
         image = self._latent_to_image(latents)
 
         return image
-    
+
     def _latent_to_image(self, latents):
         latents = 1 / 0.18215 * latents
         image = self.vae.decode(latents).sample
@@ -523,7 +525,6 @@ class BlipDiffusion(BaseModel):
         image = numpy_to_pil(image)
 
         return image
-
 
     def _denoise_latent_step(
         self,
@@ -561,7 +562,9 @@ class BlipDiffusion(BaseModel):
 
         # compute the previous noisy sample x_t -> x_t-1
         latents = self.eval_noise_scheduler.step(
-            noise_pred, t, latents,
+            noise_pred,
+            t,
+            latents,
         )["prev_sample"]
 
         return latents
