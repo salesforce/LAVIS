@@ -133,11 +133,12 @@ class BlipDiffusion(BaseModel):
 
         self.freeze_modules()
 
-        self.ctx_embeddings_cache = None
+        self.ctx_embeddings_cache = nn.Parameter(
+            torch.zeros(1, self.num_query_token, 768), requires_grad=False
+        )
         self.use_embeddings_cache = False
 
         # inference-related
-        self._PROMPT_REPS = 20
         self._CTX_BEGIN_POS = 2
 
     def freeze_modules(self):
@@ -167,12 +168,12 @@ class BlipDiffusion(BaseModel):
             )
         return self._eval_noise_scheduler
 
-    def _build_prompt(self, prompts, tgt_subjects, prompt_strength=1.0):
+    def _build_prompt(self, prompts, tgt_subjects, prompt_strength=1.0, prompt_reps=20):
         rv = []
         for prompt, tgt_subject in zip(prompts, tgt_subjects):
             prompt = f"a {tgt_subject} {prompt.strip()}"
             # a trick to amplify the prompt
-            rv.append(", ".join([prompt] * int(prompt_strength * self._PROMPT_REPS)))
+            rv.append(", ".join([prompt] * int(prompt_strength * prompt_reps)))
 
         return rv
 
@@ -251,6 +252,7 @@ class BlipDiffusion(BaseModel):
         neg_prompt="",
         controller=None,
         prompt_strength=1.0,
+        prompt_reps=20
     ):
         # [TODO] support batched generation
         if controller is not None:
@@ -266,6 +268,7 @@ class BlipDiffusion(BaseModel):
             prompts=prompt,
             tgt_subjects=tgt_subject,
             prompt_strength=prompt_strength,
+            prompt_reps=prompt_reps
         )
 
         text_embeddings = self._forward_prompt_embeddings(
@@ -597,7 +600,7 @@ class BlipDiffusion(BaseModel):
         if isinstance(text_input, str):
             text_input = [text_input]
 
-        if self.ctx_embeddings_cache is not None and self.use_embeddings_cache:
+        if self.use_embeddings_cache:
             print("Using cached BLIP embeddings")
             # expand to batch size
             ctx_embeddings = self.ctx_embeddings_cache.expand(len(text_input), -1, -1)
@@ -723,7 +726,7 @@ class BlipDiffusion(BaseModel):
                 os.path.join(
                     checkpoint_dir, "ctx_embeddings_cache/ctx_embeddings_cache.pt"
                 ),
-                map_location="cpu",
+                map_location=self.device,
             )
             self.use_embeddings_cache = True
             print("Loaded ctx_embeddings_cache from {}".format(checkpoint_dir))
