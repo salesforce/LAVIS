@@ -211,6 +211,17 @@ class BlipDiffusion(BaseModel):
 
         return noise_pred
 
+    def _init_latent(self, latent, height, width, generator, batch_size):
+        if latent is None:
+            latent = torch.randn(
+                (1, self.unet.in_channels, height // 8, width // 8),
+                generator=generator,
+            )
+            latent = latent.expand(batch_size,  self.unet.in_channels, height // 8, width // 8).to(self.device)
+        else:
+            latent = latent.to(self.device)
+        return latent
+
     def _forward_prompt_embeddings(self, input_image, src_subject, prompt):
         # 1. extract BLIP query features and proj to text space -> (bs, 32, 768)
         query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
@@ -296,64 +307,27 @@ class BlipDiffusion(BaseModel):
         scheduler = self.eval_noise_scheduler
 
         # set timesteps
-        accepts_offset = "offset" in set(
-            inspect.signature(scheduler.set_timesteps).parameters.keys()
-        )
         extra_set_kwargs = {}
-        if accepts_offset:
-            extra_set_kwargs["offset"] = 1
-
         scheduler.set_timesteps(num_inference_steps, **extra_set_kwargs)
 
         # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
         if isinstance(scheduler, LMSDiscreteScheduler):
             latents = latents * scheduler.sigmas[0]
 
-        # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
-        # eta (η) is only used with the DDIMScheduler, it will be ignored for other schedulers.
-        # eta corresponds to η in DDIM paper: https://arxiv.org/abs/2010.02502
-        # and should be between [0, 1]
-        accepts_eta = "eta" in set(inspect.signature(scheduler.step).parameters.keys())
-        extra_step_kwargs = {}
-        if accepts_eta:
-            extra_step_kwargs["eta"] = eta
-
         iterator = tqdm.tqdm(scheduler.timesteps)
 
         for i, t in enumerate(iterator):
-            # expand the latents if we are doing classifier free guidance
-            latent_model_input = (
-                torch.cat([latents] * 2) if do_classifier_free_guidance else latents
-            )
-
-            # predict the noise residual
-            noise_pred = self._predict_noise(
+            latents = self._denoise_latent_step(
+                latents=latents,
                 t=t,
-                latent_model_input=latent_model_input,
                 text_embeddings=text_embeddings,
-                width=width,
-                height=height,
                 cond_image=cond_image,
+                height=height,
+                width=width,
+                guidance_scale=guidance_scale,
             )
 
-            # perform guidance
-            if do_classifier_free_guidance:
-                noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
-                noise_pred = noise_pred_uncond + guidance_scale * (
-                    noise_pred_text - noise_pred_uncond
-                )
-
-            # compute the previous noisy sample x_t -> x_t-1
-            latents = scheduler.step(noise_pred, t, latents, **extra_step_kwargs)[
-                "prev_sample"
-            ]
-
-        # scale and decode the image latents with vae
-        latents = 1 / 0.18215 * latents
-        image = self.vae.decode(latents).sample
-        image = (image / 2 + 0.5).clamp(0, 1)
-        image = image.cpu().permute(0, 2, 3, 1).numpy()
-        image = numpy_to_pil(image)
+        image = self._latent_to_image(latents)
 
         return image
 
@@ -484,7 +458,7 @@ class BlipDiffusion(BaseModel):
         batch_size = 2
 
         if do_classifier_free_guidance:
-            max_length = self.text_encoder.text_model.config.max_position_embeddings 
+            max_length = self.text_encoder.text_model.config.max_position_embeddings
 
             uncond_input = self.tokenizer(
                 [neg_prompt],
@@ -510,67 +484,36 @@ class BlipDiffusion(BaseModel):
             generator = torch.Generator(device="cpu")
             generator = generator.manual_seed(seed)
 
-        if init_latent is None:
-            latents = torch.randn(
-                (1, self.unet.in_channels, height // 8, width // 8),
-                generator=generator,
-            )
-            latents = latents.expand(batch_size,  self.unet.in_channels, height // 8, width // 8).to(self.device)
-        else:
-            latents = latents.to(self.device)
-        
+        latents = self._init_latent(init_latent, height, width, generator, batch_size)
+
         scheduler = self.eval_noise_scheduler
         # set timesteps
-        accepts_offset = "offset" in set(
-            inspect.signature(scheduler.set_timesteps).parameters.keys()
-        )
-        extra_set_kwargs = {}
-        if accepts_offset:
-            extra_set_kwargs["offset"] = 1
-
-        scheduler.set_timesteps(num_inference_steps, **extra_set_kwargs)
+        scheduler.set_timesteps(num_inference_steps)
 
         # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
         if isinstance(scheduler, LMSDiscreteScheduler):
             latents = latents * scheduler.sigmas[0]
 
-        # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
-        # eta (η) is only used with the DDIMScheduler, it will be ignored for other schedulers.
-        # eta corresponds to η in DDIM paper: https://arxiv.org/abs/2010.02502
-        # and should be between [0, 1]
-        accepts_eta = "eta" in set(inspect.signature(scheduler.step).parameters.keys())
-        extra_step_kwargs = {}
-        if accepts_eta:
-            extra_step_kwargs["eta"] = eta
-
         iterator = tqdm.tqdm(scheduler.timesteps)
 
         for i, t in enumerate(iterator):
-            # expand the latents if we are doing classifier free guidance
-            latent_model_input = (
-                torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+            latents = self._denoise_latent_step(
+                latents=latents,
+                t=t,
+                text_embeddings=text_embeddings,
+                height=height,
+                width=width,
+                guidance_scale=guidance_scale,
             )
-
-            noise_pred = self.unet(
-                latent_model_input, t, encoder_hidden_states=text_embeddings
-            )["sample"]
-
-            # perform guidance
-            if do_classifier_free_guidance:
-                noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
-                noise_pred = noise_pred_uncond + guidance_scale * (
-                    noise_pred_text - noise_pred_uncond
-                )
-
-            # compute the previous noisy sample x_t -> x_t-1
-            latents = scheduler.step(noise_pred, t, latents, **extra_step_kwargs)[
-                "prev_sample"
-            ]
 
             if controller is not None:
                 latents = controller.step_callback(latents)
 
-        # scale and decode the image latents with vae
+        image = self._latent_to_image(latents)
+
+        return image
+    
+    def _latent_to_image(self, latents):
         latents = 1 / 0.18215 * latents
         image = self.vae.decode(latents).sample
 
@@ -580,6 +523,48 @@ class BlipDiffusion(BaseModel):
         image = numpy_to_pil(image)
 
         return image
+
+
+    def _denoise_latent_step(
+        self,
+        latents,
+        t,
+        text_embeddings,
+        guidance_scale,
+        height,
+        width,
+        cond_image=None,
+    ):
+        # expand the latents if we are doing classifier free guidance
+        do_classifier_free_guidance = guidance_scale > 1.0
+
+        latent_model_input = (
+            torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+        )
+
+        # predict the noise residual
+        noise_pred = self._predict_noise(
+            t=t,
+            latent_model_input=latent_model_input,
+            text_embeddings=text_embeddings,
+            width=width,
+            height=height,
+            cond_image=cond_image,
+        )
+
+        # perform guidance
+        if do_classifier_free_guidance:
+            noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+            noise_pred = noise_pred_uncond + guidance_scale * (
+                noise_pred_text - noise_pred_uncond
+            )
+
+        # compute the previous noisy sample x_t -> x_t-1
+        latents = self.eval_noise_scheduler.step(
+            noise_pred, t, latents,
+        )["prev_sample"]
+
+        return latents
 
     def tokenize_text(self, text_input, with_query=True):
         max_len = self.text_encoder.text_model.config.max_position_embeddings
