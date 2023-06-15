@@ -30,6 +30,12 @@ from lavis.models.base_model import BaseModel
 from lavis.models.blip2_models.blip2_qformer import Blip2Qformer
 from lavis.models.blip_diffusion_models.modeling_ctx_clip import CtxCLIPTextModel
 from lavis.models.blip_diffusion_models.utils import numpy_to_pil
+from lavis.models.blip_diffusion_models.ptp_utils import (
+    AttentionStore,
+    LocalBlend,
+    P2PCrossAttnProcessor,
+    AttentionRefine,
+)
 
 
 class ProjLayer(nn.Module):
@@ -171,11 +177,15 @@ class BlipDiffusion(BaseModel):
         return rv
 
     def _predict_noise(
-        self, samples, t, latent_model_input, text_embeddings, width=512, height=512
+        self,
+        t,
+        latent_model_input,
+        text_embeddings,
+        width=512,
+        height=512,
+        cond_image=None,
     ):
         if hasattr(self, "controlnet"):
-            assert "cond_image" in samples, "cond_image must be provided in samples."
-            cond_image = samples["cond_image"]  # condition image for controlnet
             cond_image = self.prepare_cond_image(
                 cond_image, width, height, batch_size=1
             )
@@ -201,6 +211,20 @@ class BlipDiffusion(BaseModel):
 
         return noise_pred
 
+    def _forward_prompt_embeddings(self, input_image, src_subject, prompt):
+        # 1. extract BLIP query features and proj to text space -> (bs, 32, 768)
+        query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
+
+        # 2. embeddings for prompt, with query_embeds as context
+        tokenized_prompt = self.tokenize_text(prompt).to(self.device)
+        text_embeddings = self.text_encoder(
+            input_ids=tokenized_prompt.input_ids,
+            ctx_embeddings=query_embeds,
+            ctx_begin_pos=[self._CTX_BEGIN_POS],
+        )[0]
+
+        return text_embeddings
+
     @torch.no_grad()
     def generate(
         self,
@@ -217,28 +241,23 @@ class BlipDiffusion(BaseModel):
     ):
         # [TODO] support batched generation
         if controller is not None:
-            self.register_attention_control(controller)
+            self.register_attention_refine(controller)
 
         input_image = samples["input_images"]  # reference image
         src_subject = samples["src_subject"]  # source subject category
         tgt_subject = samples["tgt_subject"]  # target subject category
+        prompt = samples["prompt"]
+        cond_image = samples.get("cond_image", None)  # conditional image
 
         prompt = self._build_prompt(
-            prompts=samples["prompt"],
+            prompts=prompt,
             tgt_subjects=tgt_subject,
             prompt_strength=prompt_strength,
         )
 
-        # 1. extract BLIP query features and proj to text space -> (bs, 32, 768)
-        query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
-
-        # 2. embeddings for prompt, with query_embeds as context
-        tokenized_prompt = self.tokenize_text(prompt).to(self.device)
-        text_embeddings = self.text_encoder(
-            input_ids=tokenized_prompt.input_ids,
-            ctx_embeddings=query_embeds,
-            ctx_begin_pos=[self._CTX_BEGIN_POS],
-        )[0]
+        text_embeddings = self._forward_prompt_embeddings(
+            input_image, src_subject, prompt
+        )
 
         # 3. unconditional embedding
         do_classifier_free_guidance = guidance_scale > 1.0
@@ -272,6 +291,7 @@ class BlipDiffusion(BaseModel):
             generator=generator,
             device=self.device,
         )
+        latents = self._init_latent(latents, height, width, generator, batch_size=1)
 
         scheduler = self.eval_noise_scheduler
 
@@ -308,12 +328,12 @@ class BlipDiffusion(BaseModel):
 
             # predict the noise residual
             noise_pred = self._predict_noise(
-                samples=samples,
                 t=t,
                 latent_model_input=latent_model_input,
                 text_embeddings=text_embeddings,
                 width=width,
                 height=height,
+                cond_image=cond_image,
             )
 
             # perform guidance
@@ -333,6 +353,230 @@ class BlipDiffusion(BaseModel):
         image = self.vae.decode(latents).sample
         image = (image / 2 + 0.5).clamp(0, 1)
         image = image.cpu().permute(0, 2, 3, 1).numpy()
+        image = numpy_to_pil(image)
+
+        return image
+
+    def register_attention_refine(
+        self,
+        src_subject,
+        prompts,
+        num_inference_steps,
+        cross_replace_steps=0.8,
+        self_replace_steps=0.4,
+    ):
+        device, tokenizer = self.device, self.tokenizer
+
+        lb = LocalBlend(
+            prompts=prompts, words=(src_subject,), device=device, tokenizer=tokenizer
+        )
+
+        controller = AttentionRefine(
+            prompts,
+            num_inference_steps,
+            cross_replace_steps=cross_replace_steps,
+            self_replace_steps=self_replace_steps,
+            tokenizer=tokenizer,
+            device=device,
+            local_blend=lb,
+        )
+
+        self._register_attention_control(controller)
+
+        return controller
+
+    def _register_attention_control(self, controller):
+        attn_procs = {}
+        cross_att_count = 0
+        for name in self.unet.attn_processors.keys():
+            cross_attention_dim = (
+                None
+                if name.endswith("attn1.processor")
+                else self.unet.config.cross_attention_dim
+            )
+            if name.startswith("mid_block"):
+                hidden_size = self.unet.config.block_out_channels[-1]
+                place_in_unet = "mid"
+            elif name.startswith("up_blocks"):
+                block_id = int(name[len("up_blocks.")])
+                hidden_size = list(reversed(self.unet.config.block_out_channels))[
+                    block_id
+                ]
+                place_in_unet = "up"
+            elif name.startswith("down_blocks"):
+                block_id = int(name[len("down_blocks.")])
+                hidden_size = self.unet.config.block_out_channels[block_id]
+                place_in_unet = "down"
+            else:
+                continue
+            cross_att_count += 1
+            attn_procs[name] = P2PCrossAttnProcessor(
+                controller=controller, place_in_unet=place_in_unet
+            )
+
+        self.unet.set_attn_processor(attn_procs)
+        if controller is not None:
+            controller.num_att_layers = cross_att_count
+
+    @torch.no_grad()
+    def generate_then_edit(
+        self,
+        samples,
+        cross_replace_steps=0.8,
+        self_replace_steps=0.4,
+        guidance_scale=7.5,
+        height=512,
+        width=512,
+        init_latent=None,
+        seed=42,
+        num_inference_steps=250,
+        eta=1,
+        neg_prompt="",
+    ):
+        def build_prompts(src_subject, tgt_subject, prompt):
+            placeholder = " ".join(["sks"] * self.num_query_token)
+
+            src_prompt = f"a {src_subject} {prompt}"
+            tgt_prompt = f"a {placeholder} {tgt_subject} {prompt}"
+
+            return [src_prompt, tgt_prompt]
+
+        input_image = samples["input_images"]  # reference image
+        src_subject = samples["src_subject"]  # source subject category
+        tgt_subject = samples["tgt_subject"]  # target subject category
+
+        prompt = samples["prompt"]
+        assert len(prompt) == 1, "Do not support multiple prompts for now"
+        prompt = build_prompts(src_subject, tgt_subject, prompt[0])
+
+        controller = self.register_attention_refine(
+            src_subject=src_subject,
+            prompts=prompt,
+            num_inference_steps=num_inference_steps,
+            cross_replace_steps=cross_replace_steps,
+            self_replace_steps=self_replace_steps,
+        )
+
+        query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
+
+        tokenized_prompt_bef = self.tokenize_text(prompt[:1], with_query=False).to(
+            self.device
+        )
+        tokenized_prompt_aft = self.tokenize_text(prompt[1:], with_query=True).to(
+            self.device
+        )
+
+        text_embeddings_bef = self.text_encoder(
+            input_ids=tokenized_prompt_bef.input_ids
+        )[0]
+        text_embeddings_aft = self.text_encoder(
+            input_ids=tokenized_prompt_aft.input_ids,
+            ctx_embeddings=query_embeds,
+            ctx_begin_pos=[self._CTX_BEGIN_POS],
+        )[0]
+
+        text_embeddings = torch.cat([text_embeddings_bef, text_embeddings_aft], dim=0)
+
+        # 3. unconditional embedding
+        do_classifier_free_guidance = guidance_scale > 1.0
+
+        # [TODO] add support for batched input
+        batch_size = 2
+
+        if do_classifier_free_guidance:
+            max_length = self.text_encoder.text_model.config.max_position_embeddings 
+
+            uncond_input = self.tokenizer(
+                [neg_prompt],
+                padding="max_length",
+                max_length=max_length,
+                return_tensors="pt",
+            )
+
+            # FIXME use context embedding for uncond_input or not?
+            uncond_embeddings = self.text_encoder(
+                input_ids=uncond_input.input_ids.to(self.device),
+                ctx_embeddings=None,
+            )[0]
+            # repeat the uncond embedding to match the number of prompts
+            uncond_embeddings = uncond_embeddings.expand(batch_size, -1, -1)
+
+            # For classifier free guidance, we need to do two forward passes.
+            # Here we concatenate the unconditional and text embeddings into a single batch
+            # to avoid doing two forward passes
+            text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
+
+        if seed is not None:
+            generator = torch.Generator(device="cpu")
+            generator = generator.manual_seed(seed)
+
+        if init_latent is None:
+            latents = torch.randn(
+                (1, self.unet.in_channels, height // 8, width // 8),
+                generator=generator,
+            )
+            latents = latents.expand(batch_size,  self.unet.in_channels, height // 8, width // 8).to(self.device)
+        else:
+            latents = latents.to(self.device)
+        
+        scheduler = self.eval_noise_scheduler
+        # set timesteps
+        accepts_offset = "offset" in set(
+            inspect.signature(scheduler.set_timesteps).parameters.keys()
+        )
+        extra_set_kwargs = {}
+        if accepts_offset:
+            extra_set_kwargs["offset"] = 1
+
+        scheduler.set_timesteps(num_inference_steps, **extra_set_kwargs)
+
+        # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
+        if isinstance(scheduler, LMSDiscreteScheduler):
+            latents = latents * scheduler.sigmas[0]
+
+        # prepare extra kwargs for the scheduler step, since not all schedulers have the same signature
+        # eta (η) is only used with the DDIMScheduler, it will be ignored for other schedulers.
+        # eta corresponds to η in DDIM paper: https://arxiv.org/abs/2010.02502
+        # and should be between [0, 1]
+        accepts_eta = "eta" in set(inspect.signature(scheduler.step).parameters.keys())
+        extra_step_kwargs = {}
+        if accepts_eta:
+            extra_step_kwargs["eta"] = eta
+
+        iterator = tqdm.tqdm(scheduler.timesteps)
+
+        for i, t in enumerate(iterator):
+            # expand the latents if we are doing classifier free guidance
+            latent_model_input = (
+                torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+            )
+
+            noise_pred = self.unet(
+                latent_model_input, t, encoder_hidden_states=text_embeddings
+            )["sample"]
+
+            # perform guidance
+            if do_classifier_free_guidance:
+                noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+                noise_pred = noise_pred_uncond + guidance_scale * (
+                    noise_pred_text - noise_pred_uncond
+                )
+
+            # compute the previous noisy sample x_t -> x_t-1
+            latents = scheduler.step(noise_pred, t, latents, **extra_step_kwargs)[
+                "prev_sample"
+            ]
+
+            if controller is not None:
+                latents = controller.step_callback(latents)
+
+        # scale and decode the image latents with vae
+        latents = 1 / 0.18215 * latents
+        image = self.vae.decode(latents).sample
+
+        image = (image / 2 + 0.5).clamp(0, 1)
+        image = image.cpu().permute(0, 2, 3, 1).numpy()
+
         image = numpy_to_pil(image)
 
         return image
@@ -361,6 +605,9 @@ class BlipDiffusion(BaseModel):
             ctx_embeddings = self.proj_layer(blip_embeddings)
 
             return ctx_embeddings
+
+        if isinstance(text_input, str):
+            text_input = [text_input]
 
         if self.ctx_embeddings_cache is not None and self.use_embeddings_cache:
             print("Using cached BLIP embeddings")
