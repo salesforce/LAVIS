@@ -157,16 +157,16 @@ class BlipDiffusion(BaseModel):
         return self
 
     @property
-    def eval_noise_scheduler(self):
-        if not hasattr(self, "_eval_noise_scheduler"):
-            self._eval_noise_scheduler = PNDMScheduler(
+    def pndm_scheduler(self):
+        if not hasattr(self, "_pndm_scheduler"):
+            self._pndm_scheduler = PNDMScheduler(
                 beta_start=0.00085,
                 beta_end=0.012,
                 beta_schedule="scaled_linear",
                 set_alpha_to_one=False,
                 skip_prk_steps=True,
             )
-        return self._eval_noise_scheduler
+        return self._pndm_scheduler
 
     def _build_prompt(self, prompts, tgt_subjects, prompt_strength=1.0, prompt_reps=20):
         rv = []
@@ -230,7 +230,7 @@ class BlipDiffusion(BaseModel):
         query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
 
         # 2. embeddings for prompt, with query_embeds as context
-        tokenized_prompt = self.tokenize_text(prompt).to(self.device)
+        tokenized_prompt = self._tokenize_text(prompt).to(self.device)
         text_embeddings = self.text_encoder(
             input_ids=tokenized_prompt.input_ids,
             ctx_embeddings=query_embeds,
@@ -256,7 +256,7 @@ class BlipDiffusion(BaseModel):
     ):
         # [TODO] support batched generation
         if controller is not None:
-            self.register_attention_refine(controller)
+            self._register_attention_refine(controller)
 
         input_image = samples["input_images"]  # reference image
         src_subject = samples["src_subject"]  # source subject category
@@ -309,7 +309,7 @@ class BlipDiffusion(BaseModel):
         )
         latents = self._init_latent(latents, height, width, generator, batch_size=1)
 
-        scheduler = self.eval_noise_scheduler
+        scheduler = self.pndm_scheduler
 
         # set timesteps
         extra_set_kwargs = {}
@@ -336,7 +336,7 @@ class BlipDiffusion(BaseModel):
 
         return image
 
-    def register_attention_refine(
+    def _register_attention_refine(
         self,
         src_subject,
         prompts,
@@ -428,7 +428,7 @@ class BlipDiffusion(BaseModel):
         assert len(prompt) == 1, "Do not support multiple prompts for now"
         prompt = build_prompts(src_subject, tgt_subject, prompt[0])
 
-        controller = self.register_attention_refine(
+        controller = self._register_attention_refine(
             src_subject=src_subject,
             prompts=prompt,
             num_inference_steps=num_inference_steps,
@@ -438,10 +438,10 @@ class BlipDiffusion(BaseModel):
 
         query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
 
-        tokenized_prompt_bef = self.tokenize_text(prompt[:1], with_query=False).to(
+        tokenized_prompt_bef = self._tokenize_text(prompt[:1], with_query=False).to(
             self.device
         )
-        tokenized_prompt_aft = self.tokenize_text(prompt[1:], with_query=True).to(
+        tokenized_prompt_aft = self._tokenize_text(prompt[1:], with_query=True).to(
             self.device
         )
 
@@ -491,7 +491,7 @@ class BlipDiffusion(BaseModel):
 
         latents = self._init_latent(init_latent, height, width, generator, batch_size)
 
-        scheduler = self.eval_noise_scheduler
+        scheduler = self.pndm_scheduler
         # set timesteps
         scheduler.set_timesteps(num_inference_steps)
 
@@ -564,7 +564,7 @@ class BlipDiffusion(BaseModel):
             )
 
         # compute the previous noisy sample x_t -> x_t-1
-        latents = self.eval_noise_scheduler.step(
+        latents = self.pndm_scheduler.step(
             noise_pred,
             t,
             latents,
@@ -572,7 +572,7 @@ class BlipDiffusion(BaseModel):
 
         return latents
 
-    def tokenize_text(self, text_input, with_query=True):
+    def _tokenize_text(self, text_input, with_query=True):
         max_len = self.text_encoder.text_model.config.max_position_embeddings
         if with_query:
             max_len -= self.num_query_token
