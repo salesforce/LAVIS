@@ -7,6 +7,7 @@
 import inspect
 import logging
 import os
+from typing import Optional
 
 import torch
 import tqdm
@@ -252,7 +253,7 @@ class BlipDiffusion(BaseModel):
         neg_prompt="",
         controller=None,
         prompt_strength=1.0,
-        prompt_reps=20
+        prompt_reps=20,
     ):
         # [TODO] support batched generation
         if controller is not None:
@@ -268,7 +269,7 @@ class BlipDiffusion(BaseModel):
             prompts=prompt,
             tgt_subjects=tgt_subject,
             prompt_strength=prompt_strength,
-            prompt_reps=prompt_reps
+            prompt_reps=prompt_reps,
         )
 
         text_embeddings = self._forward_prompt_embeddings(
@@ -421,6 +422,233 @@ class BlipDiffusion(BaseModel):
             return [src_prompt, tgt_prompt]
 
         input_image = samples["input_images"]  # reference image
+        src_subject = samples["src_subject"]  # source subject category
+        tgt_subject = samples["tgt_subject"]  # target subject category
+
+        prompt = samples["prompt"]
+        assert len(prompt) == 1, "Do not support multiple prompts for now"
+        prompt = build_prompts(src_subject, tgt_subject, prompt[0])
+
+        controller = self._register_attention_refine(
+            src_subject=src_subject,
+            prompts=prompt,
+            num_inference_steps=num_inference_steps,
+            cross_replace_steps=cross_replace_steps,
+            self_replace_steps=self_replace_steps,
+        )
+
+        query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
+
+        tokenized_prompt_bef = self._tokenize_text(prompt[:1], with_query=False).to(
+            self.device
+        )
+        tokenized_prompt_aft = self._tokenize_text(prompt[1:], with_query=True).to(
+            self.device
+        )
+
+        text_embeddings_bef = self.text_encoder(
+            input_ids=tokenized_prompt_bef.input_ids
+        )[0]
+        text_embeddings_aft = self.text_encoder(
+            input_ids=tokenized_prompt_aft.input_ids,
+            ctx_embeddings=query_embeds,
+            ctx_begin_pos=[self._CTX_BEGIN_POS],
+        )[0]
+
+        text_embeddings = torch.cat([text_embeddings_bef, text_embeddings_aft], dim=0)
+
+        # 3. unconditional embedding
+        do_classifier_free_guidance = guidance_scale > 1.0
+
+        # [TODO] add support for batched input
+        batch_size = 2
+
+        if do_classifier_free_guidance:
+            max_length = self.text_encoder.text_model.config.max_position_embeddings
+
+            uncond_input = self.tokenizer(
+                [neg_prompt],
+                padding="max_length",
+                max_length=max_length,
+                return_tensors="pt",
+            )
+
+            # FIXME use context embedding for uncond_input or not?
+            uncond_embeddings = self.text_encoder(
+                input_ids=uncond_input.input_ids.to(self.device),
+                ctx_embeddings=None,
+            )[0]
+            # repeat the uncond embedding to match the number of prompts
+            uncond_embeddings = uncond_embeddings.expand(batch_size, -1, -1)
+
+            # For classifier free guidance, we need to do two forward passes.
+            # Here we concatenate the unconditional and text embeddings into a single batch
+            # to avoid doing two forward passes
+            text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
+
+        if seed is not None:
+            generator = torch.Generator(device="cpu")
+            generator = generator.manual_seed(seed)
+
+        latents = self._init_latent(init_latent, height, width, generator, batch_size)
+
+        scheduler = self.pndm_scheduler
+        # set timesteps
+        scheduler.set_timesteps(num_inference_steps)
+
+        # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
+        if isinstance(scheduler, LMSDiscreteScheduler):
+            latents = latents * scheduler.sigmas[0]
+
+        iterator = tqdm.tqdm(scheduler.timesteps)
+
+        for i, t in enumerate(iterator):
+            latents = self._denoise_latent_step(
+                latents=latents,
+                t=t,
+                text_embeddings=text_embeddings,
+                height=height,
+                width=width,
+                guidance_scale=guidance_scale,
+            )
+
+            if controller is not None:
+                latents = controller.step_callback(latents)
+
+        image = self._latent_to_image(latents)
+
+        return image
+
+    def _edict_noise_mixing_layer(self, x, y, mixing_coeff):
+        y = (y - (1 - mixing_coeff) * x) / mixing_coeff
+        x = (x - (1 - mixing_coeff) * y) / mixing_coeff
+
+        return [x, y]
+    
+    def _get_alpha_and_beta(self, t: torch.Tensor):
+        # as self.alphas_cumprod is always in cpu
+        t = int(t)
+
+        alpha_prod = self.scheduler.alphas_cumprod[t] if t >= 0 else self.scheduler.final_alpha_cumprod
+
+        return alpha_prod, 1 - alpha_prod
+
+    def _edict_noise_step(
+        self,
+        base: torch.Tensor,
+        model_input: torch.Tensor,
+        model_output: torch.Tensor,
+        timestep: torch.Tensor,
+    ):
+        prev_timestep = (
+            timestep
+            - self.ddim_scheduler.config.num_train_timesteps
+            / self.ddim_scheduler.num_inference_steps
+        )
+
+        alpha_prod_t, beta_prod_t = self._get_alpha_and_beta(timestep)
+        alpha_prod_t_prev, beta_prod_t_prev = self._get_alpha_and_beta(prev_timestep)
+
+        a_t = (alpha_prod_t_prev / alpha_prod_t) ** 0.5
+        b_t = -a_t * (beta_prod_t**0.5) + beta_prod_t_prev**0.5
+
+        next_model_input = (base - b_t * model_output) / a_t
+
+        return model_input, next_model_input.to(base.dtype)
+
+    @torch.no_grad()
+    def _edict_prepare_latents(
+        self,
+        image: Image.Image,
+        text_embeds: torch.Tensor,
+        timesteps: torch.Tensor,
+        guidance_scale: float,
+        mixing_coeff: float = 0.93,
+        generator: Optional[torch.Generator] = None,
+    ):
+        do_classifier_free_guidance = guidance_scale > 1.0
+
+        image = image.to(device=self.device, dtype=text_embeds.dtype)
+        latent = self.vae.encode(image).latent_dist.sample(generator)
+
+        latent = self.vae.config.scaling_factor * latent
+
+        coupled_latents = [latent.clone(), latent.clone()]
+
+        for i, t in tqdm(enumerate(timesteps), total=len(timesteps)):
+            coupled_latents = self._edict_noise_mixing_layer(
+                x=coupled_latents[0], y=coupled_latents[1], mixing_coeff=mixing_coeff
+            )
+
+            # j - model_input index, k - base index
+            for j in range(2):
+                k = j ^ 1
+
+                if self.leapfrog_steps:
+                    if i % 2 == 0:
+                        k, j = j, k
+
+                model_input = coupled_latents[j]
+                base = coupled_latents[k]
+
+                latent_model_input = (
+                    torch.cat([model_input] * 2)
+                    if do_classifier_free_guidance
+                    else model_input
+                )
+
+                noise_pred = self.unet(
+                    latent_model_input, t, encoder_hidden_states=text_embeds
+                ).sample
+
+                if do_classifier_free_guidance:
+                    noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+                    noise_pred = noise_pred_uncond + guidance_scale * (
+                        noise_pred_text - noise_pred_uncond
+                    )
+
+                base, model_input = self._edict_noise_step(
+                    base=base,
+                    model_input=model_input,
+                    model_output=noise_pred,
+                    timestep=t,
+                )
+
+                coupled_latents[k] = model_input
+
+        return coupled_latents
+
+    @torch.no_grad()
+    def edit_edict(
+        self,
+        samples,
+        cross_replace_steps=0.8,
+        self_replace_steps=0.4,
+        guidance_scale=7.5,
+        height=512,
+        width=512,
+        init_latent=None,
+        seed=42,
+        num_inference_steps=250,
+        eta=1,
+        neg_prompt="",
+    ):
+        """
+        Edit a real image with the subject-specific visuals.
+
+        samples: A dictionary containing the following keys:
+            - input_image: PIL image in RGB format
+        """
+
+        def build_prompts(src_subject, tgt_subject, prompt):
+            placeholder = " ".join(["sks"] * self.num_query_token)
+
+            src_prompt = f"a {src_subject} {prompt}"
+            tgt_prompt = f"a {placeholder} {tgt_subject} {prompt}"
+
+            return [src_prompt, tgt_prompt]
+
+        input_image = samples["input_image"]  # reference image
         src_subject = samples["src_subject"]  # source subject category
         tgt_subject = samples["tgt_subject"]  # target subject category
 
