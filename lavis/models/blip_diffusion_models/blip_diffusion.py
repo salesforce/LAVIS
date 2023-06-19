@@ -643,7 +643,7 @@ class BlipDiffusion(BaseModel):
 
         latents = self._init_latent(latents, height, width, generator, batch_size)
 
-        scheduler = self.pndm_scheduler if use_ddim else self.ddim_scheduler
+        scheduler = self.pndm_scheduler if not use_ddim else self.ddim_scheduler
         # set timesteps
         scheduler.set_timesteps(num_inference_steps)
 
