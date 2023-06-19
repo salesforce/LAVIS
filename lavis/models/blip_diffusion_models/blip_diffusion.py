@@ -229,12 +229,12 @@ class BlipDiffusion(BaseModel):
                 generator=generator,
                 device=generator.device,
             )
-            latent = latent.expand(
-                batch_size,
-                self.unet.in_channels,
-                height // 8,
-                width // 8,
-            )
+        latent = latent.expand(
+            batch_size,
+            self.unet.in_channels,
+            height // 8,
+            width // 8,
+        )
         return latent.to(self.device)
 
     def _forward_prompt_embeddings(self, input_image, src_subject, prompt):
@@ -287,12 +287,7 @@ class BlipDiffusion(BaseModel):
         seed=42,
         num_inference_steps=50,
         neg_prompt="",
-        controller=None,
-        prompt_reps=1.0,
     ):
-        # if controller is not None:
-        #     self._register_attention_refine(controller)
-
         raw_image = samples["raw_image"]
         raw_image = self._inversion_transform(raw_image)
 
@@ -318,9 +313,22 @@ class BlipDiffusion(BaseModel):
             height=height,
             width=width,
             num_inference_steps=num_inference_steps,
-            prompt_reps=prompt_reps,
+            prompt_reps=1,
             use_ddim=True,
+            disable_subject_prompt=True,
         )
+
+        # recon_image = self.generate_then_edit(
+        #     samples=samples,
+        #     latents=latents,
+        #     seed=seed,
+        #     neg_prompt=neg_prompt,
+        #     guidance_scale=guidance_scale,
+        #     height=height,
+        #     width=width,
+        #     num_inference_steps=num_inference_steps,
+        #     use_ddim=True,
+        # )
 
         return recon_image
 
@@ -345,7 +353,9 @@ class BlipDiffusion(BaseModel):
             prompt_reps=1,
         )
 
-        tokenized_prompt = self._tokenize_text(prompt, with_query=False).to(self.device)
+        tokenized_prompt = self._tokenize_text(
+            prompt, with_query=False
+        ).to(self.device)
         text_embeddings = self.text_encoder(
             input_ids=tokenized_prompt.input_ids,
             ctx_embeddings=None,
@@ -392,6 +402,7 @@ class BlipDiffusion(BaseModel):
         prompt_strength=1.0,
         prompt_reps=20,
         use_ddim=False,
+        disable_subject_prompt=False
     ):
         if controller is not None:
             self._register_attention_refine(controller)
@@ -409,9 +420,18 @@ class BlipDiffusion(BaseModel):
             prompt_reps=prompt_reps,
         )
 
-        text_embeddings = self._forward_prompt_embeddings(
-            input_image, src_subject, prompt
-        )
+        if disable_subject_prompt:
+            tokenized_prompt = self._tokenize_text(
+                prompt, with_query=False
+            ).to(self.device)
+            text_embeddings = self.text_encoder(
+                input_ids=tokenized_prompt.input_ids,
+                ctx_embeddings=None,
+            )[0]
+        else:
+            text_embeddings = self._forward_prompt_embeddings(
+                input_image, src_subject, prompt
+            )
 
         # 3. unconditional embedding
         do_classifier_free_guidance = guidance_scale > 1.0
@@ -538,11 +558,11 @@ class BlipDiffusion(BaseModel):
         guidance_scale=7.5,
         height=512,
         width=512,
-        init_latent=None,
+        latents=None,
         seed=42,
         num_inference_steps=250,
-        eta=1,
         neg_prompt="",
+        use_ddim=False,
     ):
         def build_prompts(src_subject, tgt_subject, prompt):
             placeholder = " ".join(["sks"] * self.num_query_token)
@@ -578,7 +598,7 @@ class BlipDiffusion(BaseModel):
         )
 
         text_embeddings_bef = self.text_encoder(
-            input_ids=tokenized_prompt_bef.input_ids
+            input_ids=tokenized_prompt_bef.input_ids,
         )[0]
         text_embeddings_aft = self.text_encoder(
             input_ids=tokenized_prompt_aft.input_ids,
@@ -618,18 +638,14 @@ class BlipDiffusion(BaseModel):
             text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
 
         if seed is not None:
-            generator = torch.Generator(device="cpu")
+            generator = torch.Generator(device=self.device)
             generator = generator.manual_seed(seed)
 
-        latents = self._init_latent(init_latent, height, width, generator, batch_size)
+        latents = self._init_latent(latents, height, width, generator, batch_size)
 
-        scheduler = self.pndm_scheduler
+        scheduler = self.pndm_scheduler if use_ddim else self.ddim_scheduler
         # set timesteps
         scheduler.set_timesteps(num_inference_steps)
-
-        # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
-        if isinstance(scheduler, LMSDiscreteScheduler):
-            latents = latents * scheduler.sigmas[0]
 
         iterator = tqdm.tqdm(scheduler.timesteps)
 
@@ -641,6 +657,7 @@ class BlipDiffusion(BaseModel):
                 height=height,
                 width=width,
                 guidance_scale=guidance_scale,
+                use_ddim=use_ddim,
             )
 
             if controller is not None:
