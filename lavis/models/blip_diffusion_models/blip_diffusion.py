@@ -218,7 +218,7 @@ class BlipDiffusion(BaseModel):
             latent = torch.randn(
                 (1, self.unet.in_channels, height // 8, width // 8),
                 generator=generator,
-                device=self.device,
+                device=generator.device,
             )
             latent = latent.expand(
                 batch_size,
@@ -226,9 +226,7 @@ class BlipDiffusion(BaseModel):
                 height // 8,
                 width // 8,
             )
-        else:
-            latent = latent.to(self.device)
-        return latent
+        return latent.to(self.device)
 
     def _forward_prompt_embeddings(self, input_image, src_subject, prompt):
         # 1. extract BLIP query features and proj to text space -> (bs, 32, 768)
@@ -255,6 +253,96 @@ class BlipDiffusion(BaseModel):
             encoding = encoding_dist.mode()
         latents = encoding * 0.18215
         return latents
+
+    @torch.no_grad()
+    def generate_ddim(
+        self,
+        samples,
+        latents=None,
+        guidance_scale=7.5,
+        height=512,
+        width=512,
+        seed=42,
+        num_inference_steps=50,
+        neg_prompt="",
+        controller=None,
+        prompt_strength=1.0,
+        prompt_reps=20,
+    ):
+        if controller is not None:
+            self._register_attention_refine(controller)
+
+        input_image = samples["input_images"]  # reference image
+        src_subject = samples["src_subject"]  # source subject category
+        tgt_subject = samples["tgt_subject"]  # target subject category
+        prompt = samples["prompt"]
+        cond_image = samples.get("cond_image", None)  # conditional image
+
+        prompt = self._build_prompt(
+            prompts=prompt,
+            tgt_subjects=tgt_subject,
+            prompt_strength=prompt_strength,
+            prompt_reps=prompt_reps,
+        )
+
+        text_embeddings = self._forward_prompt_embeddings(
+            input_image, src_subject, prompt
+        )
+
+        # 3. unconditional embedding
+        do_classifier_free_guidance = guidance_scale > 1.0
+        if do_classifier_free_guidance:
+            max_length = self.text_encoder.text_model.config.max_position_embeddings
+
+            uncond_input = self.tokenizer(
+                [neg_prompt],
+                padding="max_length",
+                max_length=max_length,
+                return_tensors="pt",
+            )
+            uncond_embeddings = self.text_encoder(
+                input_ids=uncond_input.input_ids.to(self.device),
+                ctx_embeddings=None,
+            )[0]
+
+            # For classifier free guidance, we need to do two forward passes.
+            # Here we concatenate the unconditional and text embeddings into a single batch
+            # to avoid doing two forward passes
+            text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
+
+        if seed is not None:
+            generator = torch.Generator(device=self.device)
+            generator = generator.manual_seed(seed)
+
+        latents = self._init_latent(latents, height, width, generator, batch_size=1)
+
+        scheduler = self.pndm_scheduler
+
+        # set timesteps
+        extra_set_kwargs = {}
+        scheduler.set_timesteps(num_inference_steps, **extra_set_kwargs)
+
+        # if we use LMSDiscreteScheduler, let's make sure latents are mulitplied by sigmas
+        if isinstance(scheduler, LMSDiscreteScheduler):
+            latents = latents * scheduler.sigmas[0]
+
+        iterator = tqdm.tqdm(scheduler.timesteps)
+
+        for i, t in enumerate(iterator):
+            latents = self._denoise_latent_step(
+                latents=latents,
+                t=t,
+                text_embeddings=text_embeddings,
+                cond_image=cond_image,
+                height=height,
+                width=width,
+                guidance_scale=guidance_scale,
+            )
+
+        image = self._latent_to_image(latents)
+
+        return image
+
 
     @torch.no_grad()
     def generate(
