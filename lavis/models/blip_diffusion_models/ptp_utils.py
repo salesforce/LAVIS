@@ -231,7 +231,7 @@ class AttentionControlEdit(AttentionStore, abc.ABC):
         if type(self_replace_steps) is float:
             self_replace_steps = 0, self_replace_steps
         self.num_self_replace = int(num_steps * self_replace_steps[0]), int(num_steps * self_replace_steps[1])
-        self.local_blend = local_blend  # 在外面定义后传进来
+        self.local_blend = local_blend
 
 class AttentionReplace(AttentionControlEdit):
 
@@ -247,6 +247,23 @@ class AttentionReplace(AttentionControlEdit):
 class AttentionRefine(AttentionControlEdit):
 
     def replace_cross_attention(self, attn_base, att_replace):
+        # example mapper:
+        # because we insert subject embeddings at position 2, and we have
+        # 16 subject embeddings in total. Therefore, mapper[2:18] = -1.
+        # tokens before subject embeddings correspond to themselves, so mapper[:2] = 0, 1.
+        # tokens after subject embeddings correspond to themselves, so mapper[18:] = 2, 3, ...
+        # tensor([ 0,  1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+        #  2,  3,  4,  5,  6,  7,  8,  9, 10, 27, 28, 29, 30, 31, 32, 33, 34, 35,
+        # 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
+        # 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+        # 72, 73, 74, 75, 76], device='cuda:0')
+        #
+        # example alphas: 0 means using new attention, 1 means using old attention
+        # tensor([[[[1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+        #    0., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        #    1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        #    1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+        #    1., 1., 1., 1., 1., 1., 1., 1., 1.]]]], device='cuda:0')
         attn_base_replace = attn_base[:, :, self.mapper].permute(2, 0, 1, 3)
         attn_replace = attn_base_replace * self.alphas + att_replace * (1 - self.alphas)
         return attn_replace
