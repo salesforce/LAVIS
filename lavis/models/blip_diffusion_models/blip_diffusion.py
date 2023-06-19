@@ -663,6 +663,7 @@ class BlipDiffusion(BaseModel):
                 latents = controller.step_callback(latents)
 
         image = self._latent_to_image(latents)
+        controller.reset()
 
         return image
 
