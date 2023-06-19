@@ -9,8 +9,6 @@ import os
 
 import torch
 import tqdm
-import numpy as np
-from PIL import Image
 from diffusers import (
     AutoencoderKL,
     ControlNetModel,
@@ -19,7 +17,6 @@ from diffusers import (
     PNDMScheduler,
     UNet2DConditionModel,
 )
-from diffusers.utils.pil_utils import PIL_INTERPOLATION
 from torch import nn
 from transformers import CLIPTokenizer
 from transformers.activations import QuickGELUActivation as QuickGELU
@@ -28,7 +25,7 @@ from lavis.common.registry import registry
 from lavis.models.base_model import BaseModel
 from lavis.models.blip2_models.blip2_qformer import Blip2Qformer
 from lavis.models.blip_diffusion_models.modeling_ctx_clip import CtxCLIPTextModel
-from lavis.models.blip_diffusion_models.utils import numpy_to_pil
+from lavis.models.blip_diffusion_models.utils import numpy_to_pil, prepare_cond_image
 from lavis.models.blip_diffusion_models.ptp_utils import (
     LocalBlend,
     P2PCrossAttnProcessor,
@@ -183,6 +180,14 @@ class BlipDiffusion(BaseModel):
 
         return rv
 
+    def _build_prompts_edit(self, src_subject, tgt_subject, prompt):
+        placeholder = " ".join(["sks"] * self.num_query_token)
+
+        src_prompt = f"a {src_subject} {prompt}"
+        tgt_prompt = f"a {placeholder} {tgt_subject} {prompt}"
+
+        return [src_prompt, tgt_prompt]
+
     def _predict_noise(
         self,
         t,
@@ -193,8 +198,8 @@ class BlipDiffusion(BaseModel):
         cond_image=None,
     ):
         if hasattr(self, "controlnet"):
-            cond_image = self.prepare_cond_image(
-                cond_image, width, height, batch_size=1
+            cond_image = prepare_cond_image(
+                cond_image, width, height, batch_size=1, device=self.device
             )
 
             down_block_res_samples, mid_block_res_sample = self.controlnet(
@@ -300,7 +305,7 @@ class BlipDiffusion(BaseModel):
             num_inference_steps=num_inference_steps,
         )
 
-        recon_image = self._edit_with_latent(
+        recon_image = self.generate_then_edit(
             samples=samples,
             latents=latents,
             seed=seed,
@@ -309,7 +314,7 @@ class BlipDiffusion(BaseModel):
             height=height,
             width=width,
             num_inference_steps=num_inference_steps,
-            use_ddim=True,
+            use_inversion=True
         )
 
         return recon_image
@@ -356,7 +361,7 @@ class BlipDiffusion(BaseModel):
         iterator = tqdm.tqdm(reversed(scheduler.timesteps))
 
         for i, t in enumerate(iterator):
-            latents = self._add_noise_latent_step(
+            latents = self._noise_latent_step(
                 latents=latents,
                 t=t,
                 text_embeddings=text_embeddings,
@@ -457,7 +462,7 @@ class BlipDiffusion(BaseModel):
                 height=height,
                 width=width,
                 guidance_scale=guidance_scale,
-                use_ddim=use_ddim,
+                use_inversion=use_ddim,
             )
 
         image = self._latent_to_image(latents)
@@ -526,148 +531,6 @@ class BlipDiffusion(BaseModel):
             controller.num_att_layers = cross_att_count
 
     @torch.no_grad()
-    def _edit_with_latent(
-        self,
-        samples,
-        cross_replace_steps=0.8,
-        self_replace_steps=0.4,
-        guidance_scale=7.5,
-        height=512,
-        width=512,
-        latents=None,
-        seed=42,
-        num_inference_steps=250,
-        neg_prompt="",
-        use_ddim=False,
-    ):
-        def build_prompts(src_subject, tgt_subject, prompt):
-            placeholder = " ".join(["sks"] * self.num_query_token)
-
-            src_prompt = f"a {src_subject} {prompt}"
-            tgt_prompt = f"a {placeholder} {tgt_subject} {prompt}"
-
-            return [src_prompt, tgt_prompt]
-
-        input_image = samples["input_images"]  # reference image
-        src_subject = samples["src_subject"][0]  # source subject category
-        tgt_subject = samples["tgt_subject"][0]  # target subject category
-
-        prompt = samples["prompt"]
-        assert len(prompt) == 1, "Do not support multiple prompts for now"
-        prompt = build_prompts(src_subject, tgt_subject, prompt[0])
-
-        controller = self._register_attention_refine(
-            src_subject=src_subject,
-            prompts=prompt,
-            num_inference_steps=num_inference_steps,
-            cross_replace_steps=cross_replace_steps,
-            self_replace_steps=self_replace_steps,
-        )
-
-        query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
-
-        tokenized_prompt_bef = self._tokenize_text(prompt[:1], with_query=False).to(
-            self.device
-        )
-        tokenized_prompt_aft = self._tokenize_text(prompt[1:], with_query=True).to(
-            self.device
-        )
-
-        text_embeddings_bef = self.text_encoder(
-            input_ids=tokenized_prompt_bef.input_ids,
-        )[0]
-        text_embeddings_aft = self.text_encoder(
-            input_ids=tokenized_prompt_aft.input_ids,
-            ctx_embeddings=query_embeds,
-            ctx_begin_pos=[self._CTX_BEGIN_POS],
-        )[0]
-
-        text_embeddings = torch.cat([text_embeddings_bef, text_embeddings_aft], dim=0)
-
-        # 3. unconditional embedding
-        do_classifier_free_guidance = guidance_scale > 1.0
-
-        # [TODO] add support for batched input
-        batch_size = 2
-
-        if do_classifier_free_guidance:
-            max_length = self.text_encoder.text_model.config.max_position_embeddings
-
-            uncond_input = self.tokenizer(
-                [neg_prompt],
-                padding="max_length",
-                max_length=max_length,
-                return_tensors="pt",
-            )
-
-            # FIXME use context embedding for uncond_input or not?
-            uncond_embeddings = self.text_encoder(
-                input_ids=uncond_input.input_ids.to(self.device),
-                ctx_embeddings=None,
-            )[0]
-            # repeat the uncond embedding to match the number of prompts
-            uncond_embeddings = uncond_embeddings.expand(batch_size, -1, -1)
-
-            # For classifier free guidance, we need to do two forward passes.
-            # Here we concatenate the unconditional and text embeddings into a single batch
-            # to avoid doing two forward passes
-            text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
-
-        if seed is not None:
-            generator = torch.Generator(device=self.device)
-            generator = generator.manual_seed(seed)
-
-        latents = self._init_latent(latents, height, width, generator, batch_size)
-
-        scheduler = self.pndm_scheduler if not use_ddim else self.ddim_scheduler
-        # set timesteps
-        scheduler.set_timesteps(num_inference_steps)
-
-        iterator = tqdm.tqdm(scheduler.timesteps)
-
-        for i, t in enumerate(iterator):
-            latent_model_input = torch.cat([latents] * 2)
-
-            # predict the noise residual
-            noise_pred = self._predict_noise(
-                t=t,
-                latent_model_input=latent_model_input,
-                text_embeddings=text_embeddings,
-                width=width,
-                height=height,
-            )
-
-            noise_pred_bef = noise_pred[2].unsqueeze(0)
-
-            # perform guidance
-            noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
-            # [n_uncond, n_uncond], [n_text_bef, n_text_aft]
-
-            noise_pred_aft = (
-                noise_pred_uncond
-                + guidance_scale * (noise_pred_text - noise_pred_uncond)
-            )[-1].unsqueeze(0)
-
-            # concatenate the noise_pred_bef and noise_pred_aft
-            noise_pred = torch.cat([noise_pred_bef, noise_pred_aft])
-
-            # # compute the previous noisy sample x_t -> x_t-1
-            scheduler = self.ddim_scheduler if use_ddim else self.pndm_scheduler
-            latents = scheduler.step(
-                noise_pred,
-                t,
-                latents,
-            )["prev_sample"]
-
-            if controller is not None:
-                latents = controller.step_callback(latents)
-
-        image = self._latent_to_image(latents)
-        controller.reset()
-
-        return image
-
-    @torch.no_grad()
     def generate_then_edit(
         self,
         samples,
@@ -680,23 +543,16 @@ class BlipDiffusion(BaseModel):
         seed=42,
         num_inference_steps=250,
         neg_prompt="",
-        use_ddim=False,
+        use_inversion=False,
     ):
-        def build_prompts(src_subject, tgt_subject, prompt):
-            placeholder = " ".join(["sks"] * self.num_query_token)
-
-            src_prompt = f"a {src_subject} {prompt}"
-            tgt_prompt = f"a {placeholder} {tgt_subject} {prompt}"
-
-            return [src_prompt, tgt_prompt]
-
         input_image = samples["input_images"]  # reference image
         src_subject = samples["src_subject"]  # source subject category
         tgt_subject = samples["tgt_subject"]  # target subject category
 
         prompt = samples["prompt"]
         assert len(prompt) == 1, "Do not support multiple prompts for now"
-        prompt = build_prompts(src_subject, tgt_subject, prompt[0])
+        prompt = self._build_prompts_edit(src_subject, tgt_subject, prompt[0])
+        print(prompt)
 
         controller = self._register_attention_refine(
             src_subject=src_subject,
@@ -761,7 +617,7 @@ class BlipDiffusion(BaseModel):
 
         latents = self._init_latent(latents, height, width, generator, batch_size)
 
-        scheduler = self.pndm_scheduler if not use_ddim else self.ddim_scheduler
+        scheduler = self.pndm_scheduler if not use_inversion else self.ddim_scheduler
         # set timesteps
         scheduler.set_timesteps(num_inference_steps)
 
@@ -775,13 +631,13 @@ class BlipDiffusion(BaseModel):
                 height=height,
                 width=width,
                 guidance_scale=guidance_scale,
-                use_ddim=use_ddim,
+                use_inversion=use_inversion,
             )
 
-            if controller is not None:
-                latents = controller.step_callback(latents)
+            latents = controller.step_callback(latents)
 
         image = self._latent_to_image(latents)
+        controller.reset()
 
         return image
 
@@ -796,7 +652,7 @@ class BlipDiffusion(BaseModel):
 
         return image
 
-    def _add_noise_latent_step(
+    def _noise_latent_step(
         self,
         latents,
         t,
@@ -861,8 +717,11 @@ class BlipDiffusion(BaseModel):
         height,
         width,
         cond_image=None,
-        use_ddim=False,
+        use_inversion=False,
     ):
+        if use_inversion:
+            noise_placeholder = []
+
         # expand the latents if we are doing classifier free guidance
         do_classifier_free_guidance = guidance_scale > 1.0
 
@@ -880,15 +739,22 @@ class BlipDiffusion(BaseModel):
             cond_image=cond_image,
         )
 
+        if use_inversion:
+            noise_placeholder.append(noise_pred[2].unsqueeze(0))
+
         # perform guidance
         if do_classifier_free_guidance:
             noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
             noise_pred = noise_pred_uncond + guidance_scale * (
                 noise_pred_text - noise_pred_uncond
             )
+        
+        if use_inversion:
+            noise_placeholder.append(noise_pred[-1].unsqueeze(0))
+            noise_pred = torch.cat(noise_placeholder)
 
         # compute the previous noisy sample x_t -> x_t-1
-        scheduler = self.ddim_scheduler if use_ddim else self.pndm_scheduler
+        scheduler = self.ddim_scheduler if use_inversion else self.pndm_scheduler
 
         latents = scheduler.step(
             noise_pred,
@@ -953,53 +819,6 @@ class BlipDiffusion(BaseModel):
                 ctx_embeddings += ratio * ctx_embeddings_
 
         return ctx_embeddings
-
-    def prepare_cond_image(
-        self, image, width, height, batch_size, do_classifier_free_guidance=True
-    ):
-        if not isinstance(image, torch.Tensor):
-            if isinstance(image, Image.Image):
-                image = [image]
-
-            if isinstance(image[0], Image.Image):
-                images = []
-
-                for image_ in image:
-                    image_ = image_.convert("RGB")
-                    image_ = image_.resize(
-                        (width, height), resample=PIL_INTERPOLATION["lanczos"]
-                    )
-                    image_ = np.array(image_)
-                    image_ = image_[None, :]
-                    images.append(image_)
-
-                image = images
-
-                image = np.concatenate(image, axis=0)
-                image = np.array(image).astype(np.float32) / 255.0
-                image = image.transpose(0, 3, 1, 2)
-                image = torch.from_numpy(image)
-            elif isinstance(image[0], torch.Tensor):
-                image = torch.cat(image, dim=0)
-
-        image_batch_size = image.shape[0]
-
-        if image_batch_size == 1:
-            repeat_by = batch_size
-        else:
-            # image batch size is the same as prompt batch size
-            # repeat_by = num_images_per_prompt
-            raise NotImplementedError
-
-        image = image.repeat_interleave(repeat_by, dim=0)
-
-        # image = image.to(device=self.device, dtype=dtype)
-        image = image.to(device=self.device)
-
-        if do_classifier_free_guidance:
-            image = torch.cat([image] * 2)
-
-        return image
 
     @classmethod
     def from_config(cls, cfg):
