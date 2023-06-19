@@ -4,10 +4,8 @@
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
-import inspect
 import logging
 import os
-from typing import Optional
 
 import torch
 import tqdm
@@ -18,7 +16,6 @@ from diffusers import (
     ControlNetModel,
     DDPMScheduler,
     DDIMScheduler,
-    LMSDiscreteScheduler,
     PNDMScheduler,
     UNet2DConditionModel,
 )
@@ -33,7 +30,6 @@ from lavis.models.blip2_models.blip2_qformer import Blip2Qformer
 from lavis.models.blip_diffusion_models.modeling_ctx_clip import CtxCLIPTextModel
 from lavis.models.blip_diffusion_models.utils import numpy_to_pil
 from lavis.models.blip_diffusion_models.ptp_utils import (
-    AttentionStore,
     LocalBlend,
     P2PCrossAttnProcessor,
     AttentionRefine,
