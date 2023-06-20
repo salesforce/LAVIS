@@ -281,19 +281,18 @@ class BlipDiffusion(BaseModel):
     def edit(
         self,
         samples,
-        latents=None,
         guidance_scale=7.5,
         height=512,
         width=512,
         seed=42,
         num_inference_steps=50,
+        num_inversion_steps=50,
         neg_prompt="",
     ):
         raw_image = samples["raw_image"]
         raw_image = self._inversion_transform(raw_image)
 
-        if latents is None:
-            latents = self.get_image_latents(raw_image, rng_generator=None)
+        latents = self.get_image_latents(raw_image, rng_generator=None)
 
         latents = self._ddim_inverse(
             samples=samples,
@@ -302,7 +301,7 @@ class BlipDiffusion(BaseModel):
             guidance_scale=1.0,
             height=height,
             width=width,
-            num_inference_steps=num_inference_steps,
+            num_inference_steps=num_inversion_steps,
         )
 
         recon_image = self.generate_then_edit(
