@@ -295,7 +295,7 @@ class BlipDiffusion(BaseModel):
         if latents is None:
             latents = self.get_image_latents(raw_image, rng_generator=None)
 
-        latents = self._forward_ddim(
+        latents = self._ddim_inverse(
             samples=samples,
             latents=latents,
             seed=seed,
@@ -320,7 +320,7 @@ class BlipDiffusion(BaseModel):
         return recon_image
 
     @torch.no_grad()
-    def _forward_ddim(
+    def _ddim_inverse(
         self,
         samples,
         latents,
