@@ -23,14 +23,7 @@ from lavis.models import load_model
 from lavis.processors import load_processor
 
 
-@st.cache(
-    hash_funcs={
-        torch.nn.parameter.Parameter: lambda parameter: parameter.data.detach()
-        .cpu()
-        .numpy()
-    },
-    allow_output_mutation=True,
-)
+@st.cache_data
 def load_feat():
     from lavis.common.utils import download_url
 
@@ -50,14 +43,7 @@ def load_feat():
     return path2feat, paths, all_img_feats
 
 
-@st.cache(
-    hash_funcs={
-        torch.nn.parameter.Parameter: lambda parameter: parameter.data.detach()
-        .cpu()
-        .numpy()
-    },
-    allow_output_mutation=True,
-)
+@st.cache_resource
 def load_feature_extractor_model(device):
     model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
 

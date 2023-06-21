@@ -74,7 +74,7 @@ def app():
         qry_tok = tokenizer(qry, return_tensors="pt").to(device)
         gradcam, output = compute_gradcam(model, img, qry, qry_tok, block_num=layer_num)
 
-        avg_gradcam = getAttMap(norm_img, gradcam[0][1], blur=True)
+        avg_gradcam = getAttMap(norm_img, gradcam[0][1].numpy(), blur=True)
 
         col2.image(avg_gradcam, use_column_width=True, clamp=True)
         # output = model(img, question)

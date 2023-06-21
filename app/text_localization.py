@@ -73,7 +73,7 @@ def app():
 
         gradcam, _ = compute_gradcam(model, img, qry, qry_tok, block_num=layer_num)
 
-        avg_gradcam = getAttMap(norm_img, gradcam[0][1], blur=True)
+        avg_gradcam = getAttMap(norm_img, gradcam[0][1].numpy(), blur=True)
         col2.image(avg_gradcam, use_column_width=True, clamp=True)
 
         num_cols = 4.0
@@ -93,7 +93,7 @@ def app():
                     gradcam_img = next(gradcam_iter)
 
                     word = tokenizer.decode([token_id])
-                    gradcam_todraw = getAttMap(norm_img, gradcam_img, blur=True)
+                    gradcam_todraw = getAttMap(norm_img, gradcam_img.numpy(), blur=True)
 
                     new_title = (
                         '<p style="text-align: center; font-size: 25px;">{}</p>'.format(
