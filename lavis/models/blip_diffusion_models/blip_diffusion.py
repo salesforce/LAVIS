@@ -8,6 +8,7 @@ import logging
 import os
 
 import torch
+import torch.nn.functional as F
 import tqdm
 from diffusers import (
     AutoencoderKL,
@@ -69,9 +70,12 @@ class BlipDiffusion(BaseModel):
         qformer_num_query_token=16,
         qformer_cross_attention_freq=1,
         qformer_pretrained_path="/export/share/junnan-li/BLIP2/checkpoint/clip_q16.pth",
+        qformer_train=False,
         sd_pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5",
         sd_train_text_encoder=False,
         controlnet_pretrained_model_name_or_path=None,
+        vae_half_precision=False,
+        proj_train=False,
     ):
         super().__init__()
 
@@ -97,10 +101,13 @@ class BlipDiffusion(BaseModel):
             assert all(["visual" in k for k in msg.missing_keys])
             assert len(msg.unexpected_keys) == 0
 
+        self.qformer_train = qformer_train
+
         # projection layer
         self.proj_layer = ProjLayer(
             in_dim=768, out_dim=768, hidden_dim=3072, drop_p=0.1, eps=1e-12
         )
+        self.proj_train = proj_train
 
         # stable diffusion
         self.tokenizer = CLIPTokenizer.from_pretrained(
@@ -112,9 +119,14 @@ class BlipDiffusion(BaseModel):
         self.vae = AutoencoderKL.from_pretrained(
             sd_pretrained_model_name_or_path, subfolder="vae"
         )
+        if vae_half_precision:
+            self.vae.half()
+
         self.unet = UNet2DConditionModel.from_pretrained(
             sd_pretrained_model_name_or_path, subfolder="unet"
         )
+        # self.unet.enable_xformers_memory_efficient_attention()
+
         self.noise_scheduler = DDPMScheduler.from_config(
             sd_pretrained_model_name_or_path, subfolder="scheduler"
         )
@@ -131,15 +143,21 @@ class BlipDiffusion(BaseModel):
         self.ctx_embeddings_cache = nn.Parameter(
             torch.zeros(1, self.num_query_token, 768), requires_grad=False
         )
-        self.use_embeddings_cache = False
+        self._use_embeddings_cache = False
 
         # inference-related
         self._CTX_BEGIN_POS = 2
 
     def freeze_modules(self):
-        to_freeze = [self.vae, self.unet]
+        to_freeze = [self.vae]
         if not self.sd_train_text_encoder:
             to_freeze.append(self.text_encoder)
+
+        if not self.qformer_train:
+            to_freeze.append(self.blip)
+
+        if not self.proj_train:
+            to_freeze.append(self.proj_layer)
 
         for module in to_freeze:
             module.eval()
@@ -170,6 +188,91 @@ class BlipDiffusion(BaseModel):
                 "runwayml/stable-diffusion-v1-5", subfolder="scheduler"
             )
         return self._ddim_scheduler
+
+    def init_ctx_embeddings_cache(self, batch):
+        ctx_embeddings = self.forward_ctx_embeddings(batch)
+        # take mean of all ctx embeddings
+        ctx_embeddings = ctx_embeddings.mean(dim=0, keepdim=True)
+        # nn.Parameter to make it trainable
+        self.ctx_embeddings_cache = nn.Parameter(ctx_embeddings, requires_grad=True)
+        self._use_embeddings_cache = True
+
+    def before_training(self, dataset, **kwargs):
+        assert len(dataset) == 1, "Only support single dataset for now."
+
+        key = list(dataset.keys())[0]
+        dataset = dataset[key]["train"]
+
+        # collect all examples
+        # [FIXME] this is not memory efficient. may OOM if the dataset is large.
+        examples = [dataset[i] for i in range(dataset.len_without_repeat)]
+        input_images = (
+            torch.stack([example["inp_image"] for example in examples])
+            .to(memory_format=torch.contiguous_format)
+            .float()
+        ).to(self.device)
+        subject_text = [dataset.subject for _ in range(input_images.shape[0])]
+
+        # calculate ctx embeddings and cache them
+        ctx_embeddings = self.forward_ctx_embeddings(
+            input_image=input_images, text_input=subject_text
+        )
+        # take mean of all ctx embeddings
+        ctx_embeddings = ctx_embeddings.mean(dim=0, keepdim=True)
+        self.ctx_embeddings_cache = nn.Parameter(ctx_embeddings, requires_grad=True)
+        self._use_embeddings_cache = True
+
+        # free up CUDA memory
+        self.blip.to("cpu")
+        self.proj_layer.to("cpu")
+
+        torch.cuda.empty_cache()
+
+    def forward(self, samples):
+        latents = self.vae.encode(samples["tgt_image"].half()).latent_dist.sample()
+        latents = latents * 0.18215
+
+        # Sample noise that we'll add to the latents
+        noise = torch.randn_like(latents)
+        bsz = latents.shape[0]
+        # Sample a random timestep for each image
+        timesteps = torch.randint(
+            0,
+            self.noise_scheduler.config.num_train_timesteps,
+            (bsz,),
+            device=latents.device,
+        )
+        timesteps = timesteps.long()
+
+        # Add noise to the latents according to the noise magnitude at each timestep
+        # (this is the forward diffusion process)
+        noisy_latents = self.noise_scheduler.add_noise(latents, noise, timesteps)
+        ctx_embeddings = self.forward_ctx_embeddings(
+            input_image=samples["inp_image"], text_input=samples["subject_text"]
+        )
+
+        # Get the text embedding for conditioning
+        input_ids = self.tokenizer(
+            samples["caption"],
+            padding="do_not_pad",
+            truncation=True,
+            max_length=self.tokenizer.model_max_length,
+            return_tensors="pt",
+        ).input_ids.to(self.device)
+        encoder_hidden_states = self.text_encoder(
+            input_ids=input_ids,
+            ctx_embeddings=ctx_embeddings,
+            ctx_begin_pos=[self._CTX_BEGIN_POS] * input_ids.shape[0],
+        )[0]
+
+        # Predict the noise residual
+        noise_pred = self.unet(
+            noisy_latents.float(), timesteps, encoder_hidden_states
+        ).sample
+
+        loss = F.mse_loss(noise_pred.float(), noise.float(), reduction="mean")
+
+        return {"loss": loss}
 
     def _build_prompt(self, prompts, tgt_subjects, prompt_strength=1.0, prompt_reps=20):
         rv = []
@@ -281,6 +384,7 @@ class BlipDiffusion(BaseModel):
     def edit(
         self,
         samples,
+        lb_threshold=0.3,
         guidance_scale=7.5,
         height=512,
         width=512,
@@ -313,7 +417,8 @@ class BlipDiffusion(BaseModel):
             height=height,
             width=width,
             num_inference_steps=num_inference_steps,
-            use_inversion=True
+            use_inversion=True,
+            lb_threshold=lb_threshold,
         )
 
         return recon_image
@@ -475,11 +580,16 @@ class BlipDiffusion(BaseModel):
         num_inference_steps,
         cross_replace_steps=0.8,
         self_replace_steps=0.4,
+        threshold=0.3,
     ):
         device, tokenizer = self.device, self.tokenizer
 
         lb = LocalBlend(
-            prompts=prompts, words=(src_subject,), device=device, tokenizer=tokenizer
+            prompts=prompts,
+            words=(src_subject,),
+            device=device,
+            tokenizer=tokenizer,
+            threshold=threshold,
         )
 
         controller = AttentionRefine(
@@ -543,6 +653,7 @@ class BlipDiffusion(BaseModel):
         num_inference_steps=250,
         neg_prompt="",
         use_inversion=False,
+        lb_threshold=0.3
     ):
         input_image = samples["input_images"]  # reference image
         src_subject = samples["src_subject"]  # source subject category
@@ -559,6 +670,7 @@ class BlipDiffusion(BaseModel):
             num_inference_steps=num_inference_steps,
             cross_replace_steps=cross_replace_steps,
             self_replace_steps=self_replace_steps,
+            threshold=lb_threshold,
         )
 
         query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
@@ -747,7 +859,7 @@ class BlipDiffusion(BaseModel):
             noise_pred = noise_pred_uncond + guidance_scale * (
                 noise_pred_text - noise_pred_uncond
             )
-        
+
         if use_inversion:
             noise_placeholder.append(noise_pred[-1].unsqueeze(0))
             noise_pred = torch.cat(noise_placeholder)
@@ -791,7 +903,7 @@ class BlipDiffusion(BaseModel):
         if isinstance(text_input, str):
             text_input = [text_input]
 
-        if self.use_embeddings_cache:
+        if self._use_embeddings_cache:
             print("Using cached BLIP embeddings")
             # expand to batch size
             ctx_embeddings = self.ctx_embeddings_cache.expand(len(text_input), -1, -1)
@@ -825,6 +937,7 @@ class BlipDiffusion(BaseModel):
 
         qformer_cross_attention_freq = cfg.get("qformer_cross_attention_freq", 1)
         qformer_num_query_token = cfg.get("qformer_num_query_token", 16)
+        qformer_train = cfg.get("qformer_train", False)
 
         sd_train_text_encoder = cfg.get("sd_train_text_encoder", False)
         sd_pretrained_model_name_or_path = cfg.get(
@@ -835,13 +948,17 @@ class BlipDiffusion(BaseModel):
             "controlnet_pretrained_model_name_or_path", None
         )
 
+        vae_half_precision = cfg.get("vae_half_precision", False)
+
         model = cls(
             vit_model=vit_model,
             qformer_cross_attention_freq=qformer_cross_attention_freq,
             qformer_num_query_token=qformer_num_query_token,
+            qformer_train=qformer_train,
             sd_train_text_encoder=sd_train_text_encoder,
             sd_pretrained_model_name_or_path=sd_pretrained_model_name_or_path,
             controlnet_pretrained_model_name_or_path=controlnet_pretrained_model_name_or_path,
+            vae_half_precision=vae_half_precision,
         )
         model.load_checkpoint_from_config(cfg)
 
@@ -872,10 +989,10 @@ class BlipDiffusion(BaseModel):
                 ),
                 map_location=self.device,
             )
-            self.use_embeddings_cache = True
+            self._use_embeddings_cache = True
             print("Loaded ctx_embeddings_cache from {}".format(checkpoint_dir))
         except FileNotFoundError:
-            self.use_embeddings_cache = False
+            self._use_embeddings_cache = False
             print("No ctx_embeddings_cache found in {}".format(checkpoint_dir))
 
     def load_from_pretrained(self, url_or_filename):
@@ -883,3 +1000,13 @@ class BlipDiffusion(BaseModel):
 
         checkpoint_dir = url_or_filename
         self.load_checkpoint_from_dir(checkpoint_dir)
+
+    def load_checkpoint(self, url_or_filename):
+        """
+        Used to load finetuned models.
+        """
+
+        super().load_checkpoint(url_or_filename)
+
+        print("loading fine-tuned model from {}".format(url_or_filename))
+        self._use_embeddings_cache = True

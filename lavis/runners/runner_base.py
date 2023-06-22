@@ -369,6 +369,11 @@ class RunnerBase:
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
+                if cur_epoch == self.start_epoch:
+                    self.task.before_training(
+                        model=self.unwrap_dist_model(self.model),
+                        dataset=self.datasets["train"],
+                    )
                 train_stats = self.train_epoch(cur_epoch)
                 self.log_stats(split_name="train", stats=train_stats)
 
@@ -576,6 +581,7 @@ class RunnerBase:
             if k in param_grad_dic.keys() and not param_grad_dic[k]:
                 # delete parameters that do not require gradient
                 del state_dict[k]
+
         save_obj = {
             "model": state_dict,
             "optimizer": self.optimizer.state_dict(),
