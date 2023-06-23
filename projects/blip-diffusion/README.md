@@ -15,18 +15,15 @@ pip install -e .
 ```
 
 #### Zero-shot Examples
-- **Subject-driven Generation**:
-    - projects/blip-diffusion/notebooks/generation_zeroshot.ipynb
+- **Subject-driven Generation**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
 
-- **Structure-Controlled Generation / Stylization**:
-  - projects/blip-diffusion/notebooks/stylization.ipynb
+- **Structure-Controlled Generation / Stylization**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/stylization.ipynb)
 
 - **Subject-driven Editing**:
-  - projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb
-  - projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb
+  - with synthetic image: [notebook 1](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb)
+  - with real image: [notebook 2](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb)
 
-- **Virtual Try-On via Subject-driven Editing**:
-  - projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb
+- **Virtual Try-On via Subject-driven Editing**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb)
 
 
 ### Fine-tuning
@@ -52,14 +49,11 @@ Tips on fine-tuning:
 
 
 #### Inference with Fine-tuned Checkpoints
-- **Subject-driven Generation**:
-    - projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb
+- **Subject-driven Generation**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
 
-- **Subject-driven Editing**:
-    - projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb
+- **Subject-driven Editing**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb)
 
-- **Virtual Try-on via Subject-driven Editing**:
-    - projects/blip-diffusion/notebooks/editing_tryon_finetuned.ipynb
+- **Virtual Try-on via Subject-driven Editing**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_tryon_finetuned.ipynb)
 
 ### Citing BLIP-Diffusion
 <pre>
