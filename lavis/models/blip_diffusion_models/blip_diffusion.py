@@ -23,6 +23,7 @@ from transformers import CLIPTokenizer
 from transformers.activations import QuickGELUActivation as QuickGELU
 
 from lavis.common.registry import registry
+from lavis.common.utils import download_and_untar, is_url
 from lavis.models.base_model import BaseModel
 from lavis.models.blip2_models.blip2_qformer import Blip2Qformer
 from lavis.models.blip_diffusion_models.modeling_ctx_clip import CtxCLIPTextModel
@@ -189,14 +190,6 @@ class BlipDiffusion(BaseModel):
             )
         return self._ddim_scheduler
 
-    def init_ctx_embeddings_cache(self, batch):
-        ctx_embeddings = self.forward_ctx_embeddings(batch)
-        # take mean of all ctx embeddings
-        ctx_embeddings = ctx_embeddings.mean(dim=0, keepdim=True)
-        # nn.Parameter to make it trainable
-        self.ctx_embeddings_cache = nn.Parameter(ctx_embeddings, requires_grad=True)
-        self._use_embeddings_cache = True
-
     def before_training(self, dataset, **kwargs):
         assert len(dataset) == 1, "Only support single dataset for now."
 
@@ -283,10 +276,10 @@ class BlipDiffusion(BaseModel):
 
         return rv
 
-    def _build_prompts_edit(self, src_subject, tgt_subject, prompt):
+    def _build_prompts_edit(self, cond_subject, tgt_subject, prompt):
         placeholder = " ".join(["sks"] * self.num_query_token)
 
-        src_prompt = f"a {src_subject} {prompt}"
+        src_prompt = f"a {cond_subject} {prompt}"
         tgt_prompt = f"a {placeholder} {tgt_subject} {prompt}"
 
         return [src_prompt, tgt_prompt]
@@ -398,7 +391,7 @@ class BlipDiffusion(BaseModel):
 
         latents = self.get_image_latents(raw_image, rng_generator=None)
 
-        latents = self._ddim_inverse(
+        inv_latents = self._ddim_inverse(
             samples=samples,
             latents=latents,
             seed=seed,
@@ -410,7 +403,7 @@ class BlipDiffusion(BaseModel):
 
         recon_image = self.generate_then_edit(
             samples=samples,
-            latents=latents,
+            latents=inv_latents,
             seed=seed,
             neg_prompt=neg_prompt,
             guidance_scale=guidance_scale,
@@ -491,16 +484,15 @@ class BlipDiffusion(BaseModel):
         prompt_strength=1.0,
         prompt_reps=20,
         use_ddim=False,
-        disable_subject_prompt=False,
     ):
         if controller is not None:
             self._register_attention_refine(controller)
 
-        input_image = samples["input_images"]  # reference image
-        src_subject = samples["src_subject"]  # source subject category
+        cond_image = samples["cond_images"]  # reference image
+        cond_subject = samples["cond_subject"]  # source subject category
         tgt_subject = samples["tgt_subject"]  # target subject category
         prompt = samples["prompt"]
-        cond_image = samples.get("cond_image", None)  # conditional image
+        cldm_cond_image = samples.get("cldm_cond_image", None)  # conditional image
 
         prompt = self._build_prompt(
             prompts=prompt,
@@ -509,18 +501,9 @@ class BlipDiffusion(BaseModel):
             prompt_reps=prompt_reps,
         )
 
-        if disable_subject_prompt:
-            tokenized_prompt = self._tokenize_text(prompt, with_query=False).to(
-                self.device
-            )
-            text_embeddings = self.text_encoder(
-                input_ids=tokenized_prompt.input_ids,
-                ctx_embeddings=None,
-            )[0]
-        else:
-            text_embeddings = self._forward_prompt_embeddings(
-                input_image, src_subject, prompt
-            )
+        text_embeddings = self._forward_prompt_embeddings(
+            cond_image, cond_subject, prompt
+        )
 
         # 3. unconditional embedding
         do_classifier_free_guidance = guidance_scale > 1.0
@@ -562,7 +545,7 @@ class BlipDiffusion(BaseModel):
                 latents=latents,
                 t=t,
                 text_embeddings=text_embeddings,
-                cond_image=cond_image,
+                cond_image=cldm_cond_image,
                 height=height,
                 width=width,
                 guidance_scale=guidance_scale,
@@ -653,10 +636,12 @@ class BlipDiffusion(BaseModel):
         num_inference_steps=250,
         neg_prompt="",
         use_inversion=False,
-        lb_threshold=0.3
+        lb_threshold=0.3,
     ):
-        input_image = samples["input_images"]  # reference image
-        src_subject = samples["src_subject"]  # source subject category
+        cond_image = samples["cond_images"]  # reference image
+        cond_subject = samples["cond_subject"]  # source subject category
+
+        src_subject = samples["src_subject"]
         tgt_subject = samples["tgt_subject"]  # target subject category
 
         prompt = samples["prompt"]
@@ -673,7 +658,7 @@ class BlipDiffusion(BaseModel):
             threshold=lb_threshold,
         )
 
-        query_embeds = self.forward_ctx_embeddings(input_image, src_subject)
+        query_embeds = self.forward_ctx_embeddings(cond_image, cond_subject)
 
         tokenized_prompt_bef = self._tokenize_text(prompt[:1], with_query=False).to(
             self.device
@@ -964,13 +949,17 @@ class BlipDiffusion(BaseModel):
 
         return model
 
-    def load_checkpoint_from_dir(self, checkpoint_dir):
-        logging.info(f"Loading pretrained model from {checkpoint_dir}")
+    def load_checkpoint_from_dir(self, checkpoint_dir_or_url):
+        # if checkpoint_dir is a url, download it and untar it
+        if is_url(checkpoint_dir_or_url):
+            checkpoint_dir_or_url = download_and_untar(checkpoint_dir_or_url)
+
+        logging.info(f"Loading pretrained model from {checkpoint_dir_or_url}")
 
         def load_state_dict(module, filename):
             try:
                 state_dict = torch.load(
-                    os.path.join(checkpoint_dir, filename), map_location="cpu"
+                    os.path.join(checkpoint_dir_or_url, filename), map_location="cpu"
                 )
                 msg = module.load_state_dict(state_dict, strict=False)
             except FileNotFoundError:
@@ -985,19 +974,17 @@ class BlipDiffusion(BaseModel):
         try:
             self.ctx_embeddings_cache.data = torch.load(
                 os.path.join(
-                    checkpoint_dir, "ctx_embeddings_cache/ctx_embeddings_cache.pt"
+                    checkpoint_dir_or_url, "ctx_embeddings_cache/ctx_embeddings_cache.pt"
                 ),
                 map_location=self.device,
             )
             self._use_embeddings_cache = True
-            print("Loaded ctx_embeddings_cache from {}".format(checkpoint_dir))
+            print("Loaded ctx_embeddings_cache from {}".format(checkpoint_dir_or_url))
         except FileNotFoundError:
             self._use_embeddings_cache = False
-            print("No ctx_embeddings_cache found in {}".format(checkpoint_dir))
+            print("No ctx_embeddings_cache found in {}".format(checkpoint_dir_or_url))
 
     def load_from_pretrained(self, url_or_filename):
-        assert os.path.isdir(url_or_filename), "Must be a valid directory"
-
         checkpoint_dir = url_or_filename
         self.load_checkpoint_from_dir(checkpoint_dir)
 

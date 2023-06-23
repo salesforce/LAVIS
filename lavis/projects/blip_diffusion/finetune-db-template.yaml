@@ -8,7 +8,7 @@ model:
 
   model_type: base
 
-  qformer_trian: False
+  qformer_train: False
   sd_train_text_encoder: False
 
   vae_half_precision: True
