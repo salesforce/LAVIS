@@ -9,7 +9,8 @@ model:
 
   load_finetuned: False
   load_pretrained: True
-  pretrained: "/export/share/dongxuli/zerobooth/500000-renamed/"
+  # pretrained: "/export/share/dongxuli/zerobooth/500000-renamed/"
+  pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP-Diffusion/blip-diffusion-openimage.tar.gz"
 
   controlnet_pretrained_model_name_or_path: "lllyasviel/sd-controlnet-hed"
 

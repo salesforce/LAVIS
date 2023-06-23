@@ -23,6 +23,7 @@ from transformers import CLIPTokenizer
 from transformers.activations import QuickGELUActivation as QuickGELU
 
 from lavis.common.registry import registry
+from lavis.common.utils import download_and_untar, is_url
 from lavis.models.base_model import BaseModel
 from lavis.models.blip2_models.blip2_qformer import Blip2Qformer
 from lavis.models.blip_diffusion_models.modeling_ctx_clip import CtxCLIPTextModel
@@ -948,13 +949,17 @@ class BlipDiffusion(BaseModel):
 
         return model
 
-    def load_checkpoint_from_dir(self, checkpoint_dir):
-        logging.info(f"Loading pretrained model from {checkpoint_dir}")
+    def load_checkpoint_from_dir(self, checkpoint_dir_or_url):
+        # if checkpoint_dir is a url, download it and untar it
+        if is_url(checkpoint_dir_or_url):
+            checkpoint_dir_or_url = download_and_untar(checkpoint_dir_or_url)
+
+        logging.info(f"Loading pretrained model from {checkpoint_dir_or_url}")
 
         def load_state_dict(module, filename):
             try:
                 state_dict = torch.load(
-                    os.path.join(checkpoint_dir, filename), map_location="cpu"
+                    os.path.join(checkpoint_dir_or_url, filename), map_location="cpu"
                 )
                 msg = module.load_state_dict(state_dict, strict=False)
             except FileNotFoundError:
@@ -969,19 +974,17 @@ class BlipDiffusion(BaseModel):
         try:
             self.ctx_embeddings_cache.data = torch.load(
                 os.path.join(
-                    checkpoint_dir, "ctx_embeddings_cache/ctx_embeddings_cache.pt"
+                    checkpoint_dir_or_url, "ctx_embeddings_cache/ctx_embeddings_cache.pt"
                 ),
                 map_location=self.device,
             )
             self._use_embeddings_cache = True
-            print("Loaded ctx_embeddings_cache from {}".format(checkpoint_dir))
+            print("Loaded ctx_embeddings_cache from {}".format(checkpoint_dir_or_url))
         except FileNotFoundError:
             self._use_embeddings_cache = False
-            print("No ctx_embeddings_cache found in {}".format(checkpoint_dir))
+            print("No ctx_embeddings_cache found in {}".format(checkpoint_dir_or_url))
 
     def load_from_pretrained(self, url_or_filename):
-        assert os.path.isdir(url_or_filename), "Must be a valid directory"
-
         checkpoint_dir = url_or_filename
         self.load_checkpoint_from_dir(checkpoint_dir)
 
