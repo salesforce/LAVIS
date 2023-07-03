@@ -55,7 +55,7 @@ class CaptionDataset(BaseDataset, __DisplMixin):
         return {
             "image": image,
             "text_input": caption,
-            "image_id": self.img_ids[ann["image_id"]],
+            # "image_id": self.img_ids[ann["image_id"]],
         }
 
 
