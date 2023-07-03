@@ -1,0 +1,68 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip2
+  model_type: coco
+  load_pretrained: True
+  load_finetuned: False 
+  freeze_vit: False
+  
+  # # finetune blip2 with clip-vit-large
+  # use_grad_checkpoint: False
+  # pretrained: "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained_vitL.pth"
+  # vit_model: clip_L  
+
+datasets:
+  coco_retrieval: # name of the dataset builder
+    vis_processor:
+        train:
+          name: "blip2_image_train"
+          image_size: 364
+        eval:
+          name: "blip_image_eval"
+          image_size: 364
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+    build_info:
+        images:
+            storage: '/export/share/datasets/vision/coco/images/'
+
+run:
+  task: retrieval
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 5
+  batch_size_train: 14
+  batch_size_eval: 16
+  lr_layer_decay: 0.95 # layer-wise learning rate decay for the ViT 
+  num_workers: 4
+  accum_grad_iters: 1
+
+  seed: 42
+  output_dir: "output/BLIP2/Retrieval_coco"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate: False
+  train_splits: ["train"]
+  valid_splits: ["test"]
+  # test_splits: ["test"]
+  k_test: 128
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  use_dist_eval_sampler: False
