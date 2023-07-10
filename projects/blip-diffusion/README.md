@@ -1,29 +1,36 @@
 ## BLIP-Diffusion: Pre-trained Subject Representation for Controllable Text-to-Image Generation and Editing
 [Paper](https://arxiv.org/abs/2305.14720), [Demo Site](https://dxli94.github.io/BLIP-Diffusion-website/), [Video](https://youtu.be/Wf09s4JnDb0)
 
-This repo will host the official implementation of BLIP-Diffusion, a text-to-image diffusion model with built-in support for multimodal subject-and-text condition. BLIP-Diffusion enables zero-shot subject-driven generation, and efficient fine-tuning for customized subjects with up to 20x speedup. In addition, BLIP-Diffusion can be flexibly combiend with ControlNet and prompt-to-prompt to enable novel subject-driven generation and editing applications.
+This repo hosts the official implementation of BLIP-Diffusion, a text-to-image diffusion model with built-in support for multimodal subject-and-text condition. BLIP-Diffusion enables zero-shot subject-driven generation, and efficient fine-tuning for customized subjects with up to 20x speedup. In addition, BLIP-Diffusion can be flexibly combiend with ControlNet and prompt-to-prompt to enable novel subject-driven generation and editing applications.
 
 <img src="teaser-website.png" width="800">
 
 
-### Examples
+### Installation
 
-Install the library from source:
+Install the LAVIS library from source:
 
 ```bash
 pip install -e .
 ```
 
-#### Zero-shot Examples
-- **Subject-driven Generation**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
+### Notebook Examples
+- **Subject-driven Generation**: 
+  - zero-shot inference: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
+  - inference with fine-tuned checkpoint: [notebook](https://github.com/dxli94/LAVIS-2/blob/main/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
 
 - **Structure-Controlled Generation / Stylization**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/stylization.ipynb)
 
 - **Subject-driven Editing**:
-  - with synthetic image: [notebook 1](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb)
-  - with real image: [notebook 2](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb)
+  - editing a synthetic image:
+    - First generate an image, then edit the image with the specified subject visuals: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb)
+  - editing a real image with DDIM inversion:
+    - zero-shot inference: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb)
+    - inference with fine-tuned checkpoint: [notebook](https://github.com/dxli94/LAVIS-2/blob/main/projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb)
 
-- **Virtual Try-On via Subject-driven Editing**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb)
+- **Virtual Try-On via Subject-driven Editing**:
+  - the model can be used to naturally facilitate virtual try-on. We provide an zero-shot example: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb);
+  - try fine-tuning the model for better subject fidelity.
 
 
 ### Fine-tuning
@@ -39,7 +46,7 @@ Finally,
 bash run_scripts/blip-diffusion/train_db.sh
 ```
 
-Tips on fine-tuning:
+**Tips on fine-tuning**:
 
 1. For common subject classes, animals (dogs, cats), vehicles, etc, we find 30-50 steps sufficient;
 2. for highly-customized subjects, 80-120 steps are usually needed;
@@ -48,14 +55,8 @@ Tips on fine-tuning:
 4. For editing-related applications, overfitting to the input images may not be an issue. For example, in the virtual try-on example, we use a single image for 120 fine-tuning steps.
 
 
-#### Inference with Fine-tuned Checkpoints
-- **Subject-driven Generation**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
-
-- **Subject-driven Editing**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb)
-
-- **Virtual Try-on via Subject-driven Editing**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_tryon_finetuned.ipynb)
-
-### Citing BLIP-Diffusion
+### Cite BLIP-Diffusion
+If you find our work helpful, please consider citing:
 <pre>
 @article{li2023blip,
   title={BLIP-Diffusion: Pre-trained Subject Representation for Controllable Text-to-Image Generation and Editing},
