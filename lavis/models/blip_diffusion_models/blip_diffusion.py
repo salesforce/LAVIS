@@ -889,11 +889,9 @@ class BlipDiffusion(BaseModel):
             text_input = [text_input]
 
         if self._use_embeddings_cache:
-            print("Using cached BLIP embeddings")
             # expand to batch size
             ctx_embeddings = self.ctx_embeddings_cache.expand(len(text_input), -1, -1)
         else:
-            print("Computing BLIP embeddings for {} subjects".format(len(text_input)))
             if isinstance(text_input[0], str):
                 text_input, input_image = [text_input], [input_image]
 
