@@ -16,20 +16,20 @@ pip install -e .
 
 ### Notebook Examples
 - **Subject-driven Generation**: 
-  - zero-shot inference: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
-  - inference with fine-tuned checkpoint: [notebook](https://github.com/dxli94/LAVIS-2/blob/main/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
+  - zero-shot inference: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
+  - inference with fine-tuned checkpoint: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
 
-- **Structure-Controlled Generation / Stylization**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/stylization.ipynb)
+- **Structure-Controlled Generation / Stylization**: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/stylization.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/stylization.ipynb)
 
 - **Subject-driven Editing**:
   - editing a synthetic image:
-    - First generate an image, then edit the image with the specified subject visuals: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb)
+    - First generate an image, then edit the image with the specified subject visuals: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_synthetic_zeroshot.ipynb) 
   - editing a real image with DDIM inversion:
-    - zero-shot inference: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb)
-    - inference with fine-tuned checkpoint: [notebook](https://github.com/dxli94/LAVIS-2/blob/main/projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb)
+    - zero-shot inference: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_real_zeroshot.ipynb)
+    - inference with fine-tuned checkpoint: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_real_finetuned.ipynb)
 
 - **Virtual Try-On via Subject-driven Editing**:
-  - the model can be used to naturally facilitate virtual try-on. We provide an zero-shot example: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb);
+  - the model can be used to naturally facilitate virtual try-on. We provide an zero-shot example: [notebook](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb);
   - try fine-tuning the model for better subject fidelity.
 
 
