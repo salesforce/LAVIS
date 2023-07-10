@@ -70,7 +70,7 @@ class BlipDiffusion(BaseModel):
         vit_model="clip_L",
         qformer_num_query_token=16,
         qformer_cross_attention_freq=1,
-        qformer_pretrained_path="/export/share/junnan-li/BLIP2/checkpoint/clip_q16.pth",
+        qformer_pretrained_path=None,
         qformer_train=False,
         sd_pretrained_model_name_or_path="runwayml/stable-diffusion-v1-5",
         sd_train_text_encoder=False,
