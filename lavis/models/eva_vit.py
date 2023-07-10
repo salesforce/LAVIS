@@ -369,7 +369,20 @@ class VisionTransformer(nn.Module):
 
         return features
     
-    
+    def get_num_layer(self, var_name=""):
+        if var_name in ("cls_token", "mask_token", "pos_embed"):
+            return 0
+        elif var_name.startswith("patch_embed"):
+            return 0
+        elif var_name.startswith("rel_pos_bias"):
+            return len(self.blocks) - 1
+        elif var_name.startswith("blocks"):
+            layer_id = int(var_name.split('.')[1])
+            return layer_id + 1
+        else:
+            return len(self.blocks)
+        
+            
 def interpolate_pos_embed(model, checkpoint_model):
     if 'pos_embed' in checkpoint_model:
         pos_embed_checkpoint = checkpoint_model['pos_embed'].float()
