@@ -55,7 +55,8 @@ bash run_scripts/blip-diffusion/train_db.sh
 4. For editing-related applications, overfitting to the input images may not be an issue. For example, in the virtual try-on example, we use a single image for 120 fine-tuning steps.
 
 
-### Citing BLIP-Diffusion
+### Cite BLIP-Diffusion
+If you find our work helpful, please consider citing:
 <pre>
 @article{li2023blip,
   title={BLIP-Diffusion: Pre-trained Subject Representation for Controllable Text-to-Image Generation and Editing},

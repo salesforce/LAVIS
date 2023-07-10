@@ -17,4 +17,4 @@ python -m torch.distributed.run \
           run.output_dir=$OUTPUT_DIR \
           run.init_lr=$LR \
           run.weight_decay=$WEIGHT_DECAY \
-          run.batch_size=$BATCH_SIZE
+          run.batch_size_train=$BATCH_SIZE
