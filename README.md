@@ -27,6 +27,9 @@
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## What's New: 🎉 
+  * [Model Release] July 2023, released implementation of **BLIP-Diffusion** <br>
+  [Paper](https://arxiv.org/abs/2305.14720), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion), [Website](https://dxli94.github.io/BLIP-Diffusion-website/), [Video](https://www.youtube.com/watch?v=Wf09s4JnDb0)
+  > BLIP-Diffusion is the first text-to-image generation model that natively supports subject conditioning. It unlocks zero-shot controllable subject-driven image generation and editing. The model shows significantly better subject-driven fine-tuning efficiency than DreamBooth, requiring up to 20x less fine-tuning steps and time.
   * [Model Release] May 2023, released implementation of **InstructBLIP** <br>
   [Paper](https://arxiv.org/abs/2305.06500), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/instructblip)    
   > A new vision-language instruction-tuning framework using BLIP-2 models, achieving state-of-the-art zero-shot generalization performance on a wide range of vision-language tasks.
@@ -101,7 +104,7 @@ The following table shows the supported tasks, datasets and models in our librar
 |    Video Question Answering (VideoQA)    |       BLIP, ALPRO        |                MSRVTT, MSVD                |
 |              Video Dialogue              |         VGD-GPT          |                    AVSD                    |
 |      Multimodal Feature Extraction       | ALBEF, CLIP, BLIP, ALPRO |                 customized                 |
-|         Text-to-image Generation         |      [COMING SOON]       |                                            |
+|         Text-to-image Generation         |     BLIP-Diffusion       |            customized                                |
 
 ## Installation
 
