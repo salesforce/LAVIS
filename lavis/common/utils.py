@@ -12,6 +12,7 @@ import os
 import pickle
 import re
 import shutil
+import tarfile
 import urllib
 import urllib.error
 import urllib.request
@@ -23,6 +24,7 @@ import pandas as pd
 import yaml
 from iopath.common.download import download
 from iopath.common.file_io import file_lock, g_pathmgr
+from lavis.common.dist_utils import download_cached_file
 from lavis.common.registry import registry
 from torch.utils.model_zoo import tqdm
 from torchvision.datasets.utils import (
@@ -404,6 +406,22 @@ def is_url(input_url):
     is_url = re.match(r"^(?:http)s?://", input_url, re.IGNORECASE) is not None
     return is_url
 
+
+def download_and_untar(url):
+    cached_file = download_cached_file(
+        url, check_hash=False, progress=True
+    )
+    # get path to untarred directory
+    untarred_dir = os.path.basename(url).split(".")[0]
+    parent_dir = os.path.dirname(cached_file)
+
+    full_dir = os.path.join(parent_dir, untarred_dir)
+
+    if not os.path.exists(full_dir):
+        with tarfile.open(cached_file) as tar:
+            tar.extractall(parent_dir)
+
+    return full_dir
 
 def cleanup_dir(dir):
     """

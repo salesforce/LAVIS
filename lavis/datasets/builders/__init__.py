@@ -37,10 +37,12 @@ from lavis.datasets.builders.retrieval_builder import (
     Flickr30kBuilder,
 )
 from lavis.datasets.builders.dialogue_builder import AVSDDialBuilder
+from lavis.datasets.builders.text_to_image_generation_builder import BlipDiffusionFinetuneBuilder
 
 from lavis.common.registry import registry
 
 __all__ = [
+    "BlipDiffusionFinetuneBuilder",
     "COCOCapBuilder",
     "COCORetrievalBuilder",
     "COCOVQABuilder",

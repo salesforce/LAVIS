@@ -101,6 +101,9 @@ class BaseModel(nn.Module):
                 assert "Found load_finetuned is False, but pretrain_path is None."
                 self.load_from_pretrained(url_or_filename=pretrain_path, **kwargs)
 
+    def before_training(self, **kwargs):
+        pass
+
     def get_optimizer_params(self, weight_decay, lr_scale=1):
         p_wd, p_non_wd = [], []
         for n, p in self.named_parameters():

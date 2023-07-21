@@ -91,7 +91,11 @@ class RunnerIter(RunnerBase):
                         self.max_iters, int(self.max_iters / self.iters_per_inner_epoch)
                     )
                 )
-
+                if start_iters == self.start_iters:
+                    self.task.before_training(
+                        model=self.unwrap_dist_model(self.model),
+                        dataset=self.datasets,
+                    )
                 train_stats = self.train_iters(self.cur_epoch, start_iters)
                 self.log_stats(split_name="train", stats=train_stats)
 
@@ -154,8 +158,19 @@ class RunnerIter(RunnerBase):
 
     @main_process
     def _save_checkpoint(self, cur_iters, is_best=False):
+        model_no_ddp = self.unwrap_dist_model(self.model)
+        param_grad_dic = {
+            k: v.requires_grad for (k, v) in model_no_ddp.named_parameters()
+        }
+
+        state_dict = model_no_ddp.state_dict()
+        for k in list(state_dict.keys()):
+            if k in param_grad_dic.keys() and not param_grad_dic[k]:
+                # delete parameters that do not require gradient
+                del state_dict[k]
+
         save_obj = {
-            "model": self.unwrap_dist_model(self.model).state_dict(),
+            "model": state_dict,
             "optimizer": self.optimizer.state_dict(),
             "config": self.config.to_dict(),
             "scaler": self.scaler.state_dict() if self.scaler else None,
