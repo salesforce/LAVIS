@@ -27,6 +27,9 @@
 # LAVIS - A Library for Language-Vision Intelligence
 
 ## What's New: 🎉 
+  * [Model Release] July 2023, released implementation of **BLIP-Diffusion** <br>
+  [Paper](https://arxiv.org/abs/2305.06500), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/blip-diffusion), [Website](https://dxli94.github.io/BLIP-Diffusion-website/)
+  > A text-to-image generation model that trains 20x than DreamBooth. Also facilitates zero-shot subject-driven generation and editing.
   * [Model Release] May 2023, released implementation of **InstructBLIP** <br>
   [Paper](https://arxiv.org/abs/2305.06500), [Project Page](https://github.com/salesforce/LAVIS/tree/main/projects/instructblip)    
   > A new vision-language instruction-tuning framework using BLIP-2 models, achieving state-of-the-art zero-shot generalization performance on a wide range of vision-language tasks.
