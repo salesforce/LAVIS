@@ -1,0 +1,70 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip_diffusion
+
+  model_type: base
+
+  qformer_train: False
+  sd_train_text_encoder: False
+
+  vae_half_precision: True
+  # load_finetuned: False
+
+datasets:
+  blip_diffusion_finetune: # name of the dataset builder
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+    # use keyword processors
+    kw_processor:
+      inp_vis_processor:
+          name: "blip_diffusion_inp_image_train"
+      tgt_vis_processor:
+          name: "blip_diffusion_tgt_image_train"
+    
+    build_info:
+      subject_text: ""
+      images:
+        storage: ""
+
+run:
+  runner: runner_iter
+
+  # max_iters: 40
+  # iters_per_inner_epoch: 20
+
+  task: text-to-image-generation
+  # optimizer
+  lr_sched: "constant_lr"
+  # init_lr: 5e-6
+  min_lr: 0
+  # weight_decay: 0.01
+
+  # batch_size_train: 2
+  # batch_size_train: 16
+  batch_size_train: 3
+  batch_size_eval: 1
+  num_workers: 4
+
+  seed: 42
+  # output_dir: "output/BLIP-diffusion/finetune"
+  # output_dir: "output/debug/BLIP-diffusion/finetune"
+  output_dir: ""
+
+  amp: True
+  # amp: False
+  resume_ckpt_path: null
+
+  evaluate: False 
+  train_splits: ["train"]
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
