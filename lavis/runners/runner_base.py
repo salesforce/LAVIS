@@ -360,11 +360,12 @@ class RunnerBase:
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
-                if cur_epoch == self.start_epoch:
-                    self.task.before_training(
-                        model=self.unwrap_dist_model(self.model),
-                        dataset=self.datasets["train"],
-                    )
+                # See https://github.com/salesforce/LAVIS/issues/449
+                # if cur_epoch == self.start_epoch:
+                #     self.task.before_training(
+                #         model=self.unwrap_dist_model(self.model),
+                #         dataset=self.datasets["train"],
+                #     )
                 train_stats = self.train_epoch(cur_epoch)
                 self.log_stats(split_name="train", stats=train_stats)
 
