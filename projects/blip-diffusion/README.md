@@ -16,10 +16,10 @@ pip install -e .
 
 ### Notebook Examples
 - **Subject-driven Generation**: 
-  - zero-shot inference: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
-  - inference with fine-tuned checkpoint: [notebook](https://github.com/dxli94/LAVIS-2/blob/main/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
+  - zero-shot inference: [notebook](https://github.com/salesforce/LAVIS/blob/main/projects/blip-diffusion/notebooks/generation_zeroshot.ipynb)
+  - inference with fine-tuned checkpoint: [notebook](https://github.com/salesforce/LAVIS/blob/main/projects/blip-diffusion/notebooks/generation_finetuned_dog.ipynb)
 
-- **Structure-Controlled Generation / Stylization**: [notebook](https://github.com/dxli94/LAVIS-2/tree/20230623-blip-diffusion-documentation/projects/blip-diffusion/notebooks/stylization.ipynb)
+- **Structure-Controlled Generation / Stylization**: [notebook](https://github.com/salesforce/LAVIS/blob/main/projects/blip-diffusion/notebooks/stylization.ipynb)
 
 ### Cite BLIP-Diffusion
 If you find our work helpful, please consider citing:
