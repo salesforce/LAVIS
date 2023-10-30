@@ -31,6 +31,87 @@ pip install -e .
 - **Virtual Try-On via Subject-driven Editing**:
   - the model can be used to naturally facilitate virtual try-on. We provide an zero-shot example: [notebook](https://github.com/salesforce/LAVIS/blob/main/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb), [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/blip-diffusion/notebooks/editing_tryon_zeroshot.ipynb);
 
+### **🧨 Diffusers Support**
+BLIP-Diffusion is now supported in 🧨[Diffusers](https://huggingface.co/docs/diffusers/main/en/api/pipelines/blip_diffusion).
+- Example on subject-driven generation:
+```python
+from diffusers.pipelines import BlipDiffusionPipeline
+from diffusers.utils import load_image
+import torch
+
+blip_diffusion_pipe = BlipDiffusionPipeline.from_pretrained(
+    "Salesforce/blipdiffusion", torch_dtype=torch.float16
+).to("cuda")
+
+
+cond_subject = "dog"
+tgt_subject = "dog"
+text_prompt_input = "swimming underwater"
+
+cond_image = load_image(
+    "https://huggingface.co/datasets/ayushtues/blipdiffusion_images/resolve/main/dog.jpg"
+)
+guidance_scale = 7.5
+num_inference_steps = 25
+negative_prompt = "over-exposure, under-exposure, saturated, duplicate, out of frame, lowres, cropped, worst quality, low quality, jpeg artifacts, morbid, mutilated, out of frame, ugly, bad anatomy, bad proportions, deformed, blurry, duplicate"
+
+
+output = blip_diffusion_pipe(
+    text_prompt_input,
+    cond_image,
+    cond_subject,
+    tgt_subject,
+    guidance_scale=guidance_scale,
+    num_inference_steps=num_inference_steps,
+    neg_prompt=negative_prompt,
+    height=512,
+    width=512,
+).images
+output[0].save("image.png")
+```
+- Example on subject-driven stylization
+```python
+from diffusers.pipelines import BlipDiffusionControlNetPipeline
+from diffusers.utils import load_image
+from controlnet_aux import CannyDetector
+import torch
+
+blip_diffusion_pipe = BlipDiffusionControlNetPipeline.from_pretrained(
+    "Salesforce/blipdiffusion-controlnet", torch_dtype=torch.float16
+).to("cuda")
+
+style_subject = "flower"
+tgt_subject = "teapot"
+text_prompt = "on a marble table"
+
+cldm_cond_image = load_image(
+    "https://huggingface.co/datasets/ayushtues/blipdiffusion_images/resolve/main/kettle.jpg"
+).resize((512, 512))
+canny = CannyDetector()
+cldm_cond_image = canny(cldm_cond_image, 30, 70, output_type="pil")
+style_image = load_image(
+    "https://huggingface.co/datasets/ayushtues/blipdiffusion_images/resolve/main/flower.jpg"
+)
+guidance_scale = 7.5
+num_inference_steps = 50
+negative_prompt = "over-exposure, under-exposure, saturated, duplicate, out of frame, lowres, cropped, worst quality, low quality, jpeg artifacts, morbid, mutilated, out of frame, ugly, bad anatomy, bad proportions, deformed, blurry, duplicate"
+
+
+output = blip_diffusion_pipe(
+    text_prompt,
+    style_image,
+    cldm_cond_image,
+    style_subject,
+    tgt_subject,
+    guidance_scale=guidance_scale,
+    num_inference_steps=num_inference_steps,
+    neg_prompt=negative_prompt,
+    height=512,
+    width=512,
+).images
+output[0].save("image.png")
+```
+
 
 ### Cite BLIP-Diffusion
 If you find our work helpful, please consider citing:
