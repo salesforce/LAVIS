@@ -152,6 +152,7 @@ git clone https://github.com/salesforce/LAVIS.git
 cd LAVIS
 pip install -e .
 ```
+If you are using arm cpu(for example Mac with Apple Silicon), please use `requirements_arm.txt` instead of `requirements.txt` to install the dependencies.
 
 ## Getting Started
 ### Model Zoo
