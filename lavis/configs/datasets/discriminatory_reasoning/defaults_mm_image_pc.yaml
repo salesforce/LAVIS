@@ -1,0 +1,48 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  image_pc_discrn: # name of the dataset builder
+    vis_processor:
+          train:
+            name: "clip_image_train"
+          eval:
+            name: "clip_image_eval"
+    pc_processor:
+          train:
+            name: "ulip_pc"
+          eval:
+            name: "ulip_pc"
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+
+    data_type: [images, pc] # [images|videos|features]
+
+   
+    build_info:
+
+      kwargs:
+        total: all
+        shuffle_modalities: False
+        balance_labels: True
+        dataset_name: objaverse
+
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        val:
+          url:
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/discrn/objaverse.json
+            # - /export/home/LAVIS-xgen_mm/lavis/configs/datasets/discriminatory_reasoning/discriminatory_dataset/objaverse_discrn.json
+          storage: 
+            - discrn/annotations/objaverse.json
+            # - /export/home/LAVIS-xgen_mm/lavis/configs/datasets/discriminatory_reasoning/discriminatory_dataset/objaverse_discrn.json
+      pc:
+        storage: /export/einstein-vision/3d_vision/objaverse/objaverse_pc_parallel
+      
+      images:
+        storage: /export/einstein-vision/3d_vision/objaverse_captions/images/

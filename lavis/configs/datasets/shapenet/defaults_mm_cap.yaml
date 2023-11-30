@@ -1,0 +1,51 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+datasets:
+  shapenet_mm_caption: # name of the dataset builder
+    vis_processor:
+          train:
+            name: "clip_image_train"
+            image_size: 224
+          eval:
+            name: "clip_image_train"
+            image_size: 224
+    pc_processor:
+          train:
+            name: "ulip_pc"
+          eval:
+            name: "ulip_pc"
+    text_processor:
+          train:
+              name: "blip_caption"
+          eval:
+            name: "blip_caption"
+
+    data_type: [pc, images] # [images|videos|features]
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/shapenet/train_ann.json
+            # - /export/einstein-vision/3d_vision/3d_object_datasets/ShapeNet55/train_ann.json
+          storage:
+            - shapenet/annotations/train_ann.json
+            # - /export/einstein-vision/3d_vision/3d_object_datasets/ShapeNet55/train_ann.json
+        val:
+          url: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/shapenet/test_ann.json
+            # - /export/einstein-vision/3d_vision/3d_object_datasets/ShapeNet55/test_ann.json
+          storage: 
+            - shapenet/annotations/test_ann.json
+            # - /export/einstein-vision/3d_vision/3d_object_datasets/ShapeNet55/test_ann.json
+            
+      templates: null
+
+      pc:
+        storage: /export/einstein-vision/3d_vision/3d_object_datasets/ShapeNet55/shapenet_pc
+
+      images:
+        storage: /export/einstein-vision/3d_vision/3d_object_datasets/ShapeNet55/rendered_images

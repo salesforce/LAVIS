@@ -1,0 +1,65 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  avsd_mm_dialogue_instruct: # name of the dataset builder
+    data_type: [video, audio]
+
+    audio_processor:
+      train:
+        name: beats_audio
+        sampling_rate: 16000
+      eval:
+        name: beats_audio
+        sampling_rate: 16000
+
+    video_processor:
+        train:
+          name: alpro_video_train
+          n_frms: 4
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+        eval:
+          name: alpro_video_eval
+          n_frms: 4
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+        
+    text_processor:
+      train:
+        name: "blip_caption"
+      eval:
+        name: "blip_caption"
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_train.json
+          storage: 
+            - avsd/annotations/train.json 
+        val:
+          url: 
+            - https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_val.json
+          storage: 
+            - avsd/annotations/val.json 
+        test:
+          url: 
+            - https://storage.googleapis.com/sfr-vision-language-research/datasets/avsd_dstc7_test.json
+          storage: 
+            - avsd/annotations/test.json 
+      templates: null
+
+      audio:
+        storage: /export/video-language-dataset/data/charade/videos
+
+      video:
+        storage: /export/video-language-dataset/data/charade/videos
+
