@@ -1,0 +1,55 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  objaverse_mm_qa: # 250070
+    vis_processor:
+        train:
+          name: "clip_image_train"
+          image_size: 224
+        eval:
+          name: "clip_image_train"
+          image_size: 224
+    pc_processor:
+          train:
+            name: "ulip_pc"
+          eval:
+            name: "ulip_pc"
+    text_processor:
+        train:
+          name: "blip_instruction"
+          modality: pc
+          task: qa
+        eval:
+          name: "blip_question"
+    
+
+    data_type: pc # [images|pc]
+
+    build_info:
+      kwargs:
+        add_binary: True
+        remove_model_answer: True
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/objaverse/CAP3DQA_final.csv
+            # - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/3d_qa_data/CAP3DQA_final.csv
+          storage: 
+            - objaverse_qa/annotations/train.csv
+            # - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/3d_qa_data/CAP3DQA_final.csv
+        # val:
+        #   url: 
+        #     - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/objaverse/CAP3DQA_final_val.csv
+        #     # - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/3d_qa_data/CAP3DQA_final_val.csv
+        #   storage: 
+        #     - objaverse_qa/annotations/val.csv
+        #     # - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/3d_qa_data/CAP3DQA_final_val.csv
+
+      templates: null
+
+      pc:
+        storage: /export/einstein-vision/3d_vision/objaverse/objaverse_pc_parallel

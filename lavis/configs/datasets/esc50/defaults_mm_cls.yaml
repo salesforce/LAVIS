@@ -1,0 +1,37 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  esc50_cls: # 
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          is_eval: False
+          
+    text_processor:
+        train:
+          name: blip_instruction
+          modality: audio
+          task: classification
+        eval:
+          name: blip_caption
+
+    data_type: [audio] 
+
+    build_info:
+      annotations:
+             
+        val:
+          url: 
+            - https://raw.githubusercontent.com/karolpiczak/ESC-50/master/meta/esc50.csv
+          storage: 
+            - /export/einstein-vision/audio_datasets/ESC-50-master/meta/esc50.csv
+        
+      audio:
+        storage: /export/einstein-vision/audio_datasets/ESC-50-master/audio
