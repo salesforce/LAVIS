@@ -1,5 +1,6 @@
 contexttimer
-decord
+decord; platform_system != "Darwin" 
+eva-decord; platform_system == "Darwin"
 einops>=0.4.1
 fairscale==0.4.4
 ftfy

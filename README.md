@@ -1,3 +1,8 @@
+# AMMICO-LAVIS
+
+This is a fork of [LAVIS](https://github.com/salesforce/LAVIS) (release 1.0.2) that support ARM M1, M2, and M3 Macs. On MacOS it depends on [eva-decord](https://github.com/georgia-tech-db/eva-decord), instead of [decord](https://github.com/dmlc/decord) on other systems. 
+Supports [transformers](https://github.com/huggingface/transformers)>=4.25.0,<4.27.
+
 <p align="center">
     <br>
     <img src="docs/_static/logo_final.png" width="400"/>
