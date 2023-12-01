@@ -16,9 +16,9 @@ model:
   pc_model: "ulip2_pointbert"
   video_model: "eva_clip_g"
   audio_model: "beats"
-  pretrained_image_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/image_qformer_improved.pth
+  pretrained_image_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/image_qformer.pth
   pretrained_pc_qformer:  https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/pc_qformer_improved.pth
-  pretrained_video_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/video_qformer_improved.pth
+  pretrained_video_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/video_qformer.pth
   pretrained_audio_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/audio_qformer_improved.pth
   load_attention_image_qformer: True
   load_attention_pc_qformer: True
