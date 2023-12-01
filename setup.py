@@ -19,8 +19,8 @@ def fetch_requirements(filename):
 
 
 setup(
-    name="salesforce-lavis",
-    version="1.0.1",
+    name="ammico-lavis",
+    version="1.0.2",
     author="Dongxu Li, Junnan Li, Hung Le, Guangsen Wang, Silvio Savarese, Steven C.H. Hoi",
     description="LAVIS - A One-stop Library for Language-Vision Intelligence",
     long_description=open("README.md", "r", encoding="utf-8").read(),
