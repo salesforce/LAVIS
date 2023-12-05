@@ -1,5 +1,8 @@
 # X-InstructBLIP: A Framework for aligning X-Modal instruction-aware representations to LLMs and Emergent Cross-modal Reasoning
-[![arXiv](https://img.shields.io/badge/arXiv-1234.56789-b31b1b.svg)]()
+
+[Artemis Panagopoulou](https://artemisp.github.io), [Le Xue](https://www.linkedin.com/in/le-tycho-xue-5abbb9157/), [Ning Yu](https://ningyu1991.github.io/), [Junnan Li](https://sites.google.com/site/junnanlics), [Dongxu Li](https://sites.google.com/view/dongxu-li/home), [Shafiq Joty](https://scholar.google.com/citations?user=hR249csAAAAJ&hl=en&oi=ao), [Ran Xu](https://scholar.google.com/citations?user=sgBB2sUAAAAJ&hl=en), [Silvio Savarese](https://scholar.google.com/citations?user=ImpbxLsAAAAJ&hl=en), [Caiming Xiong](https://scholar.google.com/citations?user=vaSdahkAAAAJ&hl=en), and [Juan Carlos Niebles](https://scholar.google.com/citations?user=hqNhUCYAAAAJ&hl=en)
+
+[![arXiv](https://img.shields.io/badge/arXiv-1234.56789-b31b1b.svg)](https://arxiv.org/pdf/2311.18799.pdf)  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/projects/xinstructblip/demo/run_demo.ipynb)
 
 ## Overview
 
@@ -11,7 +14,7 @@ X-InstructBLIP a simple yet effective multimodal framework built on top of a fro
 
 ### LAVIS Repository
 ```
-git clone https://github.com/artemisp/LAVIS-XInstructBLIP.git # TODO: this should be the X-InstructBLIP branch.
+git clone https://github.com/artemisp/LAVIS-XInstructBLIP.git # Once PR accepted change to official LAVIS
 cd LAVIS-XInstructBLIP
 pip install -e .
 ```
@@ -227,3 +230,16 @@ The arguments are as above, with the same audio caption data. Note that you shou
 
 
 ## Cite
+
+```
+@misc{panagopoulou2023xinstructblip,
+    title={X-InstructBLIP: A Framework for aligning X-Modal instruction-aware 
+        representations to LLMs and Emergent Cross-modal Reasoning}, 
+    author={Artemis Panagopoulou and Le Xue and Ning Yu and Junnan Li and Dongxu Li and 
+        Shafiq Joty and Ran Xu and Silvio Savarese and Caiming Xiong and Juan Carlos Niebles},
+    year={2023},
+    eprint={2311.18799},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+    }
+```
