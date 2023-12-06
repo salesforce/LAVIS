@@ -28,6 +28,7 @@ transformers==4.33.2
 webdataset
 wheel
 torchaudio
+soundfile
 moviepy
 nltk
 peft

@@ -35,20 +35,20 @@ datasets:
           storage:
             - iconqa/annotations/train.json
             # - /export/share/datasets/vision_language/iconqa/annotations_train.json
-        val:
-          url:
-            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/iconqa/annotations_val.json
-            # - /export/share/datasets/vision_language/iconqa/annotations_val.json
-          storage:
-            - iconqa/annotations/val.json
-            # - /export/share/datasets/vision_language/iconqa/annotations_val.json
-        test:
-          url:
-            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/iconqa/annotations_test.json
-            # - /export/share/datasets/vision_language/iconqa/annotations_test.json
-          storage:
-            - iconqa/annotations/test.json
-            # - /export/share/datasets/vision_language/iconqa/annotations_test.json
+        # val:
+        #   url:
+        #     - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/iconqa/annotations_val.json
+        #     # - /export/share/datasets/vision_language/iconqa/annotations_val.json
+        #   storage:
+        #     - iconqa/annotations/val.json
+        #     # - /export/share/datasets/vision_language/iconqa/annotations_val.json
+        # test:
+        #   url:
+        #     - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/iconqa/annotations_test.json
+        #     # - /export/share/datasets/vision_language/iconqa/annotations_test.json
+        #   storage:
+        #     - iconqa/annotations/test.json
+        #     # - /export/share/datasets/vision_language/iconqa/annotations_test.json
 
       images:
           storage: /export/share/datasets/vision_language/iconqa/all_images/

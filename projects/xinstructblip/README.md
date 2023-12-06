@@ -36,6 +36,12 @@ Make sure that `ninja` is installed:
 wget -P /usr/bin https://github.com/unlimblue/KNN_CUDA/raw/master/ninja
 ```
 
+### Install NLTK-CMUDICT
+```
+>>> import nltk
+>>> nltk.download('cmudict')
+```
+
 ## Pretrained Models
 ### Language Model Weights
 First download the Vicuna v1.1 weights following the instructions [here](https://github.com/lm-sys/FastChat). Update the parameter `llm_model` in `configs/models/blip2/blip2_xinstruct_vicuna7b.yaml` and `configs/models/blip2/blip2_xinstruct_vicuna13b.yaml` and in the demo configs under `projects/xinstructblip/demo/configs` to the path of the downloaded model folder. 
@@ -132,7 +138,13 @@ Files can be run as follows:
 ```
 python -m torch.distributed.run --nproc_per_node=8 train.py --cfg-path path/to/train/or/eval/config
 ```
-It is recommended to use 40GB GPU RAM. If this is not available, results can be partially replicated by loading the Vicuna LLM model in 8bit instead of 16bit. 
+
+for example to train the 3D Q-Former one can run 
+```
+python -m torch.distributed.run --nproc_per_node=8 train.py --cfg-path lavis/projects/xinstruct_blip/train/vicuna7b/pc_training.yaml 
+```
+It is recommended to use 40GB GPU RAM. If this is not available, results can be partially replicated by loading the Vicuna LLM model in 8bit instead of 16bit. More details [here](https://huggingface.co/docs/transformers/main_classes/quantization).
+
 
 ## Data
 X-InstructBLIP is trained and evaluated in a collection of public and generated datasets as shown in the figure below. 

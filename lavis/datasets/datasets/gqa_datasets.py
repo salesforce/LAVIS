@@ -7,6 +7,7 @@
 
 import os
 import json
+import random
 
 from PIL import Image
 
@@ -52,6 +53,18 @@ class GQADataset(VQADataset, __DisplMixin):
             "answers": answers,
             "weights": weights,
         }
+
+class GQAInstructDataset(GQADataset):
+    def __getitem__(self, index):
+        data = super().__getitem__(index)
+        if data != None:
+            data['text_output'] = random.choice(data["answers"])
+        return data
+
+    def collater(self, samples):
+        data = super().collater(samples)
+        data['text_output'] = data['answer']
+        return data
 
 
 class GQAEvalDataset(VQAEvalDataset, __DisplMixin):

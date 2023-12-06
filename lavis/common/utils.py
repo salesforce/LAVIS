@@ -1,5 +1,5 @@
 """
- Copyright (c) 2022, salesforce.com, inc.
+ Copyright (c) 2023, salesforce.com, inc.
  All rights reserved.
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -440,3 +440,16 @@ def get_file_size(filename):
     """
     size_in_mb = os.path.getsize(filename) / float(1024**2)
     return size_in_mb
+
+def is_serializable(value):
+    """
+    This function checks if the provided value can be serialized into a JSON string.
+    """
+    try:
+        json.dumps(value)
+        return True
+    except (TypeError, OverflowError):
+        return False
+
+def is_convertible_to_int(value):
+    return bool(re.match(r'^-?\d+$', str(value)))
