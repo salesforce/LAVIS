@@ -1,4 +1,4 @@
- # Copyright (c) 2022, salesforce.com, inc.
+ # Copyright (c) 2023, salesforce.com, inc.
  # All rights reserved.
  # SPDX-License-Identifier: BSD-3-Clause
  # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -218,7 +218,7 @@ datasets:
         name: blip_caption
 
 
-  ocrvqa_instruct: # 1002146 train examples
+  ocr_vqa_instruct: # 1002146 train examples
     # data_dir: ${env.data_dir}/datasets
     data_type: images # [images|videos|features]
     
@@ -335,7 +335,7 @@ run:
 
   evaluate: False
   train_splits: ["train"]
-  valid_splits: ["val"]
+  # valid_splits: ["val"]
 
 
   device: "cuda"

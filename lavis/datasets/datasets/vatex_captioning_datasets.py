@@ -1,6 +1,6 @@
 
 """
- Copyright (c) 2023, salesforce.com, inc.
+ Copyright (c) 2022, salesforce.com, inc.
  All rights reserved.
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -29,9 +29,8 @@ class VATEXCaptionDataset(BaseDataset):
             setattr(self, f"existing_{modality}_annotation",getattr(self, f'get_existing_{modality}_annotations')())
 
         self.sample_ids = set.intersection(*[set(getattr(self, f"existing_{modality}_annotation")) for modality in self.modalities])
-        # self.annotation = [ann for ann in self.annotation if ann['video_id'].replace('000', '0') in self.sample_ids]
         seen = set()
-        self.annotation = [x for x in self.annotation if x["video"] not in seen and not seen.add(x["image_id"])]
+        self.annotation = [x for x in self.annotation if x["video"] not in seen and not seen.add(x["video"])]
     
     def __len__(self):
         return len(self.annotation)
@@ -46,11 +45,6 @@ class VATEXCaptionDataset(BaseDataset):
     def get_audio_path(self, ann):
         return os.path.join(self.audio_root, f'{ann["video"]}')
     
-    # def get_audio_path(self, ann):
-    #     return os.path.join(self.audio_root, f'{ann["video_id"].replace("000", "0")}.mp4')
-    
-    # def get_video_path(self, ann):
-    #     return os.path.join(self.video_root, f'{ann["video_id"].replace("000", "0")}.mp4')
 
     def get_video_path(self, ann):
         return os.path.join(self.video_root, f'{ann["video"]}')
@@ -60,12 +54,9 @@ class VATEXCaptionDataset(BaseDataset):
         ann = copy.deepcopy(self.annotation[index])
         ann["video_path"] = ann["video"]
         ann["audio_path"] = ann["video"]
-        # ann["sample_id"] = ann["video_id"]
         ann["sample_id"] = ann["video"]
-        # ann["caption"] = self.text_processor(ann['desc'])
         ann['text_input'] = ann["caption"]
         ann["image_id"] = ann["video"]
-        # ann["image_id"] = ann["video_id"]
 
         for modality in self.modalities:
             ann[f"{modality}_path"] = getattr(self, f"get_{modality}_path")(ann)
@@ -76,14 +67,6 @@ class VATEXCaptionDataset(BaseDataset):
             else:
                 ann[modality] = getattr(self, f"{modality}_processor")(ann[f"{modality}_path"]).to(torch.float32)
 
-        # # ann["sample_id"] = ann["video_id"]
-        # ann["sample_id"] = ann["video"]
-        # # ann["caption"] = self.text_processor(ann['desc'])
-        # ann['text_input'] = ann["caption"]
-        # ann["image_id"] = ann["video"]
-        # # ann["image_id"] = ann["video_id"]
-
-        
         return ann
 
 

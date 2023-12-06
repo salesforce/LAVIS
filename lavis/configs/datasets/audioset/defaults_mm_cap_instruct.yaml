@@ -28,8 +28,8 @@ datasets:
       annotations:
         train:
           url: 
-            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data//audioset/balanced_train_clean.csv
-            # - /export/home/LAVIS-xgen_mm/lavis/configs/datasets/audioset/balanced_train_clean.csv
+            # - https://storage.googleapis.com/sfr-xinstructblip-data-research/data//audioset/balanced_train_clean.csv
+            - /export/home/LAVIS-xgen_mm/lavis/configs/datasets/audioset/balanced_train_clean.csv
             - http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv
           storage:
             - audioset/annotations/balanced_train_clean.csv

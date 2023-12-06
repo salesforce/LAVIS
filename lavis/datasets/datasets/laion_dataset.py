@@ -7,7 +7,7 @@
 
 import webdataset as wds
 from lavis.datasets.datasets.base_dataset import BaseDataset
-
+import random
 
 class LaionDataset(BaseDataset):
     def __init__(self, vis_processor, text_processor, location):
@@ -24,11 +24,24 @@ class LaionDataset(BaseDataset):
         )
 
     def to_dict(self, sample):
+        if type(sample[1]) == list:
+            caption = random.choice(sample[1][:2])
+        else:
+            caption = sample[1]["caption"]
+
         return {
             "image": sample[0],
-            "text_input": self.text_processor(sample[1]["caption"]),
+            "text_input": self.text_processor(caption),
         }
 
+
+class LaionInstructDataset(LaionDataset):
+    def to_dict(self, sample):
+        data = super().to_dict(sample)
+        if data != None:
+            data['text_output'] = data["text_input"]
+            data['text_input'] = self.text_processor("")
+        return data
 
 if __name__ == "__main__":
     from torchvision import transforms
@@ -52,6 +65,8 @@ if __name__ == "__main__":
     dataset = LaionDataset(
         vis_processor=transform_train,
         text_processor=lambda x: x,
+        # location="/export/laion400m-data-ssd/laion115m_capfilt_20220817/{part0/part0,part1/part1,part2/part2}_node{"
+        #          "00..15}_shard{000000..000118}.tar",
         location="/export/laion/laion2B-multi/part-00000/{00000..01743}.tar",
     )
 

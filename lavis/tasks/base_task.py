@@ -52,7 +52,6 @@ class BaseTask:
 
         for name in datasets_config:
             dataset_config = datasets_config[name]
-
             builder = registry.get_builder_class(name)(dataset_config)
             dataset = builder.build_datasets()
 
@@ -208,6 +207,11 @@ class BaseTask:
             samples = next(data_loader)
 
             samples = prepare_sample(samples, cuda_enabled=cuda_enabled)
+
+            ## notify model that sample is empty (error occured)
+            if not isinstance(samples, dict):
+                samples = {"is_empty":True}
+
             samples.update(
                 {
                     "epoch": inner_epoch,
