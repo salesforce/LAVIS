@@ -31,8 +31,8 @@ class __DisplMixin:
 class SNLIVisualEntialmentDataset(MultimodalClassificationDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
         super().__init__(vis_processor, text_processor, vis_root, ann_paths)
-
         self.class_labels = self._build_class_labels()
+        self.classnames = list(self.class_labels.keys())
 
     def _build_class_labels(self):
         return {"contradiction": 0, "neutral": 1, "entailment": 2}
@@ -54,3 +54,17 @@ class SNLIVisualEntialmentDataset(MultimodalClassificationDataset, __DisplMixin)
             "image_id": image_id,
             "instance_id": ann["instance_id"],
         }
+
+class SNLIVisualEntialmentInstructDataset(SNLIVisualEntialmentDataset, __DisplMixin):
+    def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
+        super().__init__(vis_processor, text_processor, vis_root, ann_paths)
+        self.classnames = ['no', 'maybe', 'yes']
+
+    def __getitem__(self, index):
+        data = super().__getitem__(index)
+        if data != None:
+            data["prompt"] = self.text_processor("based on the given the image is {} true?")
+            data["answer"] = self.classnames[data["label"]]
+            data["label"] = self.classnames[data["label"]]
+            data["question_id"] = data["instance_id"]
+        return data

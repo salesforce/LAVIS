@@ -1,0 +1,32 @@
+optimizer : {
+  type: AdamW,
+  kwargs: {
+  lr : 0.0005, 
+  weight_decay : 0.05
+}}
+
+scheduler: {
+  type: CosLR,
+  kwargs: {
+    epochs: 300,
+    initial_epochs : 10
+}}
+
+model : {
+  NAME: PointTransformer,
+  trans_dim: 384, 
+  depth: 12, 
+  drop_path_rate: 0.1, 
+  cls_dim: 40, 
+  num_heads: 6,
+  group_size: 32, 
+  num_group: 512,
+  encoder_dims: 256,
+}
+npoints: 8192
+total_bs : 32
+step_per_update : 1
+max_epoch : 300
+grad_norm_clip : 10
+
+consider_metric: CDL1

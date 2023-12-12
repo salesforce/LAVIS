@@ -1,0 +1,63 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+datasets:
+  wavcaps_mm_caption_instruct: # name of the dataset builder
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+          n_frames: 2
+          frame_length: 512
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          n_frames: 2
+          frame_length: 512
+    text_processor:
+        train:
+          name: "blip_instruction"
+          modality: audio
+          task: caption
+        eval:
+          name: "blip_caption"
+
+    data_type: [audio] 
+
+    build_info:
+      kwargs:
+        cached: True
+        cached_dir: /export/share/datasets/audio/WavCaps/beats_features/
+
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          # url: 
+          #   - /export/share/datasets/audio/WavCaps/json_files/BBC_Sound_Effects/bbc_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_files/FreeSound/fsd_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_files/SoundBible/sb_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_files/AudioSet_SL/as_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_data.json
+          # storage: 
+          #   - /export/share/datasets/audio/WavCaps/json_files/BBC_Sound_Effects/bbc_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_files/FreeSound/fsd_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_files/SoundBible/sb_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_files/AudioSet_SL/as_final.json
+          #   - /export/share/datasets/audio/WavCaps/json_data.json
+          url: 
+            - https://raw.githubusercontent.com/XinhaoMei/WavCaps/master/data/json_files/BBC_Sound_Effects/bbc_final.json
+            - https://raw.githubusercontent.com/XinhaoMei/WavCaps/master/data/json_files/FreeSound/fsd_final.json
+            - https://raw.githubusercontent.com/XinhaoMei/WavCaps/master/data/json_files/SoundBible/sb_final.json
+            - https://raw.githubusercontent.com/XinhaoMei/WavCaps/master/data/json_files/AudioSet_SL/as_final.json
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/wavcaps/json_data.json
+          storage: 
+            - wavcaps/json_files/BBC_Sound_Effects/bbc_final.json
+            - wavcaps/json_files/FreeSound/fsd_final.json
+            - wavcaps/json_files/SoundBible/sb_final.json
+            - wavcaps/json_files/AudioSet_SL/as_final.json
+            - wavcaps/annotations/json_data.json
+          
+      audio:
+        storage: /export/share/datasets/audio/WavCaps/
+  

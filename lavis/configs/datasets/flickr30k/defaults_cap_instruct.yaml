@@ -1,0 +1,41 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  flickr30k_caption_instruct: # name of the dataset builder
+    # dataset_card: dataset_card/coco_caption.md
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+  
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+      train:
+        name: blip_instruction
+        modality: image
+        task: caption
+      eval:
+        name: blip_caption
+
+    build_info:
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_train.json
+          storage: flickr30k/annotations/train.json
+        val:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_val.json
+          storage: flickr30k/annotations/val.json
+        test:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/flickr30k_test.json
+          storage: flickr30k/annotations/test.json
+      images:
+          # storage: flickr30k/images
+          storage: /export/share/datasets/vision/flickr30k

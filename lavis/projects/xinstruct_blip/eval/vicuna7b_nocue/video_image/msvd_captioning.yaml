@@ -1,0 +1,158 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip2_vicuna_xinstruct
+  model_type: vicuna7b
+  load_pretrained: True
+  pretrained: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/image_qformer.pth
+  load_finetuned: False
+  finetuned: ""
+  stage1_url_or_filename: null
+  image_model: "eva_clip_g"
+  pc_model: "ulip2_pointbert"
+  video_model: "eva_clip_g"
+  audio_model: "beats"
+  pretrained_image_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/image_qformer.pth
+  pretrained_pc_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/pc_qformer.pth
+  pretrained_video_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/image_qformer.pth
+  pretrained_audio_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/audio_qformer.pth
+  load_attention_image_qformer: True
+  load_attention_pc_qformer: True
+  load_attention_video_qformer: True
+  load_attention_audio_qformer: True
+  load_ln_type_image: "image"
+  load_ln_type_video: "image"
+  load_ln_type_pc: "pc"
+  load_ln_type_audio: "audio"
+  load_qformer_type_image: "image"
+  load_qformer_type_pc: "pc"
+  load_qformer_type_video: "image"
+  load_qformer_type_audio: "audio"
+  load_projection_image: True
+  load_projection_pc: True
+  load_projection_video: True
+  load_projection_audio: True
+  load_projection_type_image: "image"
+  load_projection_type_pc: "pc"
+  load_projection_type_video: "image"
+  load_projection_type_audio: "audio"
+  image_encoder_kwargs :  {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  pc_encoder_kwargs :  {}
+  video_encoder_kwargs :   {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  audio_encoder_kwargs :  {}
+  image_precision: "fp16"
+  pc_precision: "fp16"
+  video_precision: "fp16"
+  audio_precision: "fp16"
+  freeze_image: True
+  freeze_pc: True
+  freeze_video: True
+  freeze_audio: True
+  num_query_token: 32
+  llm_model: /path/to/vicuna-7b
+  prompt: a short description
+  max_txt_len: 128
+  max_output_txt_len: 256
+  apply_lemmatizer: False
+  num_few_shot_examples: 0
+  few_shot_prob: 0
+  qformer_text_input: True
+  llm_text_input: True
+  modalities :  ["video"]
+  use_cues: False
+  shared_qformer: False
+  pretrained_shared_qformer: Null
+  load_attention_shared_qformer: False
+  load_qformer_type_shared: ""
+  load_projection_shared: False
+  load_projection_type_shaped: ""
+  load_ln_type_shared: ""
+  shared_qformer_num_features: 512
+  prefix: ""
+  postfix: ""
+  predict_with_gen: False
+
+datasets:
+  msvd_caption:
+    vis_processor:
+        train:
+          name: alpro_video_train
+          n_frms: 5
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+        eval:
+          name: alpro_video_eval
+          n_frms: 5
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+    text_processor:
+        train:
+          name: "blip_question"
+        eval:
+          name: "blip_caption"
+      
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/msvd/cap_train.json
+          storage: msvd/annotations/cap_train.json
+        val:
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/msvd/cap_val.json
+          storage: msvd/annotations/cap_val.json
+        test:
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/msvd/cap_test.json
+          storage: msvd/annotations/cap_test.json
+      videos:
+        # storage: msvd/videos
+        storage: /export/share/datasets/vision_language/msvd/videos
+
+
+run:
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 1
+  batch_size_train: 16
+  batch_size_eval: 1
+  num_workers: 8
+  accum_grad_iters: 1
+
+  max_len: 80
+  min_len: 10
+  num_beams: 5
+  inference_method: "generate"
+  prompt: a short description
+  length_penalty: 1.
+
+
+  seed: 42
+  output_dir: "output/xinstructblip/eval/vicuna7b_nocue/video_image/msvd_captioning/"
+  # annotation_file: /export/home/.cache/lavis/msvd_caption_gt/msvd_caption_test_annotations.json
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate: True
+  # train_splits: ["train"]
+  valid_splits: ["test"]
+
+  img_ids: ['ghynaoVNwZc_1_20.avi', 'fEsrO_poIUg_161_168.avi', 'jCplbayVbtw_10_20.avi', 'pzq5fPfsPZg_29_33.avi', 'fcvW1vr8hAs_104_108.avi', 'gp8XjWSoP2k_0_10.avi', 'o_mWZWcm2r4_10_15.avi', 'hXn7D6-AAMA_0_9.avi', 'g36ho6UrBz0_5_20.avi', 'n_Z0-giaspE_379_387.avi', 'hSgGBHbJrmE_0_17.avi', 'nMBSDpB3WB8_5_14.avi', 'lrZxpneS6Gk_0_12.avi', 'v4_AzQSnmY4_40_55.avi', 'o4pL7FObqds_72_78.avi', 's0hwEUC5emA_127_132.avi', 'vRC9sBNt9vs_10_16.avi', 'xxHx6s_DbUo_49_56.avi', 'hM3jzlyNIpc_0_10.avi', 'qRoxNXm7INc_58_66.avi', 'm1NR0uNNs5Y_57_64.avi', 'gMqKUPeTAkg_17_30.avi', 'sm0OYD0NSbQ_51_59.avi', 'u9prcUCHlqM_235_241.avi', 'kSzS_lFtJDk_55_70.avi', 'kuNQpRTc-hA_126_135.avi', 'glii-kazad8_21_29.avi', 'kWLNZzuo3do_222_227.avi', 'zTn-nNj5Bng_8_19.avi', 'pmEKZ6yVewc_0_10.avi', 'uVPnDJKt1M0_0_6.avi', 'zv2RIbUsnSw_335_341.avi', 'lAznAeFFldg_6_10.avi', 'lc9bA-hvqHU_1_6.avi', 'q-JHcsqJXWY_0_8.avi', 'fGc6_D0JEIQ_31_46.avi', 'gHyXstpe_N8_140_150.avi', 'xxHx6s_DbUo_240_248.avi', 'lFdg5CWMTt0_24_28.avi', 'xPR0xFgCAZY_17_27.avi', 'zSPBC8EO6dY_132_140.avi', 'vDhEpqfhVI0_0_8.avi', 'n_Z0-giaspE_437_447.avi', 'unhiT2D6WvE_0_20.avi', 'q9ew_nITQWY_54_62.avi', 'm1NR0uNNs5Y_273_280.avi', 'u9E9HpuJQ7U_29_43.avi', 'ht2oIYBSoI0_9_21.avi', 'pRpeEdMmmQ0_65_70.avi', 'mbesJaS6vwg_187_195.avi', 'ulPvRmNfXK4_96_100.avi', 'gCra4qOrjFw_1_17.avi', 'xgIIcPSh4EU_0_6.avi', 'haJn6k5zVnE_1_23.avi', 'qeKX-N1nKiM_52_59.avi', 'v7NpKUVqjpI_23_40.avi', 'q-a6NEotUX8_5_10.avi', 'nYwbAb0QvBE_195_210.avi', 'nb12bAaKzvA_0_10.avi', 'gHyXstpe_N8_95_100.avi', 'nCtZFOYAlvQ_44_49.avi', 'xxHx6s_DbUo_216_222.avi', 'xtbsD3PUua4_174_185.avi', 'nq4hG6qgyPs_184_195.avi', 'r2oI9Y-3wAo_21_28.avi', 'kEGmZDpZ_RE_248_293.avi', 'uZEGu-TA2cU_42_58.avi', 'qew09qQgMAg_22_27.avi', 'zYcY4mjLpxU_104_118.avi', 'xpOYXbMDDBY_1_20.avi', 'y8SDRc4IOjs_94_99.avi', 'xBW_uR3kGr4_42_55.avi', 'f_CvW22Eauc_16_23.avi', 'veE0E79dEEc_18_45.avi', 'labytsb3gfI_146_154.avi', 'z9qbQX4J_2g_0_14.avi', 'kquB3rIgfGk_197_202.avi', 'm1NR0uNNs5Y_104_110.avi', 'p6T3XrnYtFk_4_13.avi', 'gbW9f8xydks_0_10.avi', 'r0rmrbTb7fU_98_109.avi', 'tqxRDVKtkSY_30_45.avi', 'w9mqbwOIkVg_6_12.avi', 'nPj6EcVGoUY_7_15.avi', 'r4qv_BNlQNk_93_98.avi', 'oFUsn1owAbs_158_168.avi', 'x1i0UOssll8_141_151.avi', 'm1NR0uNNs5Y_88_94.avi', 'yyxtyCaEVqk_329_360.avi', 'qIk_Dz5XE5E_104_109.avi', 'z0Si1XxMibg_0_30.avi', 'nBFhvrAOFqY_23_29.avi', 'gWRRHV7DLV0_21_31.avi', 'yg4aNiO1JnI_111_114.avi', 'uAaWVeaYLdQ_1_12.avi', 'otvx5OZHTJc_1_22.avi', 'yPNFVj-pISU_105_115.avi', 'kWLNZzuo3do_228_232.avi', 'i2sRHf9m5KM_28_42.avi', 'kI6MWZrl8v8_149_161.avi', 'kKGehSw5ht8_39_45.avi', 'g8LUhxR-6Wg_0_8.avi', 'xlPyHMkpaQY_1_7.avi', 'nwk4m329bLw_2_10.avi', 'otLEUwHao_E_140_151.avi', 'ficwZQYmRLE_5_20.avi', 'tIMDKdMnNYM_266_273.avi', 'jfrrO5K_vKM_55_65.avi', 'fF89MasBFLw_321_326.avi', 'jPBxl9gFqNY_110_117.avi', 'kZfBt5me3Pg_2_7.avi', 'r4qv_BNlQNk_119_124.avi', 'nLvX-erABqY_67_72.avi', 'iUYWdCxvJCI_2_14.avi', 'qvSxiVV7jhw_0_15.avi', 'yOnRm3TP6hM_0_12.avi', 'kWLNZzuo3do_154_165.avi', 'qvg9eM4Hmzk_1_9.avi', 'ub-aYLzCF_Q_1_10.avi', 'gvVsgOK1iJw_32_38.avi', 'j4dMnAPZu70_12_17.avi', 'nV3Wv8iHp4U_0_38.avi', 'sRKQfxxEP4M_117_125.avi', 'giLxPCgLLqg_9_19.avi', 'hReROJQpSow_24_30.avi', 'jjl2ZMdFCsw_130_142.avi', 'kWLNZzuo3do_76_80.avi', 'vub04F8CWng_32_41.avi', 'po2tcrG6KzM_2_8.avi', 'kWLNZzuo3do_152_164.avi', 'ljGcQocjSs4_38_60.avi', 'kWLNZzuo3do_147_153.avi', 'gbbRwBZuhzI_26_40.avi', 'onW5hJXnI5s_126_133.avi', 'p3J3TAdKAYQ_0_10.avi', 'xb-Nacm-pKc_78_82.avi', 'zxB4dFJhHR8_1_9.avi', 'ok4cM6WTA5E_120_133.avi', 'jdAbpLooDgM_10_15.avi', 'zS50h-a8RTg_3_9.avi', 'fBA_lxUiwSg_2_4.avi', 'omIPdpxg--4_39_46.avi', 'qBFSt85-xqk_15_20.avi', 'pfQPRXcihkI_160_184.avi', 'q6vz80UkVtw_0_7.avi', 'kWLNZzuo3do_262_270.avi', 'tmAX2PnRCY0_284_292.avi', 'fnpp8v9NbmY_181_188.avi', 'xxHx6s_DbUo_41_44.avi', 'hJFBXHtxKIc_286_291.avi', 'sBjr8UJOpsQ_149_169.avi', 'uO7Eysrs8_k_80_90.avi', 'kBjUDCyDCuI_20_26.avi', 'pGCRurvXQGM_45_56.avi', 'pGsU4FekJQM_10_18.avi', 'wsj_dzz33Ko_31_41.avi', 'pqTWUzehCUM_42_47.avi', 'hW8TKz2Aea4_5_12.avi', 'kk3TIio1-Uw_5_14.avi', 'hbE29pZh76I_3_8.avi', 'fIaLVw_Gc_w_99_109.avi', 'nBJV56WUDng_38_47.avi', 'm1NR0uNNs5Y_192_198.avi', 'tZmDWltBziM_70_80.avi', 'zBrC1GmA0Qg_26_33.avi', 'm7x8uIdg2XU_67_73.avi', 'fkONJEgTNJY_25_35.avi', 'zulPFoY64wE_26_33.avi', 'kWLNZzuo3do_17_23.avi', 'tn1d5DmdMqY_15_28.avi', 'w28TljSqtW8_64_75.avi', 'nTasT5h0LEg_40_43.avi', 'q5ZRMvjzhXQ_15_29.avi', 'xTd_IdIcB4s_2_10.avi', 'tcxhOGyrCtI_15_21.avi', 'omGWjiwxcTE_18_23.avi', 'suj4VNfZz5E_33_50.avi', 'puineN1UMto_25_29.avi', 's6QwbmWbSmw_18_24.avi', 'jTaLGh_MKCM_5_20.avi', 'j1Z890_Q3so_131_138.avi', 'nTUONeDqhdk_10_15.avi', 'psXeA8sSYdI_25_30.avi', 'ruNrdmjcNTc_0_5.avi', 'qeKX-N1nKiM_0_5.avi', 'hJFBXHtxKIc_225_230.avi', 'ngHDYzhDBk4_24_29.avi', 'hPyU5KjpWVc_0_35.avi', 'qeKX-N1nKiM_74_77.avi', 'urXDqw3S34I_12_17.avi', 'sJC7E06IBXI_49_59.avi', 'wON-YuA1GjA_3_63.avi', 'fX5G_JwPlLo_640_660.avi', 'qNjeEx92rTA_281_299.avi', 'sZf3VDsdDPM_107_114.avi', 'j7xz1nos-xc_10_20.avi', 'tHLiYTS9Iz8_1_16.avi', 'fMXfphSi6Yw_7_12.avi', 'kWLNZzuo3do_192_196.avi', 'nohvigNMsbo_199_207.avi', 'uJPupV4oLZ0_4_12.avi', 'pW9DFPqoIsI_26_50.avi', 'zSPBC8EO6dY_64_73.avi', 'fr9H1WLcF1A_141_148.avi', 'fw8qvK67jYY_50_97.avi', 'n_Z0-giaspE_62_78.avi', 'n2NLoLNecgI_168_178.avi', 'zSPBC8EO6dY_97_110.avi', 'zhLcONtNkew_16_21.avi', 'gXVaC3gBWbc_22_30.avi', 'jD4o_Lmy6bU_117_137.avi', 'nq4hG6qgyPs_240_251.avi', 'ufFT2BWh3BQ_0_8.avi', 'wgrrQwLdME8_0_10.avi', 'fr9H1WLcF1A_326_336.avi', 'ybVb3t560oY_0_9.avi', 'lo4KcsBN--A_0_10.avi', 'ggic669elLM_200_215.avi', 's9TklvyLFyI_177_191.avi', 'qqYysi3qotc_148_195.avi', 'm4D72WXFd8s_557_564.avi', 'pptYu3YQnxY_160_170.avi', 'onW5hJXnI5s_10_16.avi', 'z2kUc8wp9l8_40_46.avi', 'fY0lZTWlBAg_470_485.avi', 'nc8hwLaOyZU_1_19.avi', 't3VPeyYL-fI_35_39.avi', 'ymC2bNi6-Is_9_19.avi', 'x_8RiVI6rH8_41_54.avi', 'r0E-0ntoNWo_20_30.avi', 'hNECyt6Bo0A_5_10.avi', 'urNX3e1Wbc8_30_38.avi', 'm1c04pCYGxA_57_64.avi', 't4vP-cXXWkY_14_20.avi', 'pfQPRXcihkI_135_144.avi', 'tBj4Ny19vfQ_54_59.avi', 'tZmDWltBziM_42_47.avi', 'hJFBXHtxKIc_118_123.avi', 'fMFvOgb4k6E_35_43.avi', 'rw9h_574HxE_229_236.avi', 'yfMTsYcLt10_0_7.avi', 'zr9OeyfLPPY_4_9.avi', 'toE0QYZzJKE_1_8.avi', 'uiLr9bdOL0M_23_30.avi', 'xxHx6s_DbUo_82_86.avi', 'ywHBKayhyvQ_19_28.avi', 's-XjRDsYuzU_0_12.avi', 'kWLNZzuo3do_206_213.avi', 'oRBgVOiZVsc_16_22.avi', 'lfGlDg47How_93_98.avi', 'gtixLEvO2Us_0_6.avi', 'h0JvF9vpqx8_213_223.avi', 'qeKX-N1nKiM_106_115.avi', 'yYA7YXIKbg4_9_14.avi', 'nd0ToNwccl4_12_17.avi', 'ifS2nXfCyYo_4_34.avi', 'zYcY4mjLpxU_45_55.avi', 'iyAoiWeD53k_120_127.avi', 's1ZABV7AQdA_38_48.avi', 'g1Gldu1KS44_8_14.avi', 'hJFBXHtxKIc_298_303.avi', 'yC4eEuURH8c_19_28.avi', 'muI1BFsdbdo_33_45.avi', 'lmCrIZeob4w_23_26.avi', 'xXlWsBhFvis_6_10.avi', 'xxHx6s_DbUo_182_186.avi', 'nrZyPuRd5pU_85_92.avi', 'xxHx6s_DbUo_162_165.avi', 'wkgGxsuNVSg_34_41.avi', 'oG6LLGi_n48_51_55.avi', 'xtbsD3PUua4_84_94.avi', 'rwHT2SuNOi8_195_201.avi', 'kWLNZzuo3do_145_151.avi', 'mmSQTI6gMNQ_120_128.avi', 'vMoOpQQy6sI_22_55.avi', 'f9Won2JpOEU_60_80.avi', 'yAD_TS5L2d4_4_11.avi', 'fjDvKHkmxs0_72_87.avi', 'zWVQImPY2Cc_27_44.avi', 'gGDtPJzh_0s_30_45.avi', 'klFyrnrUSck_42_46.avi', 'm1NR0uNNs5Y_123_129.avi', 'p69Q8lTkZTc_21_29.avi', 'nhm_APPwhWk_6_12.avi', 'n_Z0-giaspE_270_278.avi', 's80J2dAUUyI_33_43.avi', 'vloe_60s_dk_0_9.avi', 'p9g06ktIkJg_4_11.avi', 'pDvzOLRLjPc_0_8.avi', 'hJFBXHtxKIc_310_315.avi', 'f-24IxG9ijw_25_40.avi', 'x_7BrCQdVUs_172_177.avi', 'iuqVpMdb1NM_35_43.avi', 'oSnYUfCGiCA_7_17.avi', 'wjH72cZ0GLM_1_10.avi', 'h0JvF9vpqx8_36_42.avi', 'rOic25PnIx8_1_3.avi', 'q3I3R_gqy8M_73_79.avi', 'xaPepCVepCg_35_46.avi', 'i3fd4nE8OCI_174_181.avi', 'xxHx6s_DbUo_36_40.avi', 'ogcqFaNbah4_475_487.avi', 'rlQ2kW-FvMk_66_79.avi', 'o2X6UCaNqKA_27_36.avi', 'nULE40HEWpA_5_11.avi', 'l5JJ2n2ggiQ_319_327.avi', 'gyOVZz7kXyM_1_10.avi', 'klFyrnrUSck_87_100.avi', 'ok4cM6WTA5E_178_184.avi', 'ok4cM6WTA5E_142_150.avi', 'xxHx6s_DbUo_121_128.avi', 'jjl2ZMdFCsw_17_35.avi', 'z1PEyzk4ADU_8_18.avi', 'zuYZ5kPatJE_78_116.avi', 'z8dcUzdi2bw_3_16.avi', 'hNOzHvsEmg4_31_36.avi', 'n6U-TGahwvs_100_110.avi', 'pQYEZTwSVbQ_12_18.avi', 'tJHUH9tpqPg_113_118.avi', 'zkTn5Ef1Oig_70_75.avi', 'xdhLQCYQ-nQ_50_63.avi', 'lFyPUgJCmtU_100_110.avi', 'qeKX-N1nKiM_123_130.avi', 'kEGmZDpZ_RE_352_370.avi', 'qPXynwa_2iM_15_25.avi', 'hoinj6vyQ2g_8_16.avi', 'uH8ObB_dyOk_159_166.avi', 'nau1vCzyFQ4_37_54.avi', 'sMscRb9TcQE_146_161.avi', 'zlS1_zBYluY_15_21.avi', 'shPymuahrsc_5_12.avi', 'zFIn8DeV5PM_20_33.avi', 'jMO3jGQeqyk_3_6.avi', 'lsanQj2yacs_102_108.avi', 'm1NR0uNNs5Y_73_78.avi', 'vulNlhUI6m0_7_27.avi', 'inLBPVG8oEU_18_24.avi', 'rVFJzN20jhQ_27_32.avi', 'msCidKHOh74_410_418.avi', 'i2GgBwlwV0c_24_31.avi', 'lm0z7eLsbbw_9_23.avi', 'k-SWy-sU8cE_5_10.avi', 'jmoT2we_rqo_0_5.avi', 'jCplbayVbtw_28_38.avi', 'uxEhH6MPH28_69_85.avi', 'xxHx6s_DbUo_98_101.avi', 'fHfpMUDrQCs_17_31.avi', 'jv-eV6jR3Qw_7_12.avi', 'kRNHJSc4AXE_220_228.avi', 'qzQzooI4BqU_5_15.avi', 'iEW-EkPQywU_61_83.avi', 'yyxtyCaEVqk_250_264.avi', 'yREFkmrrYiw_51_57.avi', 'xOQn1z_oWDY_30_39.avi', 't4aPGtx7e6k_0_10.avi', 'nS6oQxX_Qi8_2_12.avi', 'm1NR0uNNs5Y_224_230.avi', 'kWLNZzuo3do_217_222.avi', 'pRpeEdMmmQ0_1_18.avi', 'v_tGw5gwlEw_136_152.avi', 'sWqi41wyXcQ_68_79.avi', 'kWLNZzuo3do_56_62.avi', 'gtIz1u8g1F0_3_13.avi', 'kWLNZzuo3do_251_260.avi', 'ruoHOXo2PRQ_2_20.avi', 'i3cHNObcEh8_0_10.avi', 'io2dbV-Qbus_215_247.avi', 'xkNDE1JL6Z8_50_59.avi', 'fr9H1WLcF1A_256_261.avi', 'seTkGZlEU64_81_110.avi', 'tYh4iDFgmEE_50_54.avi', 'mOZkcBcWR8o_6_12.avi', 'nBFhvrAOFqY_89_103.avi', 'pUPKsHTDZTo_70_85.avi', 'q7pOFn8s4zc_27_36.avi', 'k5OKBX2e7xA_19_32.avi', 'lB1UPJ4leqs_1_6.avi', 'mCrRHP4LFmo_24_40.avi', 'ggWzbEFC-RE_1_11.avi', 'iwpnUHFhjWc_9_14.avi', 'wgrrQwLdME8_66_74.avi', 'xxHx6s_DbUo_57_61.avi', 'rw9h_574HxE_127_133.avi', 'jcIrD7rNvTM_10_21.avi', 'qeKX-N1nKiM_133_142.avi', 'oeaVXK2GAyc_4_21.avi', 'nZSFn51l3hc_318_326.avi', 'o4OsYxsNGMI_77_82.avi', 'xBePrplM4OA_6_18.avi', 'xEDCfcMZlZY_91_100.avi', 'ptHkvYrH9fY_2_10.avi', 'jDFn-1lXJ98_71_80.avi', 'qDjtN7xxNr4_44_51.avi', 'krAk8WPZRL4_207_212.avi', 'jI58q6rcNLc_8_18.avi', 'zkTn5Ef1Oig_71_75.avi', 'xfRIRSWy0y0_10_20.avi', 'rnawC5C8gSI_82_90.avi', 'iCiGjZEV7VI_65_75.avi', 'yyxtyCaEVqk_321_328.avi', 'pNelR-nHz7g_68_90.avi', 'pdrBPJYfTC8_33_39.avi', 'xxHx6s_DbUo_158_161.avi', 'p69d3UBdpR8_98_109.avi', 'hEOGZoYSvT4_82_86.avi', 'pzq5fPfsPZg_51_57.avi', 'pFSoWsocv0g_8_17.avi', 'g2IYQq7IkXc_23_32.avi', 'u9prcUCHlqM_503_511.avi', 'kWLNZzuo3do_38_42.avi', 'yvfhk1kwKls_103_113.avi', 'kWLNZzuo3do_24_31.avi', 'idRc_KkInds_0_6.avi', 'rw9h_574HxE_161_166.avi', 'izU1dDwnuMY_80_92.avi', 'gHyXstpe_N8_116_125.avi', 'p6cg2jWI34M_34_42.avi', 'mF6ijhSrbBQ_32_40.avi', 'pcjuCotJYj8_50_62.avi', 'zbAk0gX7kas_16_24.avi', 'z_qf7tOnHVg_81_89.avi', 'rV5VmhY3-Sw_65_76.avi', 'j2Dhf-xFUxU_13_20.avi', 'xxHx6s_DbUo_173_177.avi', 'o4pL7FObqds_243_263.avi', 'hWhKdXcqYeU_3_12.avi', 'zfQOH4UGU_I_1_10.avi', 'glrijRGnmc0_211_215.avi', 'kBMsuhDvg88_45_64.avi', 'mZVPkPqwzR4_38_45.avi', 'fjDvKHkmxs0_119_126.avi', 'lcu-DwrnYY8_2_5.avi', 'yU5sxW9bErQ_0_17.avi', 'sv5YlZspb30_10_20.avi', 'sT5Bzt9w354_11_34.avi', 'j4dMnAPZu70_11_18.avi', 'yBK02O1Oewc_20_35.avi', 'ge7OOILJA6U_20_25.avi', 'ysTmUTQ5wZE_17_45.avi', 'k06Ge9ANKM8_5_16.avi', 'wSwwS_0MKEc_68_78.avi', 'wn9rDTZj-m4_8_18.avi', 'jbzaMtPYtl8_48_58.avi', 'kzyFBlNRohs_82_88.avi', 'rXZy-PHtnxg_8_42.avi', 'oDcd2JbOyzg_38_55.avi', 'x68Djm_Q0GA_0_10.avi', 'jvxUeT1Nlb8_100_115.avi', 'qIXs7fUoLIg_1_11.avi', 'qvg9eM4Hmzk_4_10.avi', 'iarsmqA3dck_19_25.avi', 'hJuqBDw_TT4_105_112.avi', 'nZSFn51l3hc_660_666.avi', 'kWLNZzuo3do_86_93.avi', 'kWLNZzuo3do_167_181.avi', 'jlahRlo4jlU_30_36.avi', 'kquB3rIgfGk_640_645.avi', 'mfJjIOfj6D8_3_10.avi', 'o4pL7FObqds_137_147.avi', 'rKF0ZW34FRk_41_54.avi', 'uppFvcVwqqY_5_15.avi', 'vuvpbeQak9Q_23_29.avi', 'jxdubZzQrio_33_46.avi', 'gjVBEJGHrXk_26_38.avi', 'lvFYUmDSOvU_34_38.avi', 'tYh4iDFgmEE_10_14.avi', 'jsEUFYhiqxU_121_128.avi', 'kJY5BRCNAs4_3_6.avi', 'qLwgb3F0aPU_298_305.avi', 'swKrHEeOj9c_4_8.avi', 'jcRCn7MeSbo_71_82.avi', 'itxzpFW1z7E_22_36.avi', 'kWLNZzuo3do_25_32.avi', 'gHzws6FpuNE_10_12.avi', 'hxZ-5wELSJM_0_12.avi', 'zCf8NWJ8kzA_47_52.avi', 'lfGlDg47How_110_115.avi', 'v5CeGLEnVFE_0_8.avi', 'swJ0zhVJ8DU_15_21.avi', 'g9aZcaEg7iY_0_9.avi', 'htWPOGTagec_2_18.avi', 'kquB3rIgfGk_525_532.avi', 'nHZsE7T7hwI_13_23.avi', 'tn-Hoz4KbkE_89_93.avi', 'vfktGc_qx-w_2_18.avi', 'iwpnUHFhjWc_84_94.avi', 'rNSAmHPYHjA_60_73.avi', 'nLz0QuerH1c_8_15.avi', 'tzd3AYTZq0U_0_6.avi', 'lexLAjh8fPA_27_31.avi', 'vpR0L3sIvoo_15_49.avi', 'uB9zRlV47qA_17_23.avi', 'v7iIZXtpIb8_5_15.avi', 'yd8jh9QYfEs_4_10.avi', 'zTn-nNj5Bng_61_77.avi', 'kWLNZzuo3do_31_37.avi', 'uGDuIyfJXXg_23_33.avi', 'k9Brw_0gncU_14_33.avi', 'j2Dhf-xFUxU_20_29.avi', 'gqSOvUH_njE_151_155.avi', 'lKADopH3qFY_0_10.avi', 'oDcd2JbOyzg_85_98.avi', 'o_mWZWcm2r4_47_54.avi', 's_ldnx8_etY_32_54.avi', 'kWLNZzuo3do_48_53.avi', 's-QQWRdF-5Y_19_28.avi', 'vz71JKcpeUU_0_10.avi', 'rw9h_574HxE_70_74.avi', 's20OlIRK340_147_174.avi', 'zzit5b_-ukg_5_20.avi', 'l57mQZvDaL4_10_30.avi', 'qOiN__I1-Zo_2_8.avi', 'v-9Gx0gJmfo_91_99.avi', 'uqVCk2oDpSE_194_200.avi', 'x8Ul09tk6zk_0_8.avi', 'sXyjCgR0rAc_0_11.avi', 'q8t7iSGAKik_11_31.avi', 'n016q1w8Q30_2_11.avi', 'j2sOMdilDWU_87_97.avi', 'tPkZK-PzeQE_10_28.avi', 't8Nf1MK7lts_0_10.avi', 'rw9h_574HxE_13_18.avi', 'idXJu0BQRvo_2_6.avi', 'mYzajpeAWuA_100_112.avi', 'kNHivduxQWg_0_14.avi', 'tYQ7O6V0Fvk_20_55.avi', 'gbUhorqLCzU_10_23.avi', 'lw7pTwpx0K0_38_48.avi', 'hJFBXHtxKIc_317_322.avi', 'qhknaG9ifbs_122_127.avi', 'qypmR4O1Gwk_0_10.avi', 'wpUT0DNB3qs_9_19.avi', 'f_GnkweYzzI_35_41.avi', 'q3I3R_gqy8M_38_42.avi', 'gnEE6oWoz7U_124_132.avi', 'lv8d_qLLqsk_1_20.avi', 'v-9Gx0gJmfo_26_32.avi', 'fgWFxFg7-GU_10_26.avi', 'fqly5kyO2MI_10_20.avi', 'mFCf8lLXrUc_36_57.avi', 'ul9Xvjt83eI_111_120.avi', 'fJr2evLANsE_0_10.avi', 'mJ9eRvxjLc4_0_16.avi', 'wNv74rvkAw8_30_40.avi', 'hkkmKk9LcQk_36_43.avi', 'eyhzdC936uk_15_27.avi', 'hcCLIzzB1jQ_1_7.avi', 'msCidKHOh74_392_399.avi', 'hJuqBDw_TT4_14_25.avi', 'vE1gvaM3iAs_39_46.avi', 'zHy7pM0U49w_110_116.avi', 'qeKX-N1nKiM_37_43.avi', 'zHy7pM0U49w_103_109.avi', 'iTA0rWPE4nY_17_23.avi', 's7znbqra118_91_97.avi', 'iLr7ZHAq1ro_7_11.avi', 'rl1rVk_xIOs_1_16.avi', 'jTnrm338_KY_34_42.avi', 'u9prcUCHlqM_73_80.avi', 'umjc1CkO4JA_290_305.avi', 'q7pOFn8s4zc_263_273.avi', 'kWLNZzuo3do_77_83.avi', 'lb8J2zCQTlo_3_8.avi', 'wzfkC2TjdeQ_0_31.avi', 'yId1rg5-ac0_40_50.avi', 'ibSwITK4jjQ_14_24.avi', 'hNPZmTlY_3Q_0_8.avi', 'hFERWnoc-nU_0_12.avi', 'kWLNZzuo3do_38_47.avi', 'jLgmCY1fEE8_16_26.avi', 'q3I3R_gqy8M_34_37.avi', 's8utHZYTNTs_35_42.avi', 'sTMlQSbAGfE_0_12.avi', 'yFPHhRat6bc_160_210.avi', 'zH4v_DClIoc_3_28.avi', 'sFExO_PW22s_10_18.avi', 'zv2RIbUsnSw_159_162.avi', 'ry7AUQtuwdU_4_39.avi', 'z0zb--BOhDY_16_22.avi', 'ngHDYzhDBk4_5_14.avi', 'qeKX-N1nKiM_68_72.avi', 'sBjr8UJOpsQ_181_195.avi', 'nZSFn51l3hc_480_485.avi', 'yNy9jTeolUk_8_12.avi', 'fKqBnl8D1Qo_5_44.avi', 'klFyrnrUSck_13_19.avi', 's-dSFyz_5Ww_31_41.avi', 'rw9h_574HxE_251_254.avi', 'xGdoi3W3Z4o_2_40.avi', 'lsanQj2yacs_80_85.avi', 's20OlIRK340_125_138.avi', 'lGk1MA6YP-M_36_48.avi', 'xSmfK498DjI_1_20.avi', 'u4kMN1jamdM_10_20.avi', 'gIvetX_oXeI_85_90.avi', 'wFX6bXLbHW4_83_90.avi', 'fd7Ky1lEPT8_40_50.avi', 'nTasT5h0LEg_12_14.avi', 'nq4hG6qgyPs_370_377.avi', 'lSnWhsmlGec_5_10.avi', 'mv89psg6zh4_33_46.avi', 'sb1dX5xAFvk_10_17.avi', 'xEDCfcMZlZY_37_41.avi', 'wLUH7qA_6sA_90_115.avi', 'hJFBXHtxKIc_163_168.avi', 'hJFBXHtxKIc_204_209.avi', 'fcvW1vr8hAs_96_102.avi', 'hksxtbcS780_7_14.avi', 'klteYv1Uv9A_27_33.avi', 'ri5AyXzxb4o_201_215.avi', 'g2IYQq7IkXc_124_132.avi', 'pfQPRXcihkI_127_138.avi', 'xxHx6s_DbUo_202_207.avi', 'zMg9dChF97A_12_38.avi', 'ywMLb2VfHbI_13_20.avi', 'm1NR0uNNs5Y_160_166.avi', 'n_Z0-giaspE_168_193.avi', 's-dSFyz_5Ww_13_23.avi', 'hW8TKz2Aea4_40_50.avi', 'mmSQTI6gMNQ_15_21.avi', 'onxE6PpEXes_8_25.avi', 'uO7Eysrs8_k_106_114.avi', 'za-9mBZyNfQ_330_336.avi', 'p7IAuvd87hQ_12_19.avi', 'lfGlDg47How_361_367.avi', 'zpgW7m7_LZw_2_15.avi', 'xxHx6s_DbUo_32_36.avi', 'u_6tre9_99Q_13_25.avi', 'pzq5fPfsPZg_145_160.avi', 'r2PM0om2El8_18_25.avi', 'mFCf8lLXrUc_25_35.avi', 'oBt257I-pL0_0_10.avi', 'klFyrnrUSck_63_73.avi', 'rw9h_574HxE_59_66.avi', 'u4T76jsPin0_0_11.avi', 'jZ8X8e7eRVk_24_27.avi', 'klFyrnrUSck_25_36.avi', 'wFPmKChNrhU_3_11.avi', 'k4hhWYtaQ14_0_10.avi', 'nc0fVlaTYEs_34_44.avi', 'wX-Bl25Htag_104_115.avi', 'lKpGc3SCSVw_12_20.avi', 'htry5uxX0-Y_45_52.avi', 'fvBs0xpEZhQ_10_30.avi', 'kIZanu909lw_67_80.avi', 'xy9LLUUZ6ic_50_60.avi', 'fVWUaH2mCt4_1_7.avi', 'rq2p5ML8-WI_63_69.avi', 'kEGmZDpZ_RE_295_330.avi', 'lR8RrUBhCQg_5_15.avi', 'xCFCXzDUGjY_5_9.avi', 'k8l4ETsylVY_9_18.avi', 'me1D1WZ0yNM_120_124.avi', 'mtrCf667KDk_134_176.avi', 'rwHT2SuNOi8_240_255.avi', 'uy0HNWto0UY_18_25.avi', 'rQuNYxNmA6M_0_4.avi', 'q8t7iSGAKik_57_74.avi', 'zSPBC8EO6dY_122_126.avi', 'klFyrnrUSck_79_85.avi', 'mHv4iJ9Yr1g_10_16.avi', 'gqxpGOHUH9k_113_119.avi', 'jW77z3-SrO4_56_63.avi', 'sJSmRik2c-c_1_7.avi', 'nlU3crMsbWI_19_23.avi', 'kquB3rIgfGk_537_544.avi', 'inzk2fTUe1w_1_15.avi', 'lB1UPJ4leqs_0_6.avi', 'vZa13vJugGU_0_30.avi']
+
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  save_freq: -1 # save epoch every xxx epochs -1 only save last and best. 
+  val_freq: 1

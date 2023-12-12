@@ -1,0 +1,34 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  capfilt14m_instruct: # 13873136
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+        train:
+          name: "clip_image_train"
+          image_size: 224
+
+    text_processor:
+        train:
+          name: blip_instruction
+          modality: image
+          task: caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/capfilt14m/annotation.json
+            # - /export/share/datasets/vision_language/capfilt_14m_new/annotation.json
+          storage: 
+            - capfilt14m/annotations/annotation.json
+            # - /export/share/datasets/vision_language/capfilt_14m_new/annotation.json
+
+      images:
+        storage: /export/share/datasets/vision/coco/images

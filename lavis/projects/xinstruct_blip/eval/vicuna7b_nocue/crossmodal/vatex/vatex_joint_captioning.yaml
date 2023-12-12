@@ -1,0 +1,183 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip2_vicuna_xinstruct
+  model_type: vicuna7b
+  load_pretrained: True
+  pretrained: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/video_qformer.pth
+  load_finetuned: False
+  finetuned: ""
+  stage1_url_or_filename: null
+  image_model: "eva_clip_g"
+  pc_model: "ulip2_pointbert"
+  video_model: "eva_clip_g"
+  audio_model: "beats"
+  pretrained_image_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/image_qformer.pth
+  pretrained_pc_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/pc_qformer.pth
+  pretrained_video_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/video_qformer.pth
+  pretrained_audio_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b_nocue/audio_qformer.pth
+  load_attention_image_qformer: True
+  load_attention_pc_qformer: True
+  load_attention_video_qformer: True
+  load_attention_audio_qformer: True
+  load_ln_type_image: "image"
+  load_ln_type_video: "video"
+  load_ln_type_pc: "pc"
+  load_ln_type_audio: "audio"
+  load_qformer_type_image: "image"
+  load_qformer_type_pc: "pc"
+  load_qformer_type_video: "video"
+  load_qformer_type_audio: "audio"
+  load_projection_image: True
+  load_projection_pc: True
+  load_projection_video: True
+  load_projection_audio: True
+  load_projection_type_image: "image"
+  load_projection_type_pc: "pc"
+  load_projection_type_video: "video"
+  load_projection_type_audio: "audio"
+  image_encoder_kwargs :  {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  pc_encoder_kwargs :  {}
+  video_encoder_kwargs :   {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  audio_encoder_kwargs :  {}
+  image_precision: "fp16"
+  pc_precision: "fp16"
+  video_precision: "fp16"
+  audio_precision: "fp16"
+  freeze_image: True
+  freeze_pc: True
+  freeze_video: True
+  freeze_audio: True
+  num_query_token: 32
+  llm_model: /path/to/vicuna-7b
+  prompt: "a short description"
+  max_txt_len: 128
+  max_output_txt_len: 256
+  apply_lemmatizer: False
+  num_few_shot_examples: 0
+  few_shot_prob: 0
+  qformer_text_input: True
+  llm_text_input: True
+  modalities :  ["audio", "video"]
+  use_cues: False
+  shared_qformer: False
+  pretrained_shared_qformer: Null
+  load_attention_shared_qformer: False
+  load_qformer_type_shared: ""
+  load_projection_shared: False
+  load_projection_type_shaped: ""
+  load_ln_type_shared: ""
+  shared_qformer_num_features: 512
+  prefix: ""
+  postfix: ""
+  predict_with_gen: False
+
+datasets:
+ vatex_caption: # name of the dataset builder
+    data_type: [video, audio]
+
+    video_processor:
+        train:
+          name: alpro_video_train
+          n_frms: 5
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+        eval:
+          name: alpro_video_eval
+          n_frms: 5
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+    
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          is_eval: False
+    
+    text_processor:
+        train:
+          name: blip_caption
+        eval:
+          name: blip_caption
+      
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vatex/cap_train.json
+          storage: 
+            - vatex/annotations/cap_train.json
+        val:
+          url: 
+            - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vatex/cap_val.json
+          storage: 
+            - vatex/annotations/cap_val.json
+        test:
+          url: 
+            - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vatex/cap_private_test.json
+          storage: 
+            - vatex/annotations/cap_test.json
+
+      video:
+        storage: /export/video-language-dataset/data/vatex/
+
+      audio:
+        storage: /export/video-language-dataset/data/vatex/
+
+
+
+
+run:
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 1
+  batch_size_train: 16
+  batch_size_eval: 1
+  num_workers: 8
+  accum_grad_iters: 1
+
+  max_len: 80
+  min_len: 10
+  num_beams: 5
+  inference_method: "generate"
+  prompt: "a short description"
+  length_penalty: 1.
+
+
+  seed: 42
+  output_dir: "output/xinstructblip/eval/vicuna7b/video/vatex_joint_captioning/"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate: True
+  # train_splits: ["train"]
+  valid_splits: ["val"]
+  # load_gt_from_file: vatex/annotations/cap_val.json
+
+  # annotation_file: /export/home/.cache/lavis/vatex_caption_gt/vatex_caption_val_annotations.json
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  save_freq: -1 # save epoch every xxx epochs -1 only save last and best. 
+  val_freq: 1

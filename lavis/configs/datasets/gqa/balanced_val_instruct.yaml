@@ -1,0 +1,47 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  gqa_instruct:
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+    
+    text_processor:
+      train:
+        name: blip_instruction
+        task: qa
+        modality: image
+      eval:
+        name: blip_question
+
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/gqa/train_balanced_questions.json
+          storage:
+              - gqa/annotations/train_balanced_questions.json
+        val:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/gqa/val_balanced_questions.json
+          storage:
+              - gqa/annotations/val_balanced_questions.json
+        test:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/gqa/test_balanced_questions.json
+          storage:
+              - gqa/annotations/test_balanced_questions.json
+      images:
+          storage: /export/share/datasets/vision/GQA/images #gqa/images/

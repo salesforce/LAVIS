@@ -8,6 +8,7 @@
 import json
 import os
 import logging
+import inspect
 
 import numpy as np
 import torch
@@ -18,33 +19,82 @@ from lavis.tasks.base_task import BaseTask
 
 @registry.register_task("multimodal_classification")
 class MultimodalClassificationTask(BaseTask):
-    def __init__(self):
+    def __init__(self,
+                 max_len,
+                 min_len,
+                 length_penalty,
+                 segments):
         super().__init__()
+        self.max_len = max_len
+        self.min_len = min_len
+        self.length_penalty = length_penalty
+        self.segments = segments
+    
+    
+    @classmethod
+    def setup_task(cls, cfg):
+        run_cfg = cfg.run_cfg
+
+        max_len = run_cfg.get("max_len", 30)
+        min_len = run_cfg.get("min_len", 1)
+        length_penalty = run_cfg.get("length_penalty", -1.)
+        segments = run_cfg.get("segments", 1)
+
+        return cls(
+            max_len=max_len,
+            min_len=min_len,
+            length_penalty=length_penalty,
+            segments=segments
+        )
 
     def valid_step(self, model, samples):
         results = []
 
-        outputs = model.predict(samples)
+        argspec = inspect.getargspec(model.predict)
+        # check if model allows for generation arguments in classification 
+        if all([k in argspec.args for k in ['max_length', "min_length", "length_penalty"]]):
+             outputs = model.predict(samples,
+                                    max_length=self.max_len,
+                                    min_length=self.min_len,
+                                    length_penalty=self.length_penalty,
+                                    )
+        else:
+            outputs = model.predict(samples, n_segments=self.segments)
+        
+        if outputs == None: # missing data
+            return {} 
 
         predictions = outputs["predictions"]
-        targets = outputs["targets"]
 
-        predictions = predictions.max(1)[1].cpu().numpy()
-        targets = targets.cpu().numpy()
+        if isinstance(predictions[0], str):
+            targets = samples["label"]
+            indices = samples[self.inst_id_key]
+            for pred, tgt, index in zip(predictions, targets, indices):
+                results.append(
+                    {
+                        self.inst_id_key: index,
+                        "prediction": pred,
+                        "target": tgt,
+                    }
+                )
+        else:
+            targets = outputs["targets"]
+            predictions = predictions.max(1)[1].cpu().numpy()
+            targets = targets.cpu().numpy()
 
-        indices = samples[self.inst_id_key]
+            indices = samples[self.inst_id_key]
 
-        for pred, tgt, index in zip(predictions, targets, indices):
-            if isinstance(index, torch.Tensor):
-                index = index.item()
+            for pred, tgt, index in zip(predictions, targets, indices):
+                if isinstance(index, torch.Tensor):
+                    index = index.item()
 
-            results.append(
-                {
-                    self.inst_id_key: index,
-                    "prediction": pred.item(),
-                    "target": tgt.item(),
-                }
-            )
+                results.append(
+                    {
+                        self.inst_id_key: index,
+                        "prediction": pred.item(),
+                        "target": tgt.item(),
+                    }
+                )
 
         return results
 

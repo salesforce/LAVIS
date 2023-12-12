@@ -1,0 +1,542 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+model:
+  arch: blip2_vicuna_xinstruct
+  model_type: vicuna13b
+  load_pretrained: True
+  pretrained:  /export/home/LAVIS/lavis/output/new_training/vicuna13b/image/20230915215/checkpoint_880000.pth
+  load_finetuned: False
+  finetuned: ""
+  stage1_url_or_filename: null # https://storage.googleapis.com/sfr-vision-language-research/LAVIS/models/BLIP2/blip2_pretrained.pth
+  image_model: "eva_clip_g"
+  pc_model: "ulip2_pointbert"
+  video_model: "eva_clip_g"
+  audio_model: "beats"
+  pretrained_image_qformer: null
+  pretrained_pc_qformer:  null
+  pretrained_video_qformer: null
+  pretrained_audio_qformer: null
+  load_attention_image_qformer: True
+  load_attention_pc_qformer: False
+  load_attention_video_qformer: False
+  load_attention_audio_qformer: False
+  load_ln_type_image: "image"
+  load_ln_type_video: ""
+  load_ln_type_pc: ""
+  load_ln_type_audio: ""
+  load_qformer_type_image: "image"
+  load_qformer_type_pc: ""
+  load_qformer_type_video: ""
+  load_qformer_type_audio: ""
+  load_projection_image: True
+  load_projection_pc: True
+  load_projection_video: True
+  load_projection_audio: True
+  load_projection_type_image: "image"
+  load_projection_type_pc: ""
+  load_projection_type_video: ""
+  load_projection_type_audio: ""
+  image_encoder_kwargs :  {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  pc_encoder_kwargs :  {}
+  video_encoder_kwargs :   {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  audio_encoder_kwargs :  {}
+  image_precision: "fp16"
+  pc_precision: "fp16"
+  video_precision: "fp16"
+  audio_precision: "fp16"
+  freeze_image: True
+  freeze_pc: True
+  freeze_video: True
+  freeze_audio: True
+  num_query_token: 32
+  llm_model: "/export/home/LAVIS/_pretrained_models/vicuna-13b"
+  prompt:  "describe the image."
+  max_txt_len: 128
+  max_output_txt_len: 256
+  apply_lemmatizer: False
+  num_few_shot_examples: 0
+  few_shot_prob: 0
+  qformer_text_input: True
+  llm_text_input: True
+  modalities :  ["image"]
+  use_cues: True
+  shared_qformer: False
+  pretrained_shared_qformer: Null
+  load_attention_shared_qformer: False
+  load_qformer_type_shared: ""
+  load_projection_shared: False
+  load_projection_type_shaped: ""
+  load_ln_type_shared: ""
+  shared_qformer_num_features: 512
+  prefix: ""
+  postfix: ""
+  predict_with_gen: False
+
+datasets:
+  ## CAPTIONING TASKS
+  conceptual_caption_12m_instruct: # 6029862
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+      
+    text_processor:
+      train:
+        name: blip_instruction
+        task: caption
+        modality: image
+      eval:
+        name: blip_caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              - /export/home/.cache/lavis/clean_cc12m_org.json
+          storage:
+              - /export/home/.cache/lavis/clean_cc12m_org.json
+      images:
+          storage: /export/share/datasets/vision_language/cc12m_resize
+
+  coco_caption_instruct: # 566747 train examples
+    dataset_card: dataset_card/coco_caption.md
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+    
+    text_processor:
+        train:
+          name: blip_instruction
+          modality: image
+          task: caption
+        eval:
+          name: blip_caption
+        
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
+          md5: aa31ac474cf6250ebb81d18348a07ed8
+          storage: coco/annotations/coco_karpathy_train.json
+        val:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
+          md5: b273847456ef5580e33713b1f7de52a0
+          storage:  coco/annotations/coco_karpathy_val.json
+        test:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
+          md5: 3ff34b0ef2db02d01c37399f6a2a6cd1
+          storage: coco/annotations/coco_karpathy_test.json
+      images:
+        storage: /export/share/datasets/vision/coco/images
+
+  capfilt14m_instruct: # 13873136
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+        train:
+          name: "clip_image_train"
+          image_size: 224
+
+    text_processor:
+        train:
+          name: blip_instruction
+          modality: image
+          task: caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - /export/share/datasets/vision_language/capfilt_14m_new/annotation.json
+          storage: 
+            - /export/share/datasets/vision_language/capfilt_14m_new/annotation.json
+      images:
+        storage: /export/share/datasets/vision/coco/images
+  
+  vg_caption_instruct: # 821774
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+    
+    text_processor:
+      train:
+        name: blip_instruction
+        task: caption
+        modality: image
+      eval:
+        name: blip_caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/visual_genome/vg_caption.json
+          storage: vg/annotations/vg_caption.json
+      images:
+        storage: /export/share/datasets/vision/visual-genome/ #vg/images/
+
+  sbu_caption_instruct: # 859739
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+      train:
+        name: blip_instruction
+        modality: image
+        task: caption
+      eval:
+        name: blip_caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/sbu/sbu.json
+              # - /export/share/dongxuli/data/lavis/sbu/annotation/sbu.json
+          storage:
+              - sbu_captions/annotations/sbu.json
+      images:
+          # storage: sbu_captions/images
+          storage: /export/share/datasets/vision_language/sbu_resize
+
+
+  ## QA TASKS
+  vg_vqa_instruct: # 1440069 train examples
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+    
+    text_processor:
+      train:
+        name: blip_instruction
+        task: qa
+        modality: image
+      eval:
+        name: blip_question
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/visual_genome/vg_qa.json
+          storage: vg/annotations/vg_qa.json
+      images:
+        storage: /export/share/datasets/vision/visual-genome/ #vg/images/
+
+  coco_vqa_instruct: # 658104 training data
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+    
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+    
+    text_processor:
+      train:
+        name: blip_instruction
+        modality: image
+        task: qa
+      eval:
+        name: blip_caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_train.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_val.json
+          storage:
+              - coco/annotations/vqa_train.json
+              - coco/annotations/vqa_val.json
+        # val:
+        #   url:
+        #       # TODO make this order insensitive
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_val_eval.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/answer_list.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/v2_OpenEnded_mscoco_val2014_questions.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/v2_mscoco_val2014_annotations.json
+        #   storage:
+        #       - coco/annotations/vqa_val_eval.json
+        #       - coco/annotations/answer_list.json
+        #       - coco/annotations/v2_OpenEnded_mscoco_val2014_questions.json
+        #       - coco/annotations/v2_mscoco_val2014_annotations.json
+        # test:
+        #   url:
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/vqa_test.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/vqav2/answer_list.json
+        #   storage:
+        #       - coco/annotations/vqa_test.json
+        #       - coco/annotations/answer_list.json
+      images:
+          storage: /export/share/datasets/vision/coco/images
+
+  ocr_vqa_instruct: # 1002146 train examples
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+    
+    vis_processor:
+        train:
+          name: "clip_image_train"
+          image_size: 224
+
+    text_processor:
+      train:
+        name: blip_instruction
+        modality: image
+        task: qa
+      eval:
+        name: blip_question
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - /export/video-language-dataset/ocrvqa/ocrvqa.json
+          storage: 
+            - /export/video-language-dataset/ocrvqa/ocrvqa.json
+      images:
+        storage: /export/video-language-dataset/ocrvqa/images/
+
+  ok_vqa_instruct: # 9009
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+      train:
+        name: blip_instruction
+        modality: image
+        task: qa
+      eval:
+        name: blip_question
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              # TODO make this order insensitive
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_train.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/OpenEnded_mscoco_train2014_questions.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/mscoco_train2014_annotations.json
+          storage:
+              - okvqa/annotations/okvqa_train.json
+              # - okvqa/annotations/OpenEnded_mscoco_train2014_questions.json
+              # - okvqa/annotations/mscoco_train2014_annotations.json
+        # test:
+        #   url:
+        #       # TODO make this order insensitive
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_val_eval.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_answer_list_train.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/OpenEnded_mscoco_val2014_questions.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/mscoco_val2014_annotations.json
+        #   storage:
+        #       - okvqa/annotations/vqa_val_eval.json
+        #       - okvqa/annotations/answer_list.json
+        #       - okvqa/annotations/OpenEnded_mscoco_val2014_questions.json
+        #       - okvqa/annotations/mscoco_val2014_annotations.json
+      images:
+          storage: /export/share/datasets/vision/coco/images
+  
+  aok_vqa_instruct: # 17056
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+        train:
+          name: "clip_image_train"
+          image_size: 224
+        eval:
+          name: "clip_image_eval"
+          image_size: 224
+
+    text_processor:
+        train:
+          name: blip_instruction
+          modality: image
+          task: qa
+        eval:
+          name: blip_question
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_train.json
+          storage:
+              - aokvqa/annotations/aokvqa_v1p0_train.json
+        # val:
+        #   url:
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_val.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/specialized_vocab_train.json
+        #   storage:
+        #       - aokvqa/annotations/aokvqa_v1p0_val.json
+        #       - aokvqa/annotations/specialized_vocab_train_lavis.json
+        #       # - aokvqa/annotations/large_vocab_train_lavis.json
+        # test:
+        #   url:
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_test.json
+        #       - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/specialized_vocab_train.json
+        #   storage:
+        #       - aokvqa/annotations/aokvqa_v1p0_test.json
+        #       - aokvqa/annotations/specialized_vocab_train_lavis.json
+      images:
+          storage: /export/share/datasets/vision/coco/images
+
+  ##Dialogue
+  llava150k_dialogue_instruct: #394276 train examples
+
+    data_type: images
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+        train:
+          name: "blip_caption"
+
+    build_info:
+      annotations:
+        train:
+          url: 
+            - https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K/resolve/main/llava_instruct_150k.json
+          storage: 
+            - /export/home/LLaVA-Instruct-150K/lava_instruct_150k.json
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      images:
+        storage: /export/share/datasets/vision/coco/images/train2017
+
+#   laion400M_instruct:
+#     data_type: images
+
+#     vis_processor:
+#       train:
+#         name: "clip_image_train"
+#         image_size: 224
+#       eval:
+#         name: "clip_image_eval"
+#         image_size: 224
+
+    
+#     text_processor:
+#       train:
+#         name: blip_instruction
+#         modality: image
+#         task: caption
+#       eval:
+#         name: blip_caption
+
+#     build_info:
+#       # Be careful not to append minus sign (-) before split to avoid itemizing
+#       storage: /export/laion400m-data-ssd/laion115m_capfilt_20220817/{part0/part0,part1/part1,part2/part2}_node{00..15}_shard{000000..000118}.tar
+# #      storage: /export/laion/laion2B-multi/part-00000/{00000..01743}.tar
+
+
+run:
+  runner: runner_iter
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 40
+  batch_size_train: 2
+  batch_size_eval: 2
+  num_workers: 8
+  accum_grad_iters: 2
+  max_iters: 40000
+  iters_per_inner_epoch: 5000
+  train_dataset_ratios: {"conceptual_caption_12m_instruct": 0.19438459253859763, 
+                         "coco_caption_instruct": 3.0, #0.05959403162103753,
+                         "capfilt14m_instruct": 0.29484615861022884,
+                         "vg_caption_instruct": 0.0717603173049719,
+                         'sbu_caption_instruct': 0.07339922359647665, 
+                         'vg_vqa_instruct': 0.094994793467885, 
+                         'coco_vqa_instruct': 0.06421779912617889,
+                         "ocr_vqa_instruct": 0.07924532498245215,
+                         "ok_vqa_instruct": 0.007513571880526308,
+                         "aok_vqa_instruct": 0.010338243231923557,
+                         'llava150k_dialogue_instruct': 0.049705943639721646,}
+                        #  'laion400M_instruct': 0.1}
+
+  max_len: 80
+  min_len: 1
+  num_beams: 5
+
+  seed: 42
+  output_dir: "output/xinstructblip/train/vicuna13b/image"
+
+  amp: True
+  resume_ckpt_path: null #/export/home/LAVIS/lavis/output/new_training/vicuna13b/image/20230915215/checkpoint_880000.pth (Cuda OOM)
+
+  evaluate: False
+  train_splits: ["train"]
+  # valid_splits: ["val"]
+
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  save_freq: 1 # save epoch every xxx epochs -1 only save last and best. 
+  val_freq: 1

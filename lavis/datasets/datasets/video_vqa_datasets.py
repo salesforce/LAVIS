@@ -61,3 +61,24 @@ class VideoQADataset(MultimodalClassificationDataset, __DisplMixin):
             "question_id": ann["question_id"],
             "instance_id": ann["instance_id"],
         }
+
+class VideoQAInstructDataset(VideoQADataset):
+    def __getitem__(self, index):
+        ann = self.annotation[index]
+
+        vname = ann["video"]
+        vpath = os.path.join(self.vis_root, vname)
+
+        frms = self.vis_processor(vpath)
+        question = self.text_processor(ann["question"])
+
+        return {
+            "video": frms,
+            "text_input": question,
+            "answer": ann["answer"],
+            "text_output": ann["answer"],
+            "question_id": ann["question_id"],
+            "instance_id": ann["instance_id"],
+            ## add weight to use with vqa eval script
+            "weight": [1.]
+        }

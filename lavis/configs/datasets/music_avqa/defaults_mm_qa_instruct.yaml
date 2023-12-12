@@ -1,0 +1,69 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  musicavqa_mm_instruct: # name of the dataset builder
+    data_type: [video, audio]
+
+    video_processor:
+        train:
+          name: alpro_video_train
+          n_frms: 4
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+        eval:
+          name: alpro_video_eval
+          n_frms: 4
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+    
+    text_processor:
+        train:
+          name: blip_instruction
+          task: qa
+          modality: video
+        eval:
+          name: blip_question
+    
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          is_eval: False
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        val:
+          url: 
+            -  https://storage.googleapis.com/sfr-xinstructblip-data-research/data/musicavqa/avqa-val.json 
+            # - /export/video-language-dataset/data/MUSIC-AVQA/data/json/avqa-val.json 
+          storage: 
+            - /musicavqa/annotations/avqa-val.json 
+            # - /export/video-language-dataset/data/MUSIC-AVQA/data/json/avqa-val.json 
+        
+        test:
+          url: 
+            -  https://storage.googleapis.com/sfr-xinstructblip-data-research/data/musicavqa/avqa-test.json 
+            # - /export/video-language-dataset/data/MUSIC-AVQA/data/json/avqa-test.json 
+          storage: 
+            - /musicavqa/annotations/avqa-test.json 
+            # - /export/video-language-dataset/data/MUSIC-AVQA/data/json/avqa-test.json 
+
+      templates: null
+
+      audio:
+        storage: /export/video-language-dataset/data/MUSIC-AVQA/data/MUSIC-AVQA-videos-Real
+
+      video:
+        storage: /export/video-language-dataset/data/MUSIC-AVQA/data/MUSIC-AVQA-videos-Real
+

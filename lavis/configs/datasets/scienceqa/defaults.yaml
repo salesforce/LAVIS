@@ -1,0 +1,51 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  scienceqa:
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+      train:
+        name: blip_question
+      eval:
+        name: blip_question
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      train:
+          url:
+            -  https://storage.googleapis.com/sfr-xinstructblip-data-research/data/scienceqa/problems_train.json
+            # - /export/video-language-dataset/ScienceQA/data/scienceqa/problems_train.json
+          storage:
+            - scienceqa/annotations/problems_train.json
+            # - /export/video-language-dataset/ScienceQA/data/scienceqa/problems_train.json
+        val:
+          url:
+            -  https://storage.googleapis.com/sfr-xinstructblip-data-research/data/scienceqa/problems_val.json
+            # - /export/video-language-dataset/ScienceQA/data/scienceqa/problems_val.json
+          storage:
+            - scienceqa/annotations/problems_val.json
+            # - /export/video-language-dataset/ScienceQA/data/scienceqa/problems_val.json
+        test:
+          url:
+            -  https://storage.googleapis.com/sfr-xinstructblip-data-research/data/scienceqa/problems_test.json
+            # - /export/video-language-dataset/ScienceQA/data/scienceqa/problems_test.json
+          storage:
+            - scienceqa/annotations/problems_test.json
+            # - /export/video-language-dataset/ScienceQA/data/scienceqa/problems_test.json
+
+      images:
+          storage: /export/video-language-dataset/ScienceQA/data/scienceqa/images/
+
