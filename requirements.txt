@@ -1,4 +1,3 @@
-contexttimer
 decord; platform_system != "Darwin" 
 eva-decord; platform_system == "Darwin"
 einops>=0.4.1
