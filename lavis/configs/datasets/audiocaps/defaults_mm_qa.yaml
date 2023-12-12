@@ -1,0 +1,51 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  audiocaps_mm_qa: # name of the dataset builder
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          is_eval: True
+          
+    text_processor:
+        train:
+          name: "blip_instruction"
+          modality: audio
+          task: qa
+        eval:
+          name: "blip_question"
+
+    data_type: [audio] 
+
+    build_info:
+      kwargs:
+        cached: False
+        # add_binary: True
+        cached_dir: /export/einstein-vision/audio_datasets/audiocaps/beats_features
+        missing_ids: [2sh7ZkazyO8, 966jA2-z0mQ, 52RlolYyjAE, HVAc9hm4jjk, 8lPjqvYWNyM, eXgPnnE3TuQ]
+      annotations:
+        train:
+          url: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/audiocaps/audio_qa_final_train.csv
+            # - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/audio_qa_data/audio_qa_final_train.csv
+          storage: 
+            - audiocaps_qa/annotations/train.csv
+            # - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/audio_qa_data/audio_qa_final_train.csv
+          
+        # val:
+        #   url: 
+        #     # - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/audiocaps/audio_qa_final_val.csv
+        #     - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/audio_qa_data/audio_qa_final_val.csv
+        #   storage: 
+        #     # - audiocaps_qa/annotations/val.csv
+        #     - /export/home/LAVIS-xgen_mm/projects/xinstructblip/data_aug/audio_qa_data/audio_qa_final_val.csv
+
+      audio:
+        storage: /export/einstein-vision/audio_datasets/audiocaps/AUDIOCAPS_32000Hz/audio

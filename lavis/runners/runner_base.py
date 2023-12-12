@@ -272,6 +272,21 @@ class RunnerBase:
     def log_freq(self):
         log_freq = self.config.run_cfg.get("log_freq", 50)
         return int(log_freq)
+    
+    @property
+    def save_freq(self):
+        save_freq = self.config.run_cfg.get("save_freq", 5)
+        return int(save_freq)
+
+    @property
+    def val_freq(self):
+        val_freq = self.config.run_cfg.get("val_freq", 1)
+        return int(val_freq)
+    
+    @property
+    def save_last(self):
+        save_last = self.config.run_cfg.get("save_last", True)
+        return int(save_last)
 
     @property
     def init_lr(self):
@@ -370,10 +385,10 @@ class RunnerBase:
                 self.log_stats(split_name="train", stats=train_stats)
 
             # evaluation phase
-            if len(self.valid_splits) > 0:
+            if len(self.valid_splits) > 0 and (self.evaluate_only or cur_epoch%self.val_freq == 0):
                 for split_name in self.valid_splits:
                     logging.info("Evaluating on {}.".format(split_name))
-
+                    
                     val_log = self.eval_epoch(
                         split_name=split_name, cur_epoch=cur_epoch
                     )
@@ -386,8 +401,8 @@ class RunnerBase:
                             agg_metrics = val_log["agg_metrics"]
                             if agg_metrics > best_agg_metric and split_name == "val":
                                 best_epoch, best_agg_metric = cur_epoch, agg_metrics
-
-                                self._save_checkpoint(cur_epoch, is_best=True)
+                                if not self.evaluate_only:
+                                    self._save_checkpoint(cur_epoch, is_best=True)
 
                             val_log.update({"best_epoch": best_epoch})
                             self.log_stats(val_log, split_name)
@@ -400,7 +415,15 @@ class RunnerBase:
             if self.evaluate_only:
                 break
 
+            # save checkpoint according to save freq
+            if self.save_freq>0 and cur_epoch%self.save_freq == 0:
+                self._save_checkpoint(cur_epoch, is_best=False)
+
             dist.barrier()
+
+        # save last checkpoint
+        if self.save_last and not self.evaluate_only:
+            self._save_checkpoint(cur_epoch, is_best=False)
 
         # testing phase
         test_epoch = "best" if len(self.valid_splits) > 0 else cur_epoch

@@ -1,0 +1,52 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  audiocaps_mm_caption_instruct: # name of the dataset builder
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          
+    text_processor:
+        train:
+          name: "blip_instruction"
+          modality: audio
+          task: caption
+        eval:
+          name: "blip_caption"
+
+    data_type: [audio]
+
+    missing_ids: [2sh7ZkazyO8, 966jA2-z0mQ, 52RlolYyjAE, HVAc9hm4jjk, 8lPjqvYWNyM, eXgPnnE3TuQ]
+
+    build_info:
+      kwargs:
+        cached: False
+        cached_dir: /export/einstein-vision/audio_datasets/audiocaps/beats_features
+      annotations:
+        train:
+          url: 
+            - https://raw.githubusercontent.com/cdjkim/audiocaps/master/dataset/train.csv
+          storage: 
+            - audiocaps/annotations/train.csv
+          
+        # val:
+        #   url: 
+        #     - https://raw.githubusercontent.com/cdjkim/audiocaps/master/dataset/val.csv
+        #   storage: 
+        #     - audiocaps/annotation/val.csv
+
+        # test:
+        #   url: 
+        #     - https://raw.githubusercontent.com/cdjkim/audiocaps/master/dataset/test.csv
+        #   storage: 
+        #     - /export/einstein-vision/audio_datasets/audiocaps/dataset/test.csv
+            
+      audio:
+        storage: /export/einstein-vision/audio_datasets/audiocaps/AUDIOCAPS_32000Hz/audio

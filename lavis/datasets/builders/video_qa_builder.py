@@ -7,8 +7,9 @@
 
 from lavis.common.registry import registry
 from lavis.common.utils import get_cache_path
-from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder
-from lavis.datasets.datasets.video_vqa_datasets import VideoQADataset
+from lavis.datasets.builders.base_dataset_builder import BaseDatasetBuilder, MultiModalDatasetBuilder
+from lavis.datasets.datasets.video_vqa_datasets import VideoQADataset, VideoQAInstructDataset
+from lavis.datasets.datasets.music_avqa import MusicAVQAInstructDataset, MusicAVQADataset
 
 
 class VideoQABuilder(BaseDatasetBuilder):
@@ -42,3 +43,35 @@ class MSVDQABuilder(VideoQABuilder):
     DATASET_CONFIG_DICT = {
         "default": "configs/datasets/msvd/defaults_qa.yaml",
     }
+
+
+@registry.register_builder("msrvtt_qa_instruct")
+class MSRVTTQAInstructBuilder(VideoQABuilder):
+    train_dataset_cls = VideoQAInstructDataset
+    eval_dataset_cls = VideoQAInstructDataset
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/msrvtt/defaults_qa_instruct.yaml",
+    }
+
+
+@registry.register_builder("msvd_qa_instruct")
+class MSVDQAInstructBuilder(VideoQABuilder):
+    train_dataset_cls = VideoQAInstructDataset
+    eval_dataset_cls = VideoQAInstructDataset
+    DATASET_CONFIG_DICT = {
+        "default": "configs/datasets/msvd/defaults_qa_instruct.yaml",
+    }
+
+@registry.register_builder("musicavqa_mm")
+class MusicAVQABuilder(MultiModalDatasetBuilder):
+    train_dataset_cls = MusicAVQADataset
+    eval_dataset_cls = MusicAVQADataset
+
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/music_avqa/defaults_mm_qa.yaml"}
+
+@registry.register_builder("musicavqa_mm_instruct")
+class MusicAVQAInstructBuilder(MultiModalDatasetBuilder):
+    train_dataset_cls = MusicAVQAInstructDataset
+    eval_dataset_cls = MusicAVQAInstructDataset
+
+    DATASET_CONFIG_DICT = {"default": "configs/datasets/music_avqa/defaults_mm_qa_instruct.yaml"}

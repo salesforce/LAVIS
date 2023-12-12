@@ -1,0 +1,90 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip2_t5_instruct
+  model_type: flant5xxl
+  load_pretrained: True
+  prompt: "Question: {} Short Answer:"
+
+datasets:
+  ok_vqa:
+    vis_processor:
+            train:
+              name: "clip_image_train"
+            eval:
+              name: "clip_image_eval"     
+    text_processor:
+          train:
+            name: "blip_question"
+          eval:
+            name: "blip_caption"
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              # TODO make this order insensitive
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_train.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/OpenEnded_mscoco_train2014_questions.json
+              # - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/mscoco_train2014_annotations.json
+          storage:
+              - okvqa/annotations/okvqa_train.json
+              # - okvqa/annotations/OpenEnded_mscoco_train2014_questions.json
+              # - okvqa/annotations/mscoco_train2014_annotations.json
+        test:
+          url:
+              # TODO make this order insensitive
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_val_eval.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/okvqa_answer_list_train.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/OpenEnded_mscoco_val2014_questions.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/okvqa/mscoco_val2014_annotations.json
+          storage:
+              - okvqa/annotations/vqa_val_eval.json
+              - okvqa/annotations/answer_list.json
+              - okvqa/annotations/OpenEnded_mscoco_val2014_questions.json
+              - okvqa/annotations/mscoco_val2014_annotations.json
+      images:
+          storage: /export/share/datasets/vision/coco/images
+
+
+run:
+  task: vqa
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 1
+  batch_size_train: 16
+  batch_size_eval: 1
+  num_workers: 0
+  accum_grad_iters: 1
+
+  max_len: 10
+  min_len: 1
+  num_beams: 5
+  inference_method: "generate"
+  length_penalty: -1.
+
+  seed: 42
+  output_dir: "output/instructblip/okavqa_qa_flant5xxl/"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate: True
+  # train_splits: ["train"]
+  valid_splits: ["test"]
+
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  save_freq: -1 # save epoch every xxx epochs -1 only save last and best. 
+  val_freq: 1

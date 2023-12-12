@@ -47,7 +47,10 @@ class CaptionDataset(BaseDataset, __DisplMixin):
         ann = self.annotation[index]
 
         image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+        try:
+            image = Image.open(image_path).convert("RGB")
+        except:
+            return None # image does not exist
 
         image = self.vis_processor(image)
         caption = self.text_processor(ann["caption"])
@@ -55,9 +58,8 @@ class CaptionDataset(BaseDataset, __DisplMixin):
         return {
             "image": image,
             "text_input": caption,
-            # "image_id": self.img_ids[ann["image_id"]],
+            "image_id": ann["image_id"]
         }
-
 
 class CaptionEvalDataset(BaseDataset, __DisplMixin):
     def __init__(self, vis_processor, text_processor, vis_root, ann_paths):
@@ -82,3 +84,11 @@ class CaptionEvalDataset(BaseDataset, __DisplMixin):
             "image_id": ann["image_id"],
             "instance_id": ann["instance_id"],
         }
+
+class CaptionInstructDataset(CaptionDataset):
+    def __getitem__(self, index):
+        data = super().__getitem__(index)
+        if data != None:
+            data['text_output'] = data["text_input"]
+            data['text_input'] = self.text_processor("")
+        return data

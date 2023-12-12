@@ -1,0 +1,31 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  laion400M_instruct:
+
+    data_type: images
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    
+    text_processor:
+      train:
+        name: blip_instruction
+        modality: image
+        task: caption
+      eval:
+        name: blip_caption
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      storage: /export/laion400m-data-ssd/laion115m_capfilt_20220817/{part0/part0,part1/part1,part2/part2}_node{00..15}_shard{000000..000118}.tar
+#      storage: /export/laion/laion2B-multi/part-00000/{00000..01743}.tar

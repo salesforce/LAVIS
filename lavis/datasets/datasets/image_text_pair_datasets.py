@@ -39,9 +39,20 @@ class ImageTextPairDataset(BaseDataset, __DisplMixin):
         ann = self.annotation[index]
 
         image_path = os.path.join(self.vis_root, ann["image"])
-        image = Image.open(image_path).convert("RGB")
+        try:
+            image = Image.open(image_path).convert("RGB")
+        except:
+            return None
 
         image = self.vis_processor(image)
         caption = self.text_processor(ann["caption"])
 
         return {"image": image, "text_input": caption}
+
+class ImageTextPairInstructDataset(ImageTextPairDataset):
+    def __getitem__(self, index):
+        data = super().__getitem__(index)
+        if data != None:
+            data['text_output'] = data["text_input"]
+            data['text_input'] = self.text_processor("")
+        return data

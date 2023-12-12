@@ -1,0 +1,89 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip2_t5_instruct
+  model_type: flant5xl
+  load_pretrained: True
+  prompt: "A short image caption."
+
+datasets:
+  coco_caption: # name of the dataset builder
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+    
+    text_processor:
+      train:
+        name: blip_caption
+      eval:
+        name: blip_caption
+        
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_train.json
+          md5: aa31ac474cf6250ebb81d18348a07ed8
+          storage: coco/annotations/coco_karpathy_train.json
+        val:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_val.json
+          md5: b273847456ef5580e33713b1f7de52a0
+          storage:  coco/annotations/coco_karpathy_val.json
+        test:
+          url: https://storage.googleapis.com/sfr-vision-language-research/datasets/coco_karpathy_test.json
+          md5: 3ff34b0ef2db02d01c37399f6a2a6cd1
+          storage: coco/annotations/coco_karpathy_test.json
+      images:
+        storage: /export/share/datasets/vision/coco/images
+
+
+run:
+  task: captioning
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 1
+  batch_size_train: 16
+  batch_size_eval: 1
+  num_workers: 8
+  accum_grad_iters: 1
+
+  max_len: 80
+  min_len: 10
+  num_beams: 5
+  inference_method: "generate"
+  # prompt: an image that shows
+  length_penalty: 1.
+
+
+  seed: 42
+  output_dir: "output/instructblip/coco_captioning_flant5xl_val/"
+
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate: True
+  # train_splits: ["train"]
+  valid_splits: ["val"]
+
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  save_freq: -1 # save epoch every xxx epochs -1 only save last and best. 
+  val_freq: 1

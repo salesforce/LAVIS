@@ -1,0 +1,55 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  gqa_instruct:
+    # data_dir: ${env.data_dir}/datasets
+    data_type: images # [images|videos|features]
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+      train:
+        name: blip_instruction
+        task: qa
+        modality: image
+      eval:
+        name: blip_question
+
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url:
+              - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/gqa/train_all_questions_0.json
+              # - /export/share/datasets/vision/GQA/questions1.2/train_all_questions/train_all_questions_0.json
+              # - /export/share/datasets/vision/GQA/questions1.2/val_all_questions.json
+              - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/gqa/val_all_questions.json
+          storage:
+              - gqa/annotations/train_all_questions_0.json
+              - gqa/annotations/val_all_questions.json
+        val:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_val.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
+          storage:
+              - aokvqa/annotations/aokvqa_v1p0_val.json
+              - aokvqa/annotations/large_vocab_train_lavis.json
+        test:
+          url:
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/aokvqa_v1p0_test.json
+              - https://storage.googleapis.com/sfr-vision-language-research/LAVIS/datasets/aokvqa/large_vocab_train_lavis.json
+          storage:
+              - aokvqa/annotations/aokvqa_v1p0_test.json
+              - aokvqa/annotations/large_vocab_train_lavis.json
+      images:
+          storage: /export/share/datasets/vision/GQA/images #gqa/images/
