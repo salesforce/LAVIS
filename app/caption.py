@@ -1,24 +1,38 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
-
 import streamlit as st
 from app import device, load_demo_image
 from app.utils import load_model_cache
 from lavis.processors import load_processor
 from PIL import Image
 
+import random
+import numpy as np
+import torch
+
+
+def setup_seeds(seed):
+    random.seed(seed)
+    np.random.seed(int(seed))
+    torch.manual_seed(seed)
+
+    if torch.cuda.is_available():
+        import torch.backends.cudnn as cudnn
+        cudnn.benchmark = False
+        cudnn.deterministic = True
+
 
 def app():
     # ===== layout =====
-    model_type = st.sidebar.selectbox("Model:", ["BLIP_base", "BLIP_large"])
+    model_type = st.sidebar.selectbox("Model:", ["BLIP_large", "BLIP_base"])
 
     sampling_method = st.sidebar.selectbox(
         "Sampling method:", ["Beam search", "Nucleus sampling"]
     )
+    num_captions = 1
+    if sampling_method == "Nucleus sampling":
+        random_seed = st.sidebar.text_input("Seed:", 1024, help="Set random seed to reproduce the image description")
+        setup_seeds(random_seed)
+        num_captions = st.sidebar.slider("Choose number of captions to generate",
+                                    min_value=1, max_value=5, step=1)
 
     st.markdown(
         "<h1 style='text-align: center;'>Image Description Generation</h1>",
@@ -44,8 +58,8 @@ def app():
     resized_image = raw_img.resize((int(w * scaling_factor), int(h * scaling_factor)))
 
     col1.image(resized_image, use_column_width=True)
-    col2.header("Description")
-
+    #col2.header("Description")
+    #with col2:
     cap_button = st.button("Generate")
 
     # ==== event ====
@@ -63,28 +77,39 @@ def app():
 
         img = vis_processor(raw_img).unsqueeze(0).to(device)
         captions = generate_caption(
-            model=model, image=img, use_nucleus_sampling=not use_beam
+            model=model, image=img, use_nucleus_sampling=not use_beam, num_captions=num_captions
         )
-
-        col2.write("\n\n".join(captions), use_column_width=True)
+ 
+        #with col2:
+        #    for caption in captions:
+        #        caption_md = '<p style="font-family:sans-serif; color:Black; font-size: 20px;">{}</p>'.format(caption)
+        #        st.markdown(caption_md, unsafe_allow_html=True)
+        with col2:
+            st.header("Description")
+        #with col2:
+            for caption in captions:
+                caption_md = '<p style="font-family:sans-serif; color:Black; font-size: 25px;">{}</p>'.format(caption)
+                st.markdown(caption_md, unsafe_allow_html=True)
+        #col2.write("\n\n".join(captions), use_column_width=True)
 
 
 def generate_caption(
-    model, image, use_nucleus_sampling=False, num_beams=3, max_length=40, min_length=5
+    model, image, use_nucleus_sampling=False, num_captions = 1, num_beams=3, max_length=40, min_length=5
 ):
     samples = {"image": image}
 
     captions = []
     if use_nucleus_sampling:
-        for _ in range(5):
-            caption = model.generate(
+        #for _ in range(5):
+        captions = model.generate(
                 samples,
                 use_nucleus_sampling=True,
                 max_length=max_length,
                 min_length=min_length,
                 top_p=0.9,
-            )
-            captions.append(caption[0])
+                num_captions=num_captions
+        )
+        #captions.append(caption[0])
     else:
         caption = model.generate(
             samples,
@@ -92,6 +117,7 @@ def generate_caption(
             num_beams=num_beams,
             max_length=max_length,
             min_length=min_length,
+            num_captions=1
         )
         captions.append(caption[0])
 

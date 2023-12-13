@@ -1,0 +1,48 @@
+## cramaiah_nodot=`echo ${USER} | sed s/[.]/-/g`; sed "s/cramaiah/${cramaiah_nodot}/g" sfr-pod-cramaiah.yaml > sfr-pod-${cramaiah_nodot}.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sfr-pod-blip-server-a100-docker
+  namespace: sfr-ns-guangsen-wang
+  labels:
+    app: detector-blip-server-a100-docker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: detector-blip-server-a100-docker
+  template:
+    metadata:
+      labels:
+        app: detector-blip-server-a100-docker
+    spec:
+      volumes:
+      - name: sfr-home-pv-guangsen-wang
+        persistentVolumeClaim:
+          claimName: sfr-home-pvc-guangsen-wang
+      - name: sfr-share-pv-guangsen-wang
+        persistentVolumeClaim:
+          claimName: sfr-share-pvc-guangsen-wang
+      containers:
+        - name: lavis-pytorch
+          image: "gcr.io/salesforce-research-internal/lavis_streamlit_gpu"
+          ports:
+          - containerPort: 8080
+          resources:
+            limits:
+              nvidia.com/gpu: 2
+              cpu: "23"
+              memory: 150G
+          volumeMounts:
+            - name: sfr-home-pv-guangsen-wang
+              mountPath: "/export/home"
+            - name: sfr-share-pv-guangsen-wang
+              mountPath: "/export/share"
+      nodeSelector: 
+        cloud.google.com/gke-accelerator: nvidia-tesla-a100
+      tolerations:
+        - key: "gpu_num"
+          operator: "Equal"
+          value: "2"
+          effect: "NoSchedule"

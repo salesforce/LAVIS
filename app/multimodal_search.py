@@ -1,10 +1,3 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
-
 import os
 
 import numpy as np
@@ -19,7 +12,7 @@ from app.utils import (
     read_img,
     resize_img,
 )
-from lavis.models import load_model
+from lavis.models import BlipFeatureExtractor, load_model
 from lavis.processors import load_processor
 
 
@@ -32,17 +25,12 @@ from lavis.processors import load_processor
     allow_output_mutation=True,
 )
 def load_feat():
-    from lavis.common.utils import download_url
-
-    dirname = os.path.join(os.path.dirname(__file__), "assets")
-    filename = "path2feat_coco_train2014.pth"
-    filepath = os.path.join(dirname, filename)
-    url = "https://storage.googleapis.com/sfr-vision-language-research/LAVIS/assets/path2feat_coco_train2014.pth"
-
-    if not os.path.exists(filepath):
-        download_url(url=url, root=dirname, filename="path2feat_coco_train2014.pth")
-
-    path2feat = torch.load(filepath)
+    path2feat = torch.load(
+        os.path.join(
+            os.path.dirname(__file__),
+            "/export/home/.cache/lavis/path2feat_coco_train2014.pth",
+        )
+    )
     paths = sorted(path2feat.keys())
 
     all_img_feats = torch.stack([path2feat[k] for k in paths], dim=0).to(device)
@@ -61,9 +49,7 @@ def load_feat():
 def load_feature_extractor_model(device):
     model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
 
-    model = load_model(
-        "blip_feature_extractor", model_type="base", is_eval=True, device=device
-    )
+    model = load_model("blip_feature_extractor", is_eval=True, device=device)
     model.load_from_pretrained(model_url)
 
     return model
@@ -91,93 +77,101 @@ def app():
     vis_processor = load_processor("blip_image_eval").build(image_size=384)
     text_processor = load_processor("blip_caption")
 
-    user_question = st.text_input(
-        "Search query", "A dog running on the grass.", help="Type something to search."
-    )
-    user_question = text_processor(user_question)
-    feature_extractor = load_feature_extractor_model(device)
-
-    # ======= ITC =========
-    sample = {"text_input": user_question}
-
-    with torch.no_grad():
-        text_feature = feature_extractor.extract_features(
-            sample, mode="text"
-        ).text_embeds_proj[0, 0]
-
-        path2feat, paths, all_img_feats = load_feat()
-        all_img_feats.to(device)
-        all_img_feats = F.normalize(all_img_feats, dim=1)
-
-        num_cols = 4
-        num_rows = int(num_display / num_cols)
-
-        similarities = text_feature @ all_img_feats.T
-        indices = torch.argsort(similarities, descending=True)[:num_display]
-
-    top_paths = [paths[ind.detach().cpu().item()] for ind in indices]
-    sorted_similarities = [similarities[idx] for idx in indices]
-    filenames = [os.path.join(file_root, p) for p in top_paths]
-
-    # ========= ITM and GradCam ==========
-    bsz = 4  # max number of images to avoid cuda oom
-    if model_type.startswith("BLIP"):
-        blip_type = model_type.split("_")[1]
-
-    itm_model = load_blip_itm_model(device, model_type=blip_type)
-
-    tokenizer = init_bert_tokenizer()
-    queries_batch = [user_question] * bsz
-    queries_tok_batch = tokenizer(queries_batch, return_tensors="pt").to(device)
-
-    num_batches = int(num_display / bsz)
-
-    avg_gradcams = []
-    all_raw_images = []
-    itm_scores = []
-
-    for i in range(num_batches):
-        filenames_in_batch = filenames[i * bsz : (i + 1) * bsz]
-        raw_images, images = read_and_process_images(filenames_in_batch, vis_processor)
-        gradcam, itm_output = compute_gradcam_batch(
-            itm_model, images, queries_batch, queries_tok_batch
+    row1_1, row1_spacer1, row1_2, row1_spacer2 = st.columns((15.5, .1, 3.5, 0.1))
+    with row1_1:
+        user_question = st.text_input(
+            "Search query", "A dog running on the grass.", help="Type something to search."
         )
+    with row1_2:
+        st.markdown("")
+        st.markdown("")
+        search_button = st.button("Search")
 
-        all_raw_images.extend([resize_img(r_img) for r_img in raw_images])
-        norm_imgs = [np.float32(r_img) / 255 for r_img in raw_images]
+    if search_button:
+        user_question = text_processor(user_question)
+        feature_extractor = load_feature_extractor_model(device)
 
-        for norm_img, grad_cam in zip(norm_imgs, gradcam):
-            avg_gradcam = getAttMap(norm_img, grad_cam[0], blur=True)
-            avg_gradcams.append(avg_gradcam)
+        # ======= ITC =========
+        sample = {"text_input": user_question}
 
         with torch.no_grad():
-            itm_score = torch.nn.functional.softmax(itm_output, dim=1)
+            text_feature = feature_extractor.extract_features(
+                sample, mode="text"
+            ).text_features[0, 0]
 
-        itm_scores.append(itm_score)
+            path2feat, paths, all_img_feats = load_feat()
+            all_img_feats.to(device)
+            all_img_feats = F.normalize(all_img_feats, dim=1)
 
-    # ========= ITM re-ranking =========
-    itm_scores = torch.cat(itm_scores)[:, 1]
-    if itm_ranking:
-        itm_scores_sorted, indices = torch.sort(itm_scores, descending=True)
+            num_cols = 4
+            num_rows = int(num_display / num_cols)
 
-        avg_gradcams_sorted = []
-        all_raw_images_sorted = []
-        for idx in indices:
-            avg_gradcams_sorted.append(avg_gradcams[idx])
-            all_raw_images_sorted.append(all_raw_images[idx])
+            similarities = text_feature @ all_img_feats.T
+            indices = torch.argsort(similarities, descending=True)[:num_display]
 
-        avg_gradcams = avg_gradcams_sorted
-        all_raw_images = all_raw_images_sorted
+        top_paths = [paths[ind.detach().cpu().item()] for ind in indices]
+        sorted_similarities = [similarities[idx] for idx in indices]
+        filenames = [os.path.join(file_root, p) for p in top_paths]
 
-    if show_gradcam:
-        images_to_show = iter(avg_gradcams)
-    else:
-        images_to_show = iter(all_raw_images)
+        # ========= ITM and GradCam ==========
+        bsz = 4  # max number of images to avoid cuda oom
+        if model_type.startswith("BLIP"):
+            blip_type = model_type.split("_")[1]
 
-    for _ in range(num_rows):
-        with st.container():
-            for col in st.columns(num_cols):
-                col.image(next(images_to_show), use_column_width=True, clamp=True)
+        itm_model = load_blip_itm_model(device, model_type=blip_type)
+
+        tokenizer = init_bert_tokenizer()
+        queries_batch = [user_question] * bsz
+        queries_tok_batch = tokenizer(queries_batch, return_tensors="pt").to(device)
+
+        num_batches = int(num_display / bsz)
+
+        avg_gradcams = []
+        all_raw_images = []
+        itm_scores = []
+
+        for i in range(num_batches):
+            filenames_in_batch = filenames[i * bsz : (i + 1) * bsz]
+            raw_images, images = read_and_process_images(filenames_in_batch, vis_processor)
+            gradcam, itm_output = compute_gradcam_batch(
+                itm_model, images, queries_batch, queries_tok_batch
+            )
+
+            all_raw_images.extend([resize_img(r_img) for r_img in raw_images])
+            norm_imgs = [np.float32(r_img) / 255 for r_img in raw_images]
+
+            for norm_img, grad_cam in zip(norm_imgs, gradcam):
+                avg_gradcam = getAttMap(norm_img, grad_cam[0], blur=True)
+                avg_gradcams.append(avg_gradcam)
+
+            with torch.no_grad():
+                itm_score = torch.nn.functional.softmax(itm_output, dim=1)
+
+            itm_scores.append(itm_score)
+
+        # ========= ITM re-ranking =========
+        itm_scores = torch.cat(itm_scores)[:, 1]
+        if itm_ranking:
+            itm_scores_sorted, indices = torch.sort(itm_scores, descending=True)
+
+            avg_gradcams_sorted = []
+            all_raw_images_sorted = []
+            for idx in indices:
+                avg_gradcams_sorted.append(avg_gradcams[idx])
+                all_raw_images_sorted.append(all_raw_images[idx])
+
+            avg_gradcams = avg_gradcams_sorted
+            all_raw_images = all_raw_images_sorted
+
+        if show_gradcam:
+            images_to_show = iter(avg_gradcams)
+        else:
+            images_to_show = iter(all_raw_images)
+
+        for _ in range(num_rows):
+            with st.container():
+                for col in st.columns(num_cols):
+                    col.image(next(images_to_show), use_column_width=True, clamp=True)
 
 
 def read_and_process_images(image_paths, vis_processor):
@@ -193,7 +187,7 @@ def compute_gradcam_batch(model, visual_input, text_input, tokenized_text, block
         block_num
     ].crossattention.self.save_attention = True
 
-    output = model({"image": visual_input, "text_input": text_input}, match_head="itm")
+    output = model(visual_input, text_input, match_head="itm")
     loss = output[:, 1].sum()
 
     model.zero_grad()

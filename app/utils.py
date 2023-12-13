@@ -1,19 +1,25 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
-
-import numpy as np
 import streamlit as st
 import torch
-from lavis.models import BlipBase, load_model
-from matplotlib import pyplot as plt
+import numpy as np
+from app import pending_job_path
+
+import os, glob
+
 from PIL import Image
+
+from matplotlib import pyplot as plt
 from scipy.ndimage import filters
 from skimage import transform as skimage_transform
 
+from lavis.models import BlipBase, load_model
+
+def get_pending_jobs(job_type):
+    list_of_prompts = filter(os.path.isfile,
+                        glob.glob('{}/{}/*.txt'.format(pending_job_path, job_type) ))
+    # Sort list of files based on last modification time in ascending order
+    list_of_prompts = sorted(list_of_prompts,
+                       key = os.path.getmtime)
+    return list(list_of_prompts)
 
 def resize_img(raw_img):
     w, h = raw_img.size
@@ -46,6 +52,7 @@ def init_bert_tokenizer():
     return tokenizer
 
 
+
 def getAttMap(img, attMap, blur=True, overlap=True):
     attMap -= attMap.min()
     if attMap.max() > 0:
@@ -75,7 +82,18 @@ def getAttMap(img, attMap, blur=True, overlap=True):
     allow_output_mutation=True,
 )
 def load_blip_itm_model(device, model_type="base"):
+    # if model_type == "large":
+    #     pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_large_retrieval_coco.pth"
+    # else:
+    #     pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
+    # model = BlipITM(pretrained=pretrained_path, vit=model_type)
+    # model.eval()
+    # model = model.to(device)
+    # return model
     model = load_model(
         "blip_image_text_matching", model_type, is_eval=True, device=device
     )
     return model
+
+def create_uniq_user_job_name(time_stamp, user_info):
+    return str(time_stamp).replace('.','_') + '_' + '_'.join(user_info.split(' ')[:20])

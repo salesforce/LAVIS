@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sfr-pod-blip-server-a100-docker
+spec:
+  type: LoadBalancer
+  selector:
+    app: detector-blip-server-a100-docker
+  ports:
+    - name: detector-blip-server-a100-docker
+      port: 8080
+      targetPort: 8080

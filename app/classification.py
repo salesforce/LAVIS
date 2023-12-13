@@ -1,21 +1,15 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
-
 import plotly.graph_objects as go
 import requests
 import streamlit as st
 import torch
-from lavis.models import load_model
+from lavis.models import BlipFeatureExtractor, load_model
+from lavis.models.blip_models.blip_image_text_matching import BlipITM
 from lavis.processors import load_processor
 from lavis.processors.blip_processors import BlipCaptionProcessor
 from PIL import Image
+import numpy as np
 
 from app import device, load_demo_image
-from app.utils import load_blip_itm_model
 from lavis.processors.clip_processors import ClipImageEvalProcessor
 
 
@@ -36,6 +30,7 @@ def load_demo_image(img_url=None):
     allow_output_mutation=True,
 )
 def load_model_cache(model_type, device):
+    
     if model_type == "blip":
         model = load_model(
             "blip_feature_extractor", model_type="base", is_eval=True, device=device
@@ -60,56 +55,77 @@ def load_model_cache(model_type, device):
     return model
 
 
+@st.cache(
+    hash_funcs={
+        torch.nn.parameter.Parameter: lambda parameter: parameter.data.detach()
+        .cpu()
+        .numpy()
+    },
+    allow_output_mutation=True,
+)
+def load_blip_itm_model(device):
+    pretrained_path = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_retrieval_coco.pth"
+    model = BlipITM(pretrained=pretrained_path, vit="base")
+    model.eval()
+    model = model.to(device)
+    return model
+
+
 def app():
     model_type = st.sidebar.selectbox(
         "Model:",
-        ["ALBEF", "BLIP_Base", "CLIP_ViT-B-32", "CLIP_ViT-B-16", "CLIP_ViT-L-14"],
+        ["BLIP_Base", "CLIP_ViT-B-32", "CLIP_ViT-B-16", "CLIP_ViT-L-14"],
     )
     score_type = st.sidebar.selectbox("Score type:", ["Cosine", "Multimodal"])
 
     # ===== layout =====
     st.markdown(
-        "<h1 style='text-align: center;'>Zero-shot Classification</h1>",
+        " <h1 style='text-align: center;'>Zero-shot Classification</h1>",
         unsafe_allow_html=True,
     )
 
     instructions = """Try the provided image or upload your own:"""
     file = st.file_uploader(instructions)
 
-    st.header("Image")
+    col1,col2 = st.columns(2)
+    col1.header("Image")
+    #col2.header("Categories")
+    row2_col1,row2_col2 = st.columns(2)
     if file:
         raw_img = Image.open(file).convert("RGB")
+        st.session_state.new_image = 'yes'
+        st.session_state.category = 'yes'
     else:
         raw_img = load_demo_image()
 
-    st.image(raw_img)  # , use_column_width=True)
+    w, h = raw_img.size
+    scaling_factor = 700 / w
+    resized_image = raw_img.resize((int(w * scaling_factor), int(h * scaling_factor)))
 
-    col1, col2 = st.columns(2)
+    row2_col1.image(resized_image, use_column_width=True)
 
-    col1.header("Categories")
-
-    cls_0 = col1.text_input("category 1", value="merlion")
-    cls_1 = col1.text_input("category 2", value="sky")
-    cls_2 = col1.text_input("category 3", value="giraffe")
-    cls_3 = col1.text_input("category 4", value="fountain")
-    cls_4 = col1.text_input("category 5", value="marina bay")
-
-    cls_names = [cls_0, cls_1, cls_2, cls_3, cls_4]
-    cls_names = [cls_nm for cls_nm in cls_names if len(cls_nm) > 0]
-
-    if len(cls_names) != len(set(cls_names)):
-        st.error("Please provide unique class names")
-        return
-
+    cls_names = []
     button = st.button("Submit")
+    if 'cls_names' not in st.session_state or st.session_state.cls_names == '' or not button:
+        col2.header("Categories")
+        with row2_col2:
+            cls_0 = st.text_input("category 1", value="merlion")
+            cls_1 = st.text_input("category 2", value="elephant")
+            cls_2 = st.text_input("category 3", value="giraffe")
+            cls_3 = st.text_input("category 4", value="fountain")
+            cls_4 = st.text_input("category 5", value="marina bay")
+        cls_names = [cls_0, cls_1, cls_2, cls_3, cls_4 ]
+        cls_names = [cls_nm for cls_nm in cls_names if len(cls_nm) > 0]
+        st.session_state.cls_names = ','.join(cls_names)
 
-    col2.header("Prediction")
-
+        if len(cls_names) != len(set(cls_names)):
+            st.error("Please provide unique class names")
+            return
     # ===== event =====
-
     if button:
         if model_type.startswith("BLIP"):
             text_processor = BlipCaptionProcessor(prompt="A picture of ")
+            cls_names = st.session_state['cls_names'].split(',')
             cls_prompt = [text_processor(cls_nm) for cls_nm in cls_names]
 
             if score_type == "Cosine":
@@ -143,32 +159,6 @@ def app():
             sims = torch.nn.Softmax(dim=0)(sims)
             inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
 
-        elif model_type.startswith("ALBEF"):
-            vis_processor = load_processor("blip_image_eval").build(image_size=224)
-            img = vis_processor(raw_img).unsqueeze(0).to(device)
-
-            text_processor = BlipCaptionProcessor(prompt="A picture of ")
-            cls_prompt = [text_processor(cls_nm) for cls_nm in cls_names]
-
-            feature_extractor = load_model_cache(model_type="albef", device=device)
-
-            sample = {"image": img, "text_input": cls_prompt}
-
-            with torch.no_grad():
-                image_features = feature_extractor.extract_features(
-                    sample, mode="image"
-                ).image_embeds_proj[:, 0]
-                text_features = feature_extractor.extract_features(
-                    sample, mode="text"
-                ).text_embeds_proj[:, 0]
-
-                st.write(image_features.shape)
-                st.write(text_features.shape)
-
-                sims = (image_features @ text_features.t())[0] / feature_extractor.temp
-
-            sims = torch.nn.Softmax(dim=0)(sims)
-            inv_sims = [sim * 100 for sim in sims.tolist()[::-1]]
 
         elif model_type.startswith("CLIP"):
             if model_type == "CLIP_ViT-B-32":
@@ -193,6 +183,9 @@ def app():
                     image_features = clip_features.image_embeds_proj
                     text_features = clip_features.text_embeds_proj
 
+                    image_features /= image_features.norm(dim=-1, keepdim=True)
+                    text_features /= text_features.norm(dim=-1, keepdim=True)
+
                     sims = (100.0 * image_features @ text_features.T)[0].softmax(dim=-1)
                     inv_sims = sims.tolist()[::-1]
             else:
@@ -202,15 +195,38 @@ def app():
         fig = go.Figure(
             go.Bar(
                 x=inv_sims,
-                y=cls_names[::-1],
-                text=["{:.2f}".format(s) for s in inv_sims],
+                y=[c+' ' for c in cls_names[::-1]],
+                text=["{:.2f}%".format(s) for s in inv_sims],
                 orientation="h",
             )
         )
         fig.update_traces(
-            textfont_size=12,
+            textfont_size=16,
             textangle=0,
             textposition="outside",
             cliponaxis=False,
+            marker_color="#0176D3"
         )
-        col2.plotly_chart(fig, use_container_width=True)
+        fig.add_vline(x=0, line_width=1, line_color="#C9C9C9")
+        fig.add_hline(y=-0.6, line_width=1, line_color="#C9C9C9")
+        fig.update_layout(font=dict(family="Salesforce Sans", size=25, color="#032D60"))
+        fig.update_layout(
+                  xaxis = dict(
+                    tickmode='linear',
+                    tickfont = dict(size=16),
+                    tick0=0,
+                    dtick=20,
+                    ticksuffix="%"
+                    ),
+                   yaxis = dict(tickfont = dict(size=16)),
+                   plot_bgcolor= "rgba(0, 0, 0, 0)",
+                   title="<b>Zero-shot image classification</b>",
+                   title_font_family="Salesforce Sans",
+                   title_font_size=28,
+                   title_font_color="#032D60",
+                   paper_bgcolor= "rgba(0, 0, 0, 0)",)
+        fig.update_xaxes(fixedrange=True, dtick=20)
+        fig.update_xaxes(range=[0, 100], ticks="outside", tickson="boundaries", ticklen=6)
+        col2.header("Prediction")
+        with row2_col2:
+            st.plotly_chart(fig, use_container_width=True)

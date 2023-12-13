@@ -1,0 +1,57 @@
+body, div, span {
+    font-family: 'Salesforce Sans' !important;
+}
+
+section.main {
+    align-items: self-start;
+    margin-left: 2rem;
+}
+
+button[kind="header"], header {
+    display: none !important;
+}
+
+section[data-testid="stSidebar"] > div:nth-child(1) > div:nth-child(2) {
+    padding-top: 0;
+}
+div[data-testid="stImage"] img {
+    margin-bottom: 2rem;
+}
+
+div.block-container {
+    padding-top: 1rem;
+    max-width: 98%;
+}
+
+div[data-testid="stMarkdownContainer"] h1 {
+    text-align: left !important;
+    padding-top: 15px;
+}
+
+h1, h2 {
+    color: #032D60;
+}
+
+section[data-testid="stFileUploadDropzone"] {
+    max-width: 30rem;
+}
+
+.stButton {
+    margin-top: 15px;
+}
+.stButton button {
+    background-color: #0176D3 !important;
+    color: white !important;
+}
+.stButton button:hover {
+    background-color: #032D60 !important;
+}
+
+div[data-testid="stHorizontalBlock"] {
+    gap: 4rem;
+    padding-top: 2rem;
+}
+div[data-testid="stHorizontalBlock"] div[data-testid="column"] {
+    width: calc(50% - 2rem);
+    flex: 1 1 calc(50% - 2rem);
+}
