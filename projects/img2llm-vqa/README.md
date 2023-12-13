@@ -101,7 +101,7 @@ to show Img2LLM-VQA inference workflow:
 </tbody>
 </table>
 
-To reproduce these evaluation results of Img2LLM-VQA with different LLMs, you can follow this [folder](https://github.com/CR-Gjx/Img2LLM) :
+To reproduce these evaluation results of Img2LLM-VQA with different LLMs, you can follow this [folder](https://github.com/CR-Gjx/Img2Prompt) :
 
 
 ### Citation
