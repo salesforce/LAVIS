@@ -80,7 +80,7 @@ def gather_items(samples, exclude=[]):
     return gathered
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def load_dataset_cache(name):
     return load_dataset(name)
 

@@ -28,19 +28,12 @@ def read_img(filepath):
     return raw_image
 
 
-@st.cache(
-    hash_funcs={
-        torch.nn.parameter.Parameter: lambda parameter: parameter.data.detach()
-        .cpu()
-        .numpy()
-    },
-    allow_output_mutation=True,
-)
+@st.cache_resource
 def load_model_cache(name, model_type, is_eval, device):
     return load_model(name, model_type, is_eval, device)
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def init_bert_tokenizer():
     tokenizer = BlipBase.init_tokenizer()
     return tokenizer
@@ -66,14 +59,7 @@ def getAttMap(img, attMap, blur=True, overlap=True):
     return attMap
 
 
-@st.cache(
-    hash_funcs={
-        torch.nn.parameter.Parameter: lambda parameter: parameter.data.detach()
-        .cpu()
-        .numpy()
-    },
-    allow_output_mutation=True,
-)
+@st.cache_resource
 def load_blip_itm_model(device, model_type="base"):
     model = load_model(
         "blip_image_text_matching", model_type, is_eval=True, device=device
