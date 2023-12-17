@@ -79,7 +79,7 @@ class VALORCaptionEvalDataset(VALORCaptionDataset):
         return data
 
 
-class VALORCaptionInstuctDataset(VALORCaptionDataset):
+class VALORCaptionInstructDataset(VALORCaptionDataset):
     def __getitem__(self, index):
         data = super().__getitem__(index)
         if data != None:

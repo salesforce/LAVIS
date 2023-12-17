@@ -78,7 +78,7 @@ class VATEXCaptionEvalDataset(VATEXCaptionDataset):
         return data
 
 
-class VATEXCaptionInstuctDataset(VATEXCaptionDataset):
+class VATEXCaptionInstructDataset(VATEXCaptionDataset):
     def __getitem__(self, index):
         data = super().__getitem__(index)
         if data != None:

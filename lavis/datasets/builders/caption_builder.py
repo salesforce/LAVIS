@@ -30,8 +30,8 @@ from lavis.datasets.datasets.violin_dataset import (
     ViolinVideoCaptionInstructDataset,
     ViolinVideoCaptionEvalDataset
 )
-from lavis.datasets.datasets.valor_caption import VALORCaptionInstuctDataset, VALORCaptionEvalDataset, VALORCaptionDataset
-from lavis.datasets.datasets.vatex_captioning_datasets import VATEXCaptionInstuctDataset, VATEXCaptionEvalDataset, VATEXCaptionDataset
+from lavis.datasets.datasets.valor_caption import VALORCaptioninstructDataset, VALORCaptionEvalDataset, VALORCaptionDataset
+from lavis.datasets.datasets.vatex_captioning_datasets import VATEXCaptioninstructDataset, VATEXCaptionEvalDataset, VATEXCaptionDataset
 from lavis.datasets.datasets.vlep_dataset import VlepVideoDataset, VlepVideoInstructDataset, VlepVideoEvalDataset
 from lavis.datasets.datasets.vsr_datasets import VSRCaptionDataset, VSRCaptionInstructDataset, VSRCaptionEvalDataset
 from lavis.datasets.datasets.textcaps_datasets import TextCapsCapDataset, TextCapsCapInstructDataset, TextCapsCapEvalDataset
@@ -68,7 +68,7 @@ class Flickr30kCapInstructBuilder(BaseDatasetBuilder):
     train_dataset_cls = COCOCapInstructDataset
     eval_dataset_cls = COCOCapEvalDataset
     DATASET_CONFIG_DICT = {
-        "default": "configs/datasets/flickr30k/defaults_cap_instuct.yaml",
+        "default": "configs/datasets/flickr30k/defaults_cap_instruct.yaml",
     }
 
 @registry.register_builder("nocaps")
@@ -184,7 +184,7 @@ class MSVDCapInstructBuilder(BaseDatasetBuilder):
 
 @registry.register_builder("vatex_caption_instruct")
 class VATEXCapInstructBuilder(MultiModalDatasetBuilder):
-    train_dataset_cls = VATEXCaptionInstuctDataset
+    train_dataset_cls = VATEXCaptioninstructDataset
     eval_dataset_cls = VATEXCaptionEvalDataset
 
     DATASET_CONFIG_DICT = {
@@ -238,7 +238,7 @@ class VALORCaptionBuilder(MultiModalDatasetBuilder):
 
 @registry.register_builder("valor_mm_caption_instruct")
 class VALORCaptionInstructBuilder(MultiModalDatasetBuilder):
-    train_dataset_cls = VALORCaptionInstuctDataset
+    train_dataset_cls = VALORCaptioninstructDataset
     eval_dataset_cls = VALORCaptionEvalDataset
 
     DATASET_CONFIG_DICT = {
