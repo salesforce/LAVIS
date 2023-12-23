@@ -1,0 +1,44 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  clotho_qa: # name of the dataset builder
+    audio_processor:
+        train:
+          name: beats_audio
+        eval:
+          name: beats_audio
+          
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+    
+
+    data_type: [audio] 
+
+    build_info:
+
+      annotations:
+        train:
+          url: 
+            - https://zenodo.org/records/6473207/files/clotho_aqa_train.csv
+          storage: 
+            - clotho_Qa/annotations/clotho_aqa_train.csv
+        val:
+          url: 
+            - https://zenodo.org/records/6473207/files/clotho_aqa_val.csv
+          storage: 
+            - clotho_qa/annotations/clotho_aqa_val.csv
+        
+        test:
+          url: 
+            - https://zenodo.org/records/6473207/files/clotho_aqa_test.csv
+          storage: 
+            - clotho_qa/annotations/clotho_aqa_test.csv
+      audio:
+        storage:  /export/einstein-vision/audio_datasets/clotho-aqa/audio_files
+  

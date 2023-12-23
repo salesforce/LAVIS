@@ -6,6 +6,7 @@
 """
 
 import os
+import random
 
 from PIL import Image
 
@@ -27,7 +28,7 @@ class VGVQADataset(VQADataset):
 
         answers = [ann["answer"]]
         # TODO this should be configured better
-        weights = [0.2]
+        weights = [1.]
 
         return {
             "image": image,
@@ -35,3 +36,16 @@ class VGVQADataset(VQADataset):
             "answers": answers,
             "weights": weights,
         }
+
+
+class VGVQAInstructDataset(VGVQADataset):
+    def __getitem__(self, index):
+        data = super().__getitem__(index)
+        if data != None:
+            data['text_output'] = random.choice(data["answers"])
+        return data
+    def collater(self, samples):
+        data = super().collater(samples)
+        data['text_output'] = data['answer']
+        return data
+

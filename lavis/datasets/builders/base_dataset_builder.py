@@ -235,8 +235,93 @@ class BaseDatasetBuilder:
         return datasets
 
 
+class MultiModalDatasetBuilder(BaseDatasetBuilder):
+    """
+    MultiModalDatasetBuilder is a utility class designed to construct datasets
+    suitable for multi-modal tasks. This class simplifies the creation of 
+    datasets that incorporate data of multiple modalities, such as text, 
+    images, video, or audio.
+    """
+    train_dataset_cls, eval_dataset_cls = None, None
+
+    def __init__(self, cfg=None):
+        super().__init__(cfg)
+        if isinstance(self.data_type, str):
+            self.data_type = [self.data_type]
+
+    def _build_processor(self, cfg_name):
+        cfg = self.config.get(cfg_name)
+        return {
+            split: self._build_proc_from_cfg(cfg.get(split)) 
+            if cfg is not None 
+            else None
+            for split in ['train', 'eval']
+        }
+
+    def build_processors(self):
+        self.text_processors = self._build_processor("text_processor")
+        
+        self.processors = {
+            split: {
+                modality: self._build_proc_from_cfg(
+                    self.config.get(f"{'vis' if 'image' in modality else modality}_processor").get(split)
+                )
+                for modality in self.data_type
+            }
+            for split in ['train', 'eval']
+        }
+
+    def _download_multimodal(self, modality):
+        storage_path = utils.get_cache_path(self.config.build_info.get(modality).storage)
+        if not os.path.exists(storage_path):
+            warnings.warn(f"The specified path {storage_path} for {modality} inputs does not exist.")
+
+    def _download_data(self):
+        self._download_ann()
+        for modality in self.data_type:
+            self._download_multimodal(modality)
+
+    def _get_absolute_path(self, path):
+        if not os.path.isabs(path):
+            return utils.get_cache_path(path)
+        return path
+
+    def build(self):
+        self.build_processors()
+        build_info = self.config.build_info
+        datasets = {}
+        
+        for split, info in build_info.annotations.items():
+            if split not in ["train", "val", "test"]:
+                continue
+
+            is_train = split == "train"
+            dataset_args = self._get_dataset_args(info, is_train)
+            
+            dataset_cls = self.train_dataset_cls if is_train else self.eval_dataset_cls
+            datasets[split] = dataset_cls(**dataset_args)
+
+        return datasets
+
+    def _get_dataset_args(self, info, is_train):
+        dataset_args = dict(self.config.build_info.get('kwargs', {}))
+        
+        for modality in self.data_type:
+            proc_name = f"{'vis' if 'image' in modality else modality}_processor"
+            dataset_args[proc_name] = self.processors["train" if is_train else "eval"][modality]
+            mm_path = self._get_absolute_path(self.config.build_info.get(modality).storage)
+            dataset_args[f"{'vis' if 'image' in modality  else modality}_root"] = mm_path
+        
+        dataset_args['text_processor'] = self.text_processors["train" if is_train else "eval"]
+        dataset_args["ann_paths"] = [self._get_absolute_path(path) for path in info.storage]
+        dataset_args['modalities'] = self.data_type
+        
+        # Conform to base
+        for key in ['vis_processor', 'vis_root', 'test_processor']:
+            dataset_args.setdefault(key, None)
+        
+        return dataset_args
+
 def load_dataset_config(cfg_path):
     cfg = OmegaConf.load(cfg_path).datasets
-    cfg = cfg[list(cfg.keys())[0]]
-
-    return cfg
+    return next(iter(cfg.values()))

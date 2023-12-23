@@ -1,0 +1,32 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  llava150k_dialogue_instruct: #394276 train examples
+
+    data_type: images
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+
+    text_processor:
+        train:
+          name: "blip_caption"
+
+    build_info:
+      annotations:
+        train:
+          url: 
+            - https://huggingface.co/datasets/liuhaotian/LLaVA-Instruct-150K/resolve/main/llava_instruct_150k.json
+          storage: 
+            - LLaVA-Instruct-150K/annotations/lava_instruct_150k.json
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      images:
+        storage: /export/share/datasets/vision/coco/images/train2017

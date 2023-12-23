@@ -1,0 +1,55 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  objaverse_mm_caption_instruct: # 651576 train examples
+      vis_processor:
+          train:
+            name: "clip_image_train"
+            image_size: 224
+          eval:
+            name: "clip_image_train"
+            image_size: 224
+      pc_processor:
+            train:
+              name: "ulip_pc"
+            eval:
+              name: "ulip_pc"
+      text_processor:
+          train:
+            name: "blip_instruction"
+            modality: pc
+            task: caption
+          eval:
+            name: "blip_caption"
+
+      data_type: [pc, images] # [images|pc]
+
+      build_info:
+        # Be careful not to append minus sign (-) before split to avoid itemizing
+        annotations:
+          train:
+            url: 
+              - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/objaverse/cap3d_cap_final_train.csv
+              # - /export/einstein-vision/3d_vision/objaverse_captions/objaverse_blip_captions_train.json
+            storage:
+              - objaverse/annotations/train.csv
+              # - /export/einstein-vision/3d_vision/objaverse_captions/objaverse_blip_captions_train.json
+          
+          # val:
+          #   url: 
+          #     # - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/objaverse/cap3d_cap_final_val.csv
+          #     - /export/einstein-vision/3d_vision/objaverse_captions/objaverse_blip_captions_val.json
+          #   storage: 
+          #     # - objaverse/annotations/val.csv
+          #     - /export/einstein-vision/3d_vision/objaverse_captions/objaverse_blip_captions_val.json
+        
+        templates: null
+
+        pc:
+          storage: /export/einstein-vision/3d_vision/objaverse/objaverse_pc_parallel
+        
+        images:
+          storage: /export/einstein-vision/3d_vision/objaverse_captions/images/
