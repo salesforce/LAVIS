@@ -418,8 +418,9 @@ class RunnerBase:
             # save checkpoint according to save freq
             if self.save_freq>0 and cur_epoch%self.save_freq == 0:
                 self._save_checkpoint(cur_epoch, is_best=False)
-
-            dist.barrier()
+                
+            if is_dist_avail_and_initialized():
+                dist.barrier()
 
         # save last checkpoint
         if self.save_last and not self.evaluate_only:
