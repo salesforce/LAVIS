@@ -20,11 +20,11 @@ scikit-image
 sentencepiece
 spacy
 streamlit
-timm==0.4.12
+timm
 torch>=1.10.0
 torchvision
 tqdm
-transformers==4.33.2
+transformers
 webdataset
 wheel
 torchaudio
@@ -35,5 +35,5 @@ peft
 
 easydict==1.9
 pyyaml_env_tag==0.1
-open3d==0.13.0
+open3d
 h5py
