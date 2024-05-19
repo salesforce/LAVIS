@@ -32,7 +32,6 @@ soundfile
 moviepy
 nltk
 peft
-
 easydict==1.9
 pyyaml_env_tag==0.1
 open3d
