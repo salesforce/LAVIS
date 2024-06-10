@@ -1,0 +1,42 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  clothov2_instruct: # name of the dataset builder
+    audio_processor:
+        train:
+          name: beats_audio
+        eval:
+          name: beats_audio
+          
+    text_processor:
+        train:
+          name: "blip_instruction"
+          modality: audio
+          task: caption
+        eval:
+          name: "blip_caption"
+
+    data_type: [audio] 
+
+    build_info:
+      kwargs:
+        clotho_root: /export/einstein-vision/audio_datasets/clothov2/
+        split: eval
+        
+      annotations:
+        train:
+          url: 
+            - https://zenodo.org/record/4783391/files/clotho_captions_development.csv
+          storage: 
+            - clothov2/annotations/clotho_captions_development.csv
+        val:
+          url: 
+            - https://zenodo.org/record/4783391/files/clotho_captions_evaluation.csv
+          storage: 
+            - clothov2/annotations/clotho_captions_evaluation.csv
+      audio:
+        storage: /export/einstein-vision/audio_datasets/clothov2/CLOTHO_v2.1/clotho_audio_files/
+  

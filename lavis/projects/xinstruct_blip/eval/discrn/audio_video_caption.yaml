@@ -1,0 +1,176 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+model:
+  arch: blip2_vicuna_xinstruct
+  model_type: vicuna7b
+  load_pretrained: True
+  # pretrained: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/image_qformer.pth
+  load_finetuned: False
+  finetuned: ""
+  stage1_url_or_filename: null
+  image_model: "eva_clip_g"
+  pc_model: "ulip2_pointbert"
+  video_model: "eva_clip_g"
+  audio_model: "beats"
+  pretrained_image_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/image_qformer.pth
+  pretrained_pc_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/pc_qformer.pth
+  pretrained_video_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/video_qformer.pth
+  pretrained_audio_qformer: https://storage.googleapis.com/sfr-xinstructblip-data-research/model/xinstructblip_checkpoints/vicuna7b/audio_qformer.pth
+  load_attention_image_qformer: True
+  load_attention_pc_qformer: True
+  load_attention_video_qformer: True
+  load_attention_audio_qformer: True
+  load_ln_type_image: "image"
+  load_ln_type_video: "video"
+  load_ln_type_pc: "pc"
+  load_ln_type_audio: "audio"
+  load_qformer_type_image: "image"
+  load_qformer_type_pc: "pc"
+  load_qformer_type_video: "video"
+  load_qformer_type_audio: "audio"
+  load_projection_image: True
+  load_projection_pc: True
+  load_projection_video: True
+  load_projection_audio: True
+  load_projection_type_image: "image"
+  load_projection_type_pc: "pc"
+  load_projection_type_video: "video"
+  load_projection_type_audio: "audio"
+  image_encoder_kwargs :  {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  pc_encoder_kwargs :  {}
+  video_encoder_kwargs :   {"image_size": 224, "drop_path_rate": 0, "use_grad_checkpoint": False}
+  audio_encoder_kwargs :  {}
+  image_precision: "fp16"
+  pc_precision: "fp16"
+  video_precision: "fp16"
+  audio_precision: "fp16"
+  freeze_image: True
+  freeze_pc: True
+  freeze_video: True
+  freeze_audio: True
+  num_query_token: 32
+  llm_model: /path/to/vicuna-7b
+  prompt: "question: {} answer:"
+  max_txt_len: 128
+  max_output_txt_len: 256
+  apply_lemmatizer: False
+  num_few_shot_examples: 0
+  few_shot_prob: 0
+  qformer_text_input: True
+  llm_text_input: True
+  modalities :  [audio, video]
+  use_cues: True
+  shared_qformer: False
+  pretrained_shared_qformer: Null
+  load_attention_shared_qformer: False
+  load_qformer_type_shared: ""
+  load_projection_shared: False
+  load_projection_type_shaped: ""
+  load_ln_type_shared: ""
+  shared_qformer_num_features: 512
+  special_qformer_input_prompt: "a short description"
+  prefix: "You are given two inputs. Select exactly one of the two by referece to its relative position (first or second, left or right) that best answers the question. "
+  predict_with_gen: False
+  use_caption: True
+  use_describe: False
+  enumerate_inputs: False
+  add_space: True
+
+
+datasets:
+  audio_video_discrn: 
+    # data_dir: ${env.data_dir}/datasets
+    audio_processor:
+      train:
+        name: beats_audio
+        n_frames: 2
+      eval:
+        name: beats_audio
+        n_frames: 2
+        
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+    
+    video_processor:
+        train:
+          name: alpro_video_train
+          n_frms: 5
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+        eval:
+          name: alpro_video_eval
+          n_frms: 5
+          image_size: 224
+          min_scale: 0.9
+          max_scale: 1.0
+          full_video: True
+
+    data_type: [audio, video] # [images|videos|features]
+
+    build_info:
+      kwargs:
+        total: all
+        shuffle_modalities: False
+        balance_labels: True
+        dataset_name: audiocaps
+        ground_truth: False
+        classnames: [audio, video]
+        raw: True
+
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        val:
+          url: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/discrn/audiocaps.json
+          storage: 
+            - https://storage.googleapis.com/sfr-xinstructblip-data-research/data/discrn/audiocaps.json
+
+      audio:
+        storage: /audiocaps/AUDIOCAPS_32000Hz/audio/val
+      video:
+        storage: /export/einstein-vision/audio_datasets/audiocaps/video/AUDIOCAPS_32000Hz/audio/val
+
+run:
+  task: discrn_qa
+  # optimization-specific
+  batch_size_train: 8
+  batch_size_eval: 1
+  num_workers: 0
+  max_epoch: 1
+  segments: 1
+
+  # inference-specific
+  max_len: 10
+  min_len: 1
+  length_penalty: -1.
+  num_beams: 5
+  inference_method: "generate"
+
+  train_splits: ["train"]
+  valid_splits: ["val"]
+  # test_splits: ["test"]
+
+  # distribution
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  use_dist_eval_sampler: False
+ 
+
+  # model specific
+  k_test: 128
+
+  # misc
+  seed: 42
+  output_dir: "output/xinstructblip/eval/vicuna7b/discrn/audio_video_caption"
+
+  evaluate: True
+  save_freq: -1

@@ -27,7 +27,6 @@ class MultiIterLoader:
             assert hasattr(
                 loader, "__next__"
             ), "Loader {} has no __next__ method.".format(loader)
-
         if ratios is None:
             ratios = [1.0] * len(loaders)
         else:
@@ -101,10 +100,13 @@ class PrefetchLoader(object):
     def next(self, it):
         torch.cuda.current_stream().wait_stream(self.stream)
         batch = self.batch
-        if batch is not None:
+        if batch is not None and batch is not {}:
             record_cuda_stream(batch)
         self.preload(it)
         return batch
+    
+    def __next__(self, it):
+        return self.next(it)
 
     def __getattr__(self, name):
         method = self.loader.__getattribute__(name)

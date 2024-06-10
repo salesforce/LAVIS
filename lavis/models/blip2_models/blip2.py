@@ -28,8 +28,8 @@ from transformers import BertTokenizer
 
 class Blip2Base(BaseModel):
     @classmethod
-    def init_tokenizer(cls):
-        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+    def init_tokenizer(cls, truncation_side="right"):
+        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", truncation_side=truncation_side)
         tokenizer.add_special_tokens({"bos_token": "[DEC]"})
         return tokenizer
 
@@ -60,21 +60,26 @@ class Blip2Base(BaseModel):
         query_tokens.data.normal_(mean=0.0, std=encoder_config.initializer_range)
         return Qformer, query_tokens
 
-    @classmethod
     def init_vision_encoder(
-        cls, model_name, img_size, drop_path_rate, use_grad_checkpoint, precision
+        self, model_name, img_size, drop_path_rate, use_grad_checkpoint, precision
     ):
         assert model_name in [
             "eva_clip_g",
+            "eva2_clip_L",
             "clip_L",
-        ], "vit model must be eva_clip_g or clip_L"
+        ], "vit model must be eva_clip_g, eva2_clip_L or clip_L"
         if model_name == "eva_clip_g":
             visual_encoder = create_eva_vit_g(
                 img_size, drop_path_rate, use_grad_checkpoint, precision
             )
+#         elif model_name == "eva2_clip_L":
+#             visual_encoder = create_eva2_vit_L(
+#                 img_size, drop_path_rate, use_grad_checkpoint, precision
+#             )
         elif model_name == "clip_L":
             visual_encoder = create_clip_vit_L(img_size, use_grad_checkpoint, precision)
         ln_vision = LayerNorm(visual_encoder.num_features)
+        self.vit_name = model_name
         return visual_encoder, ln_vision
 
     def load_from_pretrained(self, url_or_filename):
@@ -97,6 +102,87 @@ class Blip2Base(BaseModel):
 
         return msg
 
+    def get_optimizer_params(self, weight_decay, lr_scale=1):
+
+        vit_num_layers = self.visual_encoder.get_num_layer()
+        lr_scales = list(lr_scale ** (vit_num_layers + 1 - i) for i in range(vit_num_layers + 2))
+
+        parameter_group_names = {}
+        parameter_group_vars = {}
+
+        for name, param in self.named_parameters():
+            if not param.requires_grad:
+                continue  # frozen weights
+            if len(param.shape) == 1 or name.endswith(".bias"):
+                group_name = "no_decay"
+                this_weight_decay = 0.
+            else:
+                group_name = "decay"
+                this_weight_decay = weight_decay
+            if 'visual_encoder' in name:
+                layer_id = self.visual_encoder.get_num_layer(name.replace('visual_encoder.',''))
+                group_name = "vit_layer_%d_%s" % (layer_id, group_name)
+            else:
+                layer_id = None
+
+            if group_name not in parameter_group_names:
+                if layer_id is not None:
+                    scale = lr_scales[layer_id]
+                else:
+                    scale = 1
+                parameter_group_names[group_name] = {
+                    "weight_decay": this_weight_decay,
+                    "params": [],
+                    "lr_scale": scale
+                }
+                parameter_group_vars[group_name] = {
+                    "weight_decay": this_weight_decay,
+                    "params": [],
+                    "lr_scale": scale
+                }
+            parameter_group_vars[group_name]["params"].append(param)
+            parameter_group_names[group_name]["params"].append(name)
+        # import json
+        # print("Param groups = %s" % json.dumps(parameter_group_names, indent=2))
+        optim_params = list(parameter_group_vars.values())
+        return optim_params
+
+    def _lemmatize(self, answers):
+        def apply(answer):
+            doc = self.lemmatizer(answer)
+
+            words = []
+            for token in doc:
+                if token.pos_ in ["NOUN", "VERB"]:
+                    words.append(token.lemma_)
+                else:
+                    words.append(token.text)
+            answer = " ".join(words)
+
+            return answer
+
+        return [apply(answer) for answer in answers]
+
+    @property
+    def lemmatizer(self):
+        if self._lemmatizer is None:
+            try:
+                import spacy
+
+                self._lemmatizer = spacy.load("en_core_web_sm")
+            except ImportError:
+                logging.error(
+                    """
+                    Please install spacy and en_core_web_sm model to apply lemmatization.
+                    python -m spacy download en_core_web_sm
+                    OR
+                    import spacy.cli
+                    spacy.cli.download("en_core_web_sm")
+                    """
+                )
+                exit(1)
+
+        return self._lemmatizer
 
 def disabled_train(self, mode=True):
     """Overwrite model.train with this function to make sure train/eval mode

@@ -164,7 +164,7 @@ class VisionTransformer(nn.Module):
         self.positional_embedding = nn.Parameter(scale * torch.randn(self.num_patches + 1, width))
         self.ln_pre = LayerNorm(width)
         
-        self.transformer = Transformer(width, layers-1, heads, use_grad_checkpointing=use_grad_checkpointing)
+        self.transformer = Transformer(width, layers, heads, use_grad_checkpointing=use_grad_checkpointing)
            
 #         self.ln_final = LayerNorm(width)
 
@@ -184,7 +184,15 @@ class VisionTransformer(nn.Module):
 #         x = self.ln_final(x)
         return x
     
-    
+    def get_num_layer(self, var_name=""):
+        if var_name in ("class_embedding", "positional_embedding", "conv1", "ln_pre"):
+            return 0
+        elif var_name.startswith("transformer.resblocks"):
+            layer_id = int(var_name.split('.')[2])
+            return layer_id + 1
+        else:
+            return len(self.transformer.resblocks)    
+            
             
 # From PyTorch internals
 def _ntuple(n):
@@ -193,7 +201,8 @@ def _ntuple(n):
             return x
         return tuple(repeat(x, n))
     return parse
-to_2tuple = _ntuple(2)        
+to_2tuple = _ntuple(2)    
+    
 def interpolate_pos_embed(model, state_dict, interpolation: str = 'bicubic', seq_dim=1):
     # Rescale the grid of position embeddings when loading from state_dict
     old_pos_embed = state_dict.get('positional_embedding', None)
@@ -235,7 +244,7 @@ def create_clip_vit_L(img_size=224,use_checkpoint=False,precision="fp16"):
             input_resolution=img_size,
             patch_size=14,
             width=1024,
-            layers=22,
+            layers=23,
             heads=16,
             use_grad_checkpointing=use_checkpoint,
         )         

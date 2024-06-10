@@ -1,0 +1,101 @@
+ # Copyright (c) 2022, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+model:
+  arch: blip2_vicuna_instruct
+  model_type: vicuna13b
+  load_pretrained: True
+  prompt: "describe the 3d model."
+  format_candidates_prompt: " a 3d model of a {}"
+
+datasets:
+  modelnet40_cls: # name of the dataset builder
+    data_type: [pc, images] 
+
+    vis_processor:
+      train:
+        name: "clip_image_train"
+        image_size: 224
+      eval:
+        name: "clip_image_eval"
+        image_size: 224
+      
+    pc_processor:
+        train:
+          name: "ulip_pc"
+        eval:
+          name: "ulip_pc"
+    text_processor:
+        train:
+          name: "blip_caption"
+        eval:
+          name: "blip_caption"
+
+    build_info:
+      # Be careful not to append minus sign (-) before split to avoid itemizing
+      annotations:
+        train:
+          url: 
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_shape_names.txt
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_train_8192pts_fps.dat
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_train.txt
+          storage: 
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_shape_names.txt
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_train_8192pts_fps.dat
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_train.txt
+        val:
+          url: 
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_shape_names.txt
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_test_8192pts_fps.dat
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_test.txt
+          storage: 
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_shape_names.txt
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_test_8192pts_fps.dat
+            - /export/home/ULIP/data/modelnet40_normal_resampled/modelnet40_test.txt
+      
+      pc:
+        storage: /export/home/ULIP/data/modelnet40_normal_resampled
+      
+      images:
+        storage: /export/einstein-vision/3d_vision/3d_object_datasets/modelnet_images8192
+
+
+run:
+  task: multimodal_classification
+  # optimizer
+  lr_sched: "linear_warmup_cosine_lr"
+  init_lr: 1e-5
+  min_lr: 0
+  warmup_lr: 1e-8
+  warmup_steps: 1000
+  weight_decay: 0.05
+  max_epoch: 1
+  batch_size_train: 16
+  batch_size_eval: 1
+  num_workers: 8
+  accum_grad_iters: 1
+  prompt: "describe the 3d model."
+
+  max_len: 3
+  min_len: 1
+  num_beams: 5
+
+  seed: 42
+  output_dir: "output/instructblip/modelent_classification_vicuna13b/"
+
+  amp: True
+  resume_ckpt_path: null
+
+  evaluate: True
+  # train_splits: ["train"]
+  valid_splits: ["val"]
+
+
+  device: "cuda"
+  world_size: 1
+  dist_url: "env://"
+  distributed: True
+  save_freq: -1 # save epoch every xxx epochs -1 only save last and best. 
+  val_freq: 1

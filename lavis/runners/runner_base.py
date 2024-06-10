@@ -100,32 +100,23 @@ class RunnerBase:
     def optimizer(self):
         # TODO make optimizer class and configurations
         if self._optimizer is None:
+            lr_scale = self.config.run_cfg.get("lr_layer_decay", 1)
+            weight_decay = self.config.run_cfg.get("weight_decay", 0.05)
+            optim_params = self._model.get_optimizer_params(weight_decay,lr_scale)
+
             num_parameters = 0
-            p_wd, p_non_wd = [], []
-            for n, p in self.model.named_parameters():
-                if not p.requires_grad:
-                    continue  # frozen weights
-                if p.ndim < 2 or "bias" in n or "ln" in n or "bn" in n:
-                    p_non_wd.append(p)
-                else:
-                    p_wd.append(p)
-                num_parameters += p.data.nelement()
-            logging.info("number of trainable parameters: %d" % num_parameters)
-            optim_params = [
-                {
-                    "params": p_wd,
-                    "weight_decay": float(self.config.run_cfg.weight_decay),
-                },
-                {"params": p_non_wd, "weight_decay": 0},
-            ]
+            for p_group in optim_params:
+                for p in p_group["params"]:
+                    num_parameters += p.data.nelement()    
+            logging.info("number of trainable parameters: {}".format(num_parameters))      
+                  
             beta2 = self.config.run_cfg.get("beta2", 0.999)
+
             self._optimizer = torch.optim.AdamW(
                 optim_params,
                 lr=float(self.config.run_cfg.init_lr),
-                weight_decay=float(self.config.run_cfg.weight_decay),
                 betas=(0.9, beta2),
-            )
-
+            )    
         return self._optimizer
 
     @property
@@ -281,6 +272,21 @@ class RunnerBase:
     def log_freq(self):
         log_freq = self.config.run_cfg.get("log_freq", 50)
         return int(log_freq)
+    
+    @property
+    def save_freq(self):
+        save_freq = self.config.run_cfg.get("save_freq", 5)
+        return int(save_freq)
+
+    @property
+    def val_freq(self):
+        val_freq = self.config.run_cfg.get("val_freq", 1)
+        return int(val_freq)
+    
+    @property
+    def save_last(self):
+        save_last = self.config.run_cfg.get("save_last", True)
+        return int(save_last)
 
     @property
     def init_lr(self):
@@ -369,14 +375,20 @@ class RunnerBase:
             # training phase
             if not self.evaluate_only:
                 logging.info("Start training")
+                # See https://github.com/salesforce/LAVIS/issues/449
+                # if cur_epoch == self.start_epoch:
+                #     self.task.before_training(
+                #         model=self.unwrap_dist_model(self.model),
+                #         dataset=self.datasets["train"],
+                #     )
                 train_stats = self.train_epoch(cur_epoch)
                 self.log_stats(split_name="train", stats=train_stats)
 
             # evaluation phase
-            if len(self.valid_splits) > 0:
+            if len(self.valid_splits) > 0 and (self.evaluate_only or cur_epoch%self.val_freq == 0):
                 for split_name in self.valid_splits:
                     logging.info("Evaluating on {}.".format(split_name))
-
+                    
                     val_log = self.eval_epoch(
                         split_name=split_name, cur_epoch=cur_epoch
                     )
@@ -389,8 +401,8 @@ class RunnerBase:
                             agg_metrics = val_log["agg_metrics"]
                             if agg_metrics > best_agg_metric and split_name == "val":
                                 best_epoch, best_agg_metric = cur_epoch, agg_metrics
-
-                                self._save_checkpoint(cur_epoch, is_best=True)
+                                if not self.evaluate_only:
+                                    self._save_checkpoint(cur_epoch, is_best=True)
 
                             val_log.update({"best_epoch": best_epoch})
                             self.log_stats(val_log, split_name)
@@ -403,7 +415,15 @@ class RunnerBase:
             if self.evaluate_only:
                 break
 
+            # save checkpoint according to save freq
+            if self.save_freq>0 and cur_epoch%self.save_freq == 0:
+                self._save_checkpoint(cur_epoch, is_best=False)
+
             dist.barrier()
+
+        # save last checkpoint
+        if self.save_last and not self.evaluate_only:
+            self._save_checkpoint(cur_epoch, is_best=False)
 
         # testing phase
         test_epoch = "best" if len(self.valid_splits) > 0 else cur_epoch
@@ -576,6 +596,7 @@ class RunnerBase:
             if k in param_grad_dic.keys() and not param_grad_dic[k]:
                 # delete parameters that do not require gradient
                 del state_dict[k]
+
         save_obj = {
             "model": state_dict,
             "optimizer": self.optimizer.state_dict(),

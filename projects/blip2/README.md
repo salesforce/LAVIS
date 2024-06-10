@@ -10,8 +10,6 @@ pip install salesforce-lavis
 or install from source following LAVIS instruction.
 
 ### Demo:
-Try out the Web Demo! [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Salesforce/BLIP2)
-
 Try out our [Notebook Demo](https://github.com/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb) on instructed vision-to-language generation: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/salesforce/LAVIS/blob/main/examples/blip2_instructed_generation.ipynb)
 
 
@@ -36,7 +34,7 @@ from PIL import Image
 # setup device to use
 device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 # load sample image
-raw_image = Image.open("../docs/_static/merlion.png").convert("RGB")
+raw_image = Image.open("../../docs/_static/merlion.png").convert("RGB")
 display(raw_image.resize((596, 437)))
 ```
 
@@ -94,4 +92,77 @@ Follow [Dataset Download](https://opensource.salesforce.com/LAVIS//latest/gettin
 
 Run [these scripts](https://github.com/salesforce/LAVIS/tree/main/run_scripts/blip2/eval) for evaluating pretrained and finetuned models. 
 
-For model training, please follow LAVIS documentation.
+### Training
+Stage-1 Pre-training (from scratch): 
+```bash run_scripts/blip2/train/pretrain_stage1.sh```
+
+Stage-2 Pre-training: 
+```bash run_scripts/blip2/train/pretrain_stage2.sh```
+
+Finetune for image captioning: 
+```bash run_scripts/blip2/train/train_caption_coco.sh```
+
+The [config files](https://github.com/salesforce/LAVIS/tree/main/lavis/projects/blip2/train) can be modified for customized training.
+
+### Citing BLIP-2
+<pre>
+@inproceedings{li2023blip2,
+      title={{BLIP-2:} Bootstrapping Language-Image Pre-training with Frozen Image Encoders and Large Language Models}, 
+      author={Junnan Li and Dongxu Li and Silvio Savarese and Steven Hoi},
+      year={2023},
+      booktitle={ICML},
+}</pre>
+
+###  🤗 Hugging Face integration
+
+BLIP-2 is integrated into the Hugging Face 🤗 [Transformers](https://github.com/huggingface/transformers) library, and allows to leverage int8 quanitization thanks to [bitsandbytes](https://github.com/TimDettmers/bitsandbytes). This roughly halves the amount of memory required to load the model, without performance degradation.
+
+Documentation can be found [here](https://huggingface.co/docs/transformers/main/model_doc/blip-2).
+
+Usage in half precision (float16) is as follows:
+
+```
+from PIL import Image
+import requests
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
+import torch
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+model = Blip2ForConditionalGeneration.from_pretrained(
+    "Salesforce/blip2-opt-2.7b", torch_dtype=torch.float16
+)
+model.to(device)
+url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+image = Image.open(requests.get(url, stream=True).raw)
+
+inputs = processor(images=image, return_tensors="pt").to(device, torch.float16)
+
+generated_ids = model.generate(**inputs)
+generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+print(generated_text)
+```
+
+To leverage the int8 algorithm, you can run the model as follows:
+
+```
+import torch
+import requests
+from PIL import Image
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
+
+processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
+model = Blip2ForConditionalGeneration.from_pretrained("Salesforce/blip2-opt-2.7b", load_in_8bit=True, device_map="auto")
+
+img_url = 'https://storage.googleapis.com/sfr-vision-language-research/BLIP/demo.jpg' 
+raw_image = Image.open(requests.get(img_url, stream=True).raw).convert('RGB')
+
+question = "how many dogs are in the picture?"
+inputs = processor(raw_image, question, return_tensors="pt").to("cuda", torch.float16)
+
+out = model.generate(**inputs)
+print(processor.decode(out[0], skip_special_tokens=True))
+```
+
+All models can be found on the [hub](https://huggingface.co/models?other=blip-2).

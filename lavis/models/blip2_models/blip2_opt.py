@@ -5,6 +5,7 @@
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 import logging
+from packaging import version
 
 import torch
 from torch.cuda.amp import autocast as autocast
@@ -12,8 +13,9 @@ import torch.nn as nn
 
 from lavis.common.registry import registry
 from lavis.models.blip2_models.blip2 import Blip2Base, disabled_train
-from lavis.models.blip2_models.modeling_opt import OPTForCausalLM, OPTConfig
-from transformers import AutoTokenizer
+# from lavis.models.blip2_models.modeling_opt import OPTForCausalLM, OPTConfig
+from transformers import AutoTokenizer, OPTForCausalLM, OPTConfig
+import transformers
 
 
 @registry.register_model("blip2_opt")
@@ -49,9 +51,15 @@ class Blip2OPT(Blip2Base):
         opt_model="facebook/opt-2.7b",
         prompt="",
         max_txt_len=32,
+        apply_lemmatizer=False,
     ):
+        """
+        apply_lemmatizer: when set to True, postprocess predict_answers() result with lemmas.
+        """
         super().__init__()
-
+        transformers_version = version.parse(transformers.__version__)
+        assert transformers_version >= version.parse("4.27"), "BLIP-2 OPT requires transformers>=4.27"
+        
         self.tokenizer = self.init_tokenizer()
 
         self.visual_encoder, self.ln_vision = self.init_vision_encoder(
@@ -92,6 +100,9 @@ class Blip2OPT(Blip2Base):
         self.prompt = prompt
         prompt_tokens = self.opt_tokenizer(self.prompt, return_tensors="pt")
         self.prompt_length = prompt_tokens.attention_mask.sum(1)
+        
+        self._apply_lemmatizer = apply_lemmatizer
+        self._lemmatizer = None       
 
     def forward(self, samples):
         image = samples["image"]
@@ -205,41 +216,180 @@ class Blip2OPT(Blip2Base):
 
             prompt = [prompt] * image.size(0)
 
-            opt_tokens = self.opt_tokenizer(prompt, return_tensors="pt").to(
-                image.device
-            )
-            input_ids = opt_tokens.input_ids
+            opt_tokens = self.opt_tokenizer(
+                prompt,
+                return_tensors="pt",
+                padding="longest",
+                truncation=True,
+                max_length=self.max_txt_len,
+            ).to(image.device)
             attention_mask = torch.cat([atts_opt, opt_tokens.attention_mask], dim=1)
-
-            if use_nucleus_sampling:
-                query_embeds = inputs_opt.repeat_interleave(num_captions, dim=0)
-                num_beams = 1
-            else:
-                query_embeds = inputs_opt.repeat_interleave(num_beams, dim=0)
-
+            
+            # new version for transformers>=4.27
+            inputs_embeds = self.opt_model.get_input_embeddings()(opt_tokens.input_ids)
+            inputs_embeds = torch.cat([inputs_opt,inputs_embeds],dim=1)
+            
             outputs = self.opt_model.generate(
-                input_ids=input_ids,
-                query_embeds=query_embeds,
+                inputs_embeds=inputs_embeds, 
                 attention_mask=attention_mask,
                 do_sample=use_nucleus_sampling,
                 top_p=top_p,
                 temperature=temperature,
                 num_beams=num_beams,
-                max_new_tokens=max_length,
+                max_length=max_length,
                 min_length=min_length,
                 eos_token_id=self.eos_token_id,
                 repetition_penalty=repetition_penalty,
                 length_penalty=length_penalty,
                 num_return_sequences=num_captions,
             )
-
-            prompt_length = opt_tokens.input_ids.shape[1]
             output_text = self.opt_tokenizer.batch_decode(
-                outputs[:, prompt_length:], skip_special_tokens=True
+                outputs, skip_special_tokens=True
             )
+                            
+            # previous version for transformers<4.27
+            # if use_nucleus_sampling:
+            #     query_embeds = inputs_opt.repeat_interleave(num_captions, dim=0)
+            #     num_beams = 1
+            # else:
+            #     query_embeds = inputs_opt.repeat_interleave(num_beams, dim=0)
+
+            # outputs = self.opt_model.generate(
+            #     input_ids=input_ids,
+            #     query_embeds=query_embeds,
+            #     attention_mask=attention_mask,
+            #     do_sample=use_nucleus_sampling,
+            #     top_p=top_p,
+            #     temperature=temperature,
+            #     num_beams=num_beams,
+            #     max_new_tokens=max_length,
+            #     min_length=min_length,
+            #     eos_token_id=self.eos_token_id,
+            #     repetition_penalty=repetition_penalty,
+            #     length_penalty=length_penalty,
+            #     num_return_sequences=num_captions,
+            # )
+
+            # prompt_length = opt_tokens.input_ids.shape[1]
+            # output_text = self.opt_tokenizer.batch_decode(
+            #     outputs[:, prompt_length:], skip_special_tokens=True
+            # )
+            
             output_text = [text.strip() for text in output_text]
             return output_text
+        
+        
+    def predict_answers(
+        self,
+        samples,
+        num_beams=5,
+        inference_method="generate",
+        max_len=10,
+        min_len=1,
+        num_ans_candidates=128,
+        answer_list=None,
+        prompt="",
+        length_penalty=0,
+        **kwargs
+    ):
+        image = samples["image"]
+        with self.maybe_autocast():
+            image_embeds = self.ln_vision(self.visual_encoder(image))
+            image_atts = torch.ones(image_embeds.size()[:-1], dtype=torch.long).to(
+                image.device
+            )
 
+            query_tokens = self.query_tokens.expand(image_embeds.shape[0], -1, -1)
+            query_output = self.Qformer.bert(
+                query_embeds=query_tokens,
+                encoder_hidden_states=image_embeds,
+                encoder_attention_mask=image_atts,
+                return_dict=True,
+            )
+
+            inputs_opt = self.opt_proj(query_output.last_hidden_state)
+            atts_opt = torch.ones(inputs_opt.size()[:-1], dtype=torch.long).to(
+                image.device
+            )
+
+            if isinstance(samples["text_input"], str):
+                samples["text_input"] = [samples["text_input"]]
+            if prompt:
+                text_input = [prompt.format(question) for question in samples["text_input"]]
+            else:
+                text_input = samples["text_input"]
+
+            self.opt_tokenizer.padding_side = "left"
+            opt_tokens = self.opt_tokenizer(
+                text_input,
+                return_tensors="pt",
+                padding="longest",
+                truncation=True,
+                max_length=self.max_txt_len,
+            ).to(image.device)
+        
+            attention_mask = torch.cat([atts_opt, opt_tokens.attention_mask], dim=1)
+            
+            # require transformers>=4.27
+            inputs_embeds = self.opt_model.get_input_embeddings()(opt_tokens.input_ids)
+            inputs_embeds = torch.cat([inputs_opt,inputs_embeds],dim=1)
+            
+            outputs = self.opt_model.generate(
+                inputs_embeds=inputs_embeds,
+                attention_mask=attention_mask,
+                do_sample=False,
+                num_beams=num_beams,
+                max_new_tokens=max_len,
+                min_length=min_len,
+                eos_token_id=self.eos_token_id,
+                length_penalty=length_penalty,
+            )
+            output_text = self.opt_tokenizer.batch_decode(
+                outputs, skip_special_tokens=True
+            )
+            output_text = [text.strip() for text in output_text]
+        if self._apply_lemmatizer or ("apply_lemmatizer" in samples.keys() and samples["apply_lemmatizer"]):
+            output_text = self._lemmatize(output_text)
+
+        return output_text
+    
+    def _lemmatize(self, answers):
+        def apply(answer):
+            doc = self.lemmatizer(answer)
+
+            words = []
+            for token in doc:
+                if token.pos_ in ["NOUN", "VERB"]:
+                    words.append(token.lemma_)
+                else:
+                    words.append(token.text)
+            answer = " ".join(words)
+
+            return answer
+
+        return [apply(answer) for answer in answers]
+
+    @property
+    def lemmatizer(self):
+        if self._lemmatizer is None:
+            try:
+                import spacy
+
+                self._lemmatizer = spacy.load("en_core_web_sm")
+            except ImportError:
+                logging.error(
+                    """
+                    Please install spacy and en_core_web_sm model to apply lemmatization.
+                    python -m spacy download en_core_web_sm
+                    OR
+                    import spacy.cli
+                    spacy.cli.download("en_core_web_sm")
+                    """
+                )
+                exit(1)
+
+        return self._lemmatizer
+        
     @classmethod
     def from_config(cls, cfg):
         vit_model = cfg.get("vit_model", "eva_clip_g")
@@ -254,6 +404,8 @@ class Blip2OPT(Blip2Base):
 
         prompt = cfg.get("prompt", "")
         max_txt_len = cfg.get("max_txt_len", 32)
+        
+        apply_lemmatizer = cfg.get("apply_lemmatizer", False)
 
         model = cls(
             vit_model=vit_model,
@@ -266,6 +418,7 @@ class Blip2OPT(Blip2Base):
             opt_model=opt_model,
             prompt=prompt,
             max_txt_len=max_txt_len,
+            apply_lemmatizer=apply_lemmatizer,
         )
         model.load_checkpoint_from_config(cfg)
 

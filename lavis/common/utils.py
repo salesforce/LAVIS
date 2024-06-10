@@ -1,5 +1,5 @@
 """
- Copyright (c) 2022, salesforce.com, inc.
+ Copyright (c) 2023, salesforce.com, inc.
  All rights reserved.
  SPDX-License-Identifier: BSD-3-Clause
  For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -12,6 +12,7 @@ import os
 import pickle
 import re
 import shutil
+import tarfile
 import urllib
 import urllib.error
 import urllib.request
@@ -23,6 +24,7 @@ import pandas as pd
 import yaml
 from iopath.common.download import download
 from iopath.common.file_io import file_lock, g_pathmgr
+from lavis.common.dist_utils import download_cached_file
 from lavis.common.registry import registry
 from torch.utils.model_zoo import tqdm
 from torchvision.datasets.utils import (
@@ -405,6 +407,22 @@ def is_url(input_url):
     return is_url
 
 
+def download_and_untar(url):
+    cached_file = download_cached_file(
+        url, check_hash=False, progress=True
+    )
+    # get path to untarred directory
+    untarred_dir = os.path.basename(url).split(".")[0]
+    parent_dir = os.path.dirname(cached_file)
+
+    full_dir = os.path.join(parent_dir, untarred_dir)
+
+    if not os.path.exists(full_dir):
+        with tarfile.open(cached_file) as tar:
+            tar.extractall(parent_dir)
+
+    return full_dir
+
 def cleanup_dir(dir):
     """
     Utility for deleting a directory. Useful for cleaning the storage space
@@ -422,3 +440,16 @@ def get_file_size(filename):
     """
     size_in_mb = os.path.getsize(filename) / float(1024**2)
     return size_in_mb
+
+def is_serializable(value):
+    """
+    This function checks if the provided value can be serialized into a JSON string.
+    """
+    try:
+        json.dumps(value)
+        return True
+    except (TypeError, OverflowError):
+        return False
+
+def is_convertible_to_int(value):
+    return bool(re.match(r'^-?\d+$', str(value)))

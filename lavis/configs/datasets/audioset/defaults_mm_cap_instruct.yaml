@@ -1,0 +1,48 @@
+ # Copyright (c) 2023, salesforce.com, inc.
+ # All rights reserved.
+ # SPDX-License-Identifier: BSD-3-Clause
+ # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+datasets:
+  audioset_mm_caption_instruct: # 14141
+    audio_processor:
+        train:
+          name: beats_audio
+          sampling_rate: 16000
+        eval:
+          name: beats_audio
+          sampling_rate: 16000
+          is_eval: False
+          
+    text_processor:
+        train:
+          name: blip_instruction
+          modality: audio
+          task: classification
+        eval:
+          name: blip_caption
+
+    data_type: [audio] 
+
+    build_info:
+      annotations:
+        train:
+          url: 
+            # - https://storage.googleapis.com/sfr-xinstructblip-data-research/data//audioset/balanced_train_clean.csv
+            - /export/home/LAVIS-xgen_mm/lavis/configs/datasets/audioset/balanced_train_clean.csv
+            - http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv
+          storage:
+            - audioset/annotations/balanced_train_clean.csv
+            # - /export/home/LAVIS-xgen_mm/lavis/configs/datasets/audioset/balanced_train_clean.csv
+            - audioset/annotations/class_labels_indices.csv
+             
+        # val:
+        #   url: 
+        #     - http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/eval_segments.csv
+        #     - http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/class_labels_indices.csv
+        #   storage: 
+        #     - audioset/annotations/eval_segments.csv
+        #     - audioset/annotations/class_labels_indices.csv
+        
+      audio:
+        storage: /export/einstein-vision/audio_datasets/AudioSet/all_audio

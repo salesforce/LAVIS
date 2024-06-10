@@ -94,11 +94,31 @@ class BaseModel(nn.Module):
             ), "Found load_finetuned is True, but finetune_path is None."
             self.load_checkpoint(url_or_filename=finetune_path)
         else:
-            # load pre-trained weights
-            pretrain_path = cfg.get("pretrained", None)
-            assert "Found load_finetuned is False, but pretrain_path is None."
-            self.load_from_pretrained(url_or_filename=pretrain_path, **kwargs)
+            load_pretrained = cfg.get("load_pretrained", True)
+            if load_pretrained:
+                # load pre-trained weights
+                pretrain_path = cfg.get("pretrained", None)
+                assert "Found load_finetuned is False, but pretrain_path is None."
+                self.load_from_pretrained(url_or_filename=pretrain_path, **kwargs)
 
+    def before_training(self, **kwargs):
+        pass
+
+    def get_optimizer_params(self, weight_decay, lr_scale=1):
+        p_wd, p_non_wd = [], []
+        for n, p in self.named_parameters():
+            if not p.requires_grad:
+                continue  # frozen weights
+            if p.ndim < 2 or "bias" in n or "ln" in n or "bn" in n:
+                p_non_wd.append(p)
+            else:
+                p_wd.append(p)        
+        optim_params = [
+            {"params": p_wd, "weight_decay": weight_decay, "lr_scale": lr_scale},
+            {"params": p_non_wd, "weight_decay": 0, "lr_scale": lr_scale},
+        ]                
+        return optim_params
+    
     def before_evaluation(self, **kwargs):
         pass
 

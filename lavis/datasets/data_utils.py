@@ -11,6 +11,7 @@ import os
 import random as rnd
 import tarfile
 import zipfile
+import cv2
 
 import decord
 import webdataset as wds
@@ -50,7 +51,8 @@ def load_video(video_path, n_frms=MAX_INT, height=-1, width=-1, sampling="unifor
 
 
 def apply_to_sample(f, sample):
-    if len(sample) == 0:
+    ## add check for datasets that return none samples for missing items
+    if sample == None or len(sample) == 0:
         return {}
 
     def _apply(x):
@@ -282,3 +284,68 @@ def save_frames_grid(img_array, out_path):
     img = Image.fromarray(ndarr)
 
     img.save(out_path)
+
+
+def uniform_frame_sampling(video_path, num_frames, target_height, target_width, start_time=None, end_time=None):
+    cap = cv2.VideoCapture(video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    frame_rate = cap.get(cv2.CAP_PROP_FPS)
+
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = total_frames / frame_rate
+
+    start_frame = int(start_time * frame_rate)
+    end_frame = int(end_time * frame_rate)
+    frame_indices = list(range(start_frame, end_frame + 1, (end_frame - start_frame + 1) // num_frames))
+
+    frames = []
+    for frame_index in frame_indices:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame = cv2.resize(frame, (target_width, target_height))
+        frames.append(frame)
+
+    cap.release()
+    return frames
+
+
+def head_tail_frame_sampling(video_path, num_frames, target_height, target_width, start_time=None, end_time=None):
+    cap = cv2.VideoCapture(video_path)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    frame_rate = cap.get(cv2.CAP_PROP_FPS)
+
+    if start_time is None:
+        start_time = 0
+    if end_time is None:
+        end_time = total_frames / frame_rate
+
+    start_frame = int(start_time * frame_rate)
+    end_frame = int(end_time * frame_rate)
+    frame_indices = [start_frame] + [start_frame + (end_frame - start_frame) // (num_frames - 1) * i for i in range(1, num_frames - 1)] + [end_frame]
+
+    frames = []
+    for frame_index in frame_indices:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame = cv2.resize(frame, (target_width, target_height))
+        frames.append(frame)
+
+    cap.release()
+    if len(frames) == 0:
+        return None
+    return torch.stack([torch.tensor(f).permute(2,0,1).float() for f in frames], dim=1)
+
+
+def load_clip(video_path, num_frames, target_height, target_width, start_time=None, end_time=None, sampling="headtail"):
+    if sampling == "headtail":
+        return head_tail_frame_sampling(video_path, num_frames, target_height, target_width, start_time, end_time)
+    elif sampling == "uniform":
+        return uniform_frame_sampling(video_path, num_frames, target_height, target_width, start_time, end_time)
+    else:
+        raise NotImplementedError

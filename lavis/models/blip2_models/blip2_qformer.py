@@ -156,20 +156,37 @@ class Blip2Qformer(Blip2Base):
             image.device
         )
 
-        loss_itc = (
-            F.cross_entropy(sim_i2t, targets, label_smoothing=0.1)
-            + F.cross_entropy(sim_t2i, targets, label_smoothing=0.1)
-        ) / 2
+        if "image_id" in samples.keys(): #coco retrieval finetuning
+            image_ids = samples["image_id"].view(-1,1)
+            image_ids_all = concat_all_gather(image_ids)
+            pos_idx = torch.eq(image_ids, image_ids_all.t()).float()       
+            sim_targets = pos_idx / pos_idx.sum(1,keepdim=True)   
+            sim_targets = 0.9 * sim_targets + 0.1 * torch.ones_like(sim_targets) / sim_targets.size(1)
+
+            loss_t2i = -torch.sum(F.log_softmax(sim_t2i, dim=1)*sim_targets,dim=1).mean()
+            loss_i2t = -torch.sum(F.log_softmax(sim_i2t, dim=1)*sim_targets,dim=1).mean()     
+            loss_itc = (loss_t2i+loss_i2t)/2  
+        else:                     
+            loss_itc = (
+                F.cross_entropy(sim_i2t, targets, label_smoothing=0.1)
+                + F.cross_entropy(sim_t2i, targets, label_smoothing=0.1)
+            ) / 2
 
         ###============== Image-text Matching ===================###
         text_input_ids_world = concat_all_gather(text_tokens.input_ids)
         text_attention_mask_world = concat_all_gather(text_tokens.attention_mask)
         image_embeds_world = all_gather_with_grad(image_embeds)
         with torch.no_grad():
-            weights_t2i = F.softmax(sim_t2i, dim=1) + 1e-4
-            weights_t2i[:, rank * bs : rank * bs + bs].fill_diagonal_(0)
-            weights_i2t = F.softmax(sim_i2t, dim=1) + 1e-4
-            weights_i2t[:, rank * bs : rank * bs + bs].fill_diagonal_(0)
+            if "image_id" in samples.keys():
+                mask = torch.eq(image_ids, image_ids_all.t())
+                sim_t2i.masked_fill_(mask, -10000)
+                sim_i2t.masked_fill_(mask, -10000)
+            else:    
+                sim_t2i[:, rank * bs : rank * bs + bs].fill_diagonal_(-10000)
+                sim_i2t[:, rank * bs : rank * bs + bs].fill_diagonal_(-10000)            
+                
+            weights_t2i = F.softmax(sim_t2i, dim=1)
+            weights_i2t = F.softmax(sim_i2t, dim=1)
 
         # select a negative image for each text
         image_embeds_neg = []
