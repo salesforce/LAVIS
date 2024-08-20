@@ -1,6 +1,6 @@
 # xGen-MM (formerly BLIP-3): A Family of Open Large Multimodal Models
 
-[Techical report](https://arxiv.org/pdf/2408.08872) | [Project Page (coming soon)](http://xgen-mm.salesforceairesearch.com/) | [🤗 Model Cards](https://huggingface.co/Salesforce/xgen-mm-phi3-mini-instruct-interleave-r-v1.5) | [🤗 Dataset Cards](https://huggingface.co/datasets/Salesforce/blip3-ocr-200m)
+[Techical report](https://arxiv.org/pdf/2408.08872) | [Project Page (coming soon)](http://xgen-mm.salesforceairesearch.com/) | [🤗 Model Cards](https://huggingface.co/Salesforce/xgen-mm-phi3-mini-instruct-interleave-r-v1.5) | [🤗 Dataset Cards (coming soon)](https://huggingface.co/datasets/Salesforce/blip3-ocr-200m)
 
 
 <p align = "center">
