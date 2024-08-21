@@ -35,6 +35,7 @@ For more details, check out our [tech report](https://arxiv.org/pdf/2408.08872) 
   * [Inference example](#inference-demo)
 - [Training](#training)
   * [Data preparation](#data-preparation)
+  * [Base model weight preparation](#base-model-weight-preparation)
   * [Launch script](#launch-script) 
 - [Evaluation](#evaluation)
 - [Team](#team)
@@ -141,6 +142,13 @@ Please see `data_configs/example_data_config.yaml` for an example config file an
  ...
  ]
 }
+```
+
+## Base model weight preparation
+
+We provide a script for converting [Salesforce/xgen-mm-phi3-mini-base-r-v1.5](https://huggingface.co/Salesforce/xgen-mm-phi3-mini-base-r-v1.5) from Huggingface hub to a checkpoint that can be load in PyTorch. To do the weight conversion and save the converted weight at `${you_local_path/base_model_weight.pt}`, run:
+```
+python convert_hf_model.py --dest_fn ${you_local_path/base_model_weight.pt}
 ```
 
 ## Launch script
