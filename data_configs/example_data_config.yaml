@@ -1,0 +1,25 @@
+# Data args.
+# Note: this is an example data config, not for reproducing xgen-mm-instruct.
+data_path: {
+  # Llava-665K
+  '/export/home/blip3_data/llava_instruct_665k_sharegpt4v/annotations/sharegpt4v_mix665k_cap23k_coco-ap9k_lcs3k_sam9k_div2k.json': 665058, # Total: 665058,
+  # SoM-llava.
+  '/export/home/blip3_data/SoM-LLaVA/som_qa_coco20k.json': 20160,
+  '/export/home/blip3_data/SoM-LLaVA/som_listing_coco10k.json': 10000,
+
+  # Text-only. (37k)
+  # '/export/share/manlis/data/allava-4v/Evol-Instruct-GPT4-Turbo-143K-filterd.json': 20000,  # Total: 143000
+  '/export/home/blip3_data/text-only-sft-data/Python-Code-23k-ShareGPT.json': 10000, # Total 22608
+  '/export/home/blip3_data/text-only-sft-data/gsm8k-main-train.json': 7473,
+  '/export/home/blip3_data/text-only-sft-data/slimorca-dedup.json': 10000, # Total: 363491
+  '/export/home/blip3_data/text-only-sft-data/orca-math-word-problems-200k.json': 10000, # Total: 200035
+  '/export/home/blip3_data/text-only-sft-data/lima-train.json': 5000, #Total: 1030
+
+  # OCR (72k)
+  '/export/home/blip3_data/ocr_datasets/ai2d/ai2d_multichoice_llava_format_single_img_token_train.json': 10000, # Total: 2482
+  '/export/home/blip3_data/ocr_datasets/DVQA/dvqa_llava_format.json': 20000, # Total: 2325316
+  '/export/home/blip3_data/ocr_datasets/DocVQA/docvqa_llava_format.json': 20649,
+  '/export/home/blip3_data/ocr_datasets/chartQA/chartqa_train_augmented_llava_format.json': 20901,
+  '/export/home/blip3_data/ocr_datasets/chartQA/chartqa_train_human_llava_format.json': 7398,
+
+}
