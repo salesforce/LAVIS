@@ -9,8 +9,8 @@ if __name__ == "__main__":
     with open("requirements.txt") as f:
         REQUIREMENTS = f.read().splitlines()
 
-    with open("requirements-eval.txt") as f:    
-        EVAL = f.read().splitlines()
+    # with open("requirements-eval.txt") as f:    
+    #     EVAL = f.read().splitlines()
 
     with open("requirements-training.txt") as f:
         TRAINING = f.read().splitlines()
