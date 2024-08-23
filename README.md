@@ -1,6 +1,6 @@
-# xGen-MM (formerly BLIP-3): A Family of Open Large Multimodal Models
+# xGen-MM (BLIP-3): A Family of Open Large Multimodal Models
 
-[Techical report](https://arxiv.org/pdf/2408.08872) | [Project Page (coming soon)](http://xgen-mm.salesforceairesearch.com/) | [🤗 Model Cards](https://huggingface.co/Salesforce/xgen-mm-phi3-mini-instruct-interleave-r-v1.5) | [🤗 Dataset Cards (coming soon)](https://huggingface.co/datasets/Salesforce/blip3-ocr-200m)
+[Techical report](https://arxiv.org/pdf/2408.08872) | [Project Page](https://www.salesforceairesearch.com/opensource/xGen-MM/index.html) | [🤗 Model Cards](https://huggingface.co/Salesforce/xgen-mm-phi3-mini-instruct-interleave-r-v1.5) | [🤗 Dataset Cards (coming soon)](https://huggingface.co/datasets/Salesforce/blip3-ocr-200m)
 
 
 <p align = "center">
@@ -25,7 +25,7 @@ In addition to the models, our team also released a series of datasets for multi
 
 This codebase provides the fine-tuning code that's used for producing our instrcut models (including `xgen-mm-phi3-mini-instruct-singleimg-r-v1.5`, `xgen-mm-phi3-mini-instruct-interleave-r-v1.5`, and `xgen-mm-phi3-mini-instruct-dpo-r-v1.5`.) 
 
-For more details, check out our [tech report](https://arxiv.org/pdf/2408.08872) and project page (coming soon).
+For more details, check out our [tech report](https://arxiv.org/pdf/2408.08872) and [project page](https://www.salesforceairesearch.com/opensource/xGen-MM/index.html).
 
 # Table of Contents
 - [Installation](#installation)
