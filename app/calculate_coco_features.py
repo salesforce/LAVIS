@@ -1,9 +1,7 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
+# Copyright (c) 2022, salesforce.com, inc.
+# All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+# For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 
 from PIL import Image
 import requests
@@ -17,7 +15,6 @@ from lavis.models import *
 from lavis.common.utils import build_default_model
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 def load_demo_image():
     img_url = (
@@ -33,6 +30,17 @@ def read_img(filepath):
 
     return raw_image
 
+
+def process_batch(images_in_batch, filepaths_in_batch, feature_extractor, caption, path2feat):
+    images_in_batch = torch.cat(images_in_batch, dim=0).to(device)
+    with torch.no_grad():
+        image_features = feature_extractor(
+            images_in_batch, caption, mode="image", normalized=True
+        )[:, 0]
+
+    for filepath, image_feat in zip(filepaths_in_batch, image_features):
+        path2feat[os.path.basename(filepath)] = image_feat.detach().cpu()
+    return path2feat
 
 # model
 model_url = "https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base.pth"
@@ -62,14 +70,7 @@ filepaths_in_batch = []
 
 for i, filename in enumerate(filepaths):
     if i % bsz == 0 and i > 0:
-        images_in_batch = torch.cat(images_in_batch, dim=0).to(device)
-        with torch.no_grad():
-            image_features = feature_extractor(
-                images_in_batch, caption, mode="image", normalized=True
-            )[:, 0]
-
-        for filepath, image_feat in zip(filepaths_in_batch, image_features):
-            path2feat[os.path.basename(filepath)] = image_feat.detach().cpu()
+        path2feat = process_batch(images_in_batch, filepaths_in_batch, feature_extractor, caption, path2feat)
 
         images_in_batch = []
         filepaths_in_batch = []
@@ -84,4 +85,7 @@ for i, filename in enumerate(filepaths):
         images_in_batch.append(image)
         filepaths_in_batch.append(filepath)
 
+path2feat = process_batch(images_in_batch, filepaths_in_batch, feature_extractor, caption, path2feat)  # process remaining images
+
 torch.save(path2feat, "path2feat_coco_train2014.pth")
+
