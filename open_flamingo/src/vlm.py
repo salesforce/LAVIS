@@ -772,7 +772,7 @@ class VLMWithLanguageStream(VLM):
                 
                 # Offset the rest of image tokens with current num_vis_tokens
                 for j in range(img_num+1, len(image_token_idxs)):
-                    image_token_idxs[j] += num_vis_tokens
+                    image_token_idxs[j] += (num_vis_tokens - 1)
 
                 new_embed = torch.cat(
                     (

@@ -275,15 +275,12 @@ def main():
     # Initialize model
     if args.model_family == "flamingo":
         additional_kwargs={"cross_attn_every_n_layers": args.cross_attn_every_n_layers}
-    elif args.model_family in ['kosmos-instruct', 'kosmos', 'llava']:
+    elif args.model_family in ['xgenmm_v1']:
         additional_kwargs = {
             "image_aspect_ratio": args.image_aspect_ratio,
-            }
-        if args.model_family in ['kosmos-instruct', 'kosmos']:
-            additional_kwargs.update({
-                "num_vision_tokens": args.num_vision_tokens,
-                "anyres_patch_sampling": args.anyres_patch_sampling,
-            })
+            "num_vision_tokens": args.num_vision_tokens,
+            "anyres_patch_sampling": args.anyres_patch_sampling,
+        }
     else:
         additional_kwargs = {}
         
