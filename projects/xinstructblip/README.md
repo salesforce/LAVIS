@@ -15,7 +15,7 @@ X-InstructBLIP a simple yet effective multimodal framework built on top of a fro
 
 ### LAVIS Repository
 ```
-git clone https://github.com/artemisp/LAVIS-XInstructBLIP.git # Once PR accepted change to official LAVIS
+git clone https://github.com/salesforce/LAVIS.git
 cd LAVIS-XInstructBLIP
 pip install -e .
 ```
@@ -48,7 +48,7 @@ wget -P /usr/bin https://github.com/unlimblue/KNN_CUDA/raw/master/ninja
 First download the Vicuna v1.1 weights following the instructions [here](https://github.com/lm-sys/FastChat). Update the parameter `llm_model` in `configs/models/blip2/blip2_xinstruct_vicuna7b.yaml` and `configs/models/blip2/blip2_xinstruct_vicuna13b.yaml` and in the demo configs under `projects/xinstructblip/demo/configs` to the path of the downloaded model folder. 
 
 ### X-InstructBLIP Weights
-Weights of the model are released [here](). When loading the model using the LAVIS codebase they should be automatically downloaded. 
+Weights of the model are released [here (7b)](https://github.com/salesforce/LAVIS/blob/main/lavis/configs/models/blip2/blip2_xinstruct_vicuna7b.yaml) and [here (13b)](https://github.com/salesforce/LAVIS/blob/main/lavis/configs/models/blip2/blip2_xinstruct_vicuna13b.yaml) . When loading the model using the LAVIS codebase they should be automatically downloaded. 
 ```
 from lavis.models import load_model
 model = load_model("blip2_vicuna_xinstruct", "vicuna7b")
@@ -223,6 +223,7 @@ Download the Audiocaps captions from [here](https://github.com/cdjkim/audiocaps/
 * `original_data_file`: the path to the captions for Audiocaps downloaded above for the relevant split. 
 
 ### DisCRn
+The dataset is found here: [Audio-Video](https://storage.cloud.google.com/sfr-xinstructblip-data-research/data/discrn/audiocaps.json) and [Image-3D](https://storage.cloud.google.com/sfr-xinstructblip-data-research/data/discrn/objaverse.json). 
 The files `projects/xinstructblip/discrn/data_generation/objaverse_img_3d.py` are `projects/xinstructblip/discrn/data_generation/audiocaps_video_audio.py` generate the image-3d and audio-video cross-modal reasoning pairs for the DisCRn task.
 #### Image-3D
 The arguments are as above, with the same 3D caption data
