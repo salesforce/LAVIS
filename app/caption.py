@@ -66,7 +66,7 @@ def app():
             model=model, image=img, use_nucleus_sampling=not use_beam
         )
 
-        col2.write("\n\n".join(captions), use_column_width=True)
+        col2.write("\n\n".join(captions))
 
 
 def generate_caption(

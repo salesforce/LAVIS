@@ -60,4 +60,4 @@ def app():
             vqa_samples = {"image": img, "text_input": [question]}
             answers = model.predict_answers(vqa_samples, inference_method="generate")
 
-            col2.write("\n".join(answers), use_column_width=True)
+            col2.write("\n".join(answers))
