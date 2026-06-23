@@ -1,20 +1,16 @@
-"""
- # Copyright (c) 2022, salesforce.com, inc.
- # All rights reserved.
- # SPDX-License-Identifier: BSD-3-Clause
- # For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-"""
-
-import random
 from collections import OrderedDict
 from functools import reduce
+import os
 from tkinter import N
-
 import streamlit as st
-from lavis.common.registry import registry
-from lavis.datasets.builders import dataset_zoo, load_dataset
-from lavis.datasets.builders.base_dataset_builder import load_dataset_config
+import streamlit.components.v1 as components
+
+import random
 from PIL import Image
+
+from lavis.datasets.builders import load_dataset, dataset_zoo
+from lavis.datasets.builders.base_dataset_builder import load_dataset_config
+from lavis.common.registry import registry
 
 IMAGE_LAYOUT = 3, 4
 VIDEO_LAYOUT = 1, 2
@@ -27,6 +23,18 @@ def sample_dataset(dataset, indices):
     samples = [dataset.displ_item(idx) for idx in indices]
 
     return samples
+
+
+# def create_gif_from_video(video_path):
+#     import imageio
+#     import os
+
+#     video = imageio.get_reader(video_path)
+#     fps = video.get_meta_data()["fps"]
+#     images = []
+#     for i in range(video.get_length()):
+#         images.append(video.get_data(i))
+#     imageio.mimsave(os.path.splitext(video_path)[0] + ".gif", images, fps=fps)
 
 
 def get_concat_v(im1, im2):
@@ -137,6 +145,16 @@ def show_samples(dataset, offset=0, is_next=False):
                         col.markdown(
                             "![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)"
                         )
+                        # col.video(open(next(visual_info), "rb"))
+                        # video_path = "/export/share/dongxuli/data/msrvtt_retrieval/videos/video0.mp4"
+                        # col.video(next(visual_info))
+                        # col.markdown(
+                        #     f"""<video width="320" height="240" controls>
+                        #     <source src="{video_path}" type="video/mp4">
+                        #     Your browser does not support the video tag.
+                        #     </video>""",
+                        #     unsafe_allow_html=True,
+                        # )
                 except StopIteration:
                     break
 
@@ -148,6 +166,22 @@ def show_samples(dataset, offset=0, is_next=False):
     st.session_state.n_display = n_samples
 
 
+def show_dataset_card():
+    builder = registry.get_builder_class(dataset_name)
+    cfg_path = builder.default_config_path()
+    config = load_dataset_config(cfg_path)
+    data_card = config.get("dataset_card", None)
+
+    if data_card is None:
+        st.warning(f"No dataset card found for {dataset_name}.")
+    else:
+        img_path = data_card.replace("md", "png")
+        img = resize_img_w(Image.open(img_path), new_w=672)
+        st.image(img)
+
+        st.markdown(open(data_card).read())
+
+
 if __name__ == "__main__":
     st.set_page_config(
         page_title="LAVIS Dataset Explorer",
@@ -157,9 +191,9 @@ if __name__ == "__main__":
 
     dataset_name = st.sidebar.selectbox("Dataset:", dataset_zoo.get_names())
 
-    function = st.sidebar.selectbox("Function:", ["Browser"], index=0)
+    function = st.sidebar.selectbox("Function:", ["Dataset Card", "Explorer"], index=0)
 
-    if function == "Browser":
+    if function == "Explorer":
         shuffle = st.sidebar.selectbox("Shuffled:", [True, False], index=0)
 
         dataset = load_dataset_cache(dataset_name)
@@ -238,3 +272,5 @@ if __name__ == "__main__":
                 offset=st.session_state.last_start - st.session_state.start_idx,
                 is_next=True,
             )
+    elif function == "Dataset Card":
+        show_dataset_card()
