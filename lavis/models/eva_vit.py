@@ -52,10 +52,18 @@ class Mlp(nn.Module):
         self.drop = nn.Dropout(drop)
 
     def forward(self, x):
+        if self.fc1.weight.dtype == torch.float16:
+            x = x.half()
+        elif self.fc1.weight.dtype == torch.float32:
+            x = x.float()
         x = self.fc1(x)
         x = self.act(x)
         # x = self.drop(x)
         # commit this for the orignal BERT implement 
+        if self.fc2.weight.dtype == torch.float16:
+            x = x.half()
+        elif self.fc2.weight.dtype == torch.float32:
+            x = x.float() 
         x = self.fc2(x)
         x = self.drop(x)
         return x
@@ -143,6 +151,10 @@ class Attention(nn.Module):
         attn = self.attn_drop(attn)
 
         x = (attn @ v).transpose(1, 2).reshape(B, N, -1)
+        if self.proj.weight.dtype == torch.float16:
+            x = x.half()
+        elif self.proj.weight.dtype == torch.float32:
+            x = x.float()
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
@@ -200,6 +212,10 @@ class PatchEmbed(nn.Module):
         # FIXME look at relaxing size constraints
         assert H == self.img_size[0] and W == self.img_size[1], \
             f"Input image size ({H}*{W}) doesn't match model ({self.img_size[0]}*{self.img_size[1]})."
+        if self.proj.weight.dtype == torch.float16:
+            x = x.half()
+        elif self.proj.weight.dtype == torch.float32:
+            x = x.float()
         x = self.proj(x).flatten(2).transpose(1, 2)
         return x
 
