@@ -23,6 +23,7 @@ def autocontrast_func(img, cutoff=0):
     n_bins = 256
 
     def tune_channel(ch):
+        ch = ch.astype(np.int16)
         n = ch.size
         cut = cutoff * n // 100
         if cut == 0:
