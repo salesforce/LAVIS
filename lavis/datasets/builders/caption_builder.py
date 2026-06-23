@@ -68,7 +68,7 @@ class Flickr30kCapInstructBuilder(BaseDatasetBuilder):
     train_dataset_cls = COCOCapInstructDataset
     eval_dataset_cls = COCOCapEvalDataset
     DATASET_CONFIG_DICT = {
-        "default": "configs/datasets/flickr30k/defaults_cap_instuct.yaml",
+        "default": "configs/datasets/flickr30k/defaults_cap_instruct.yaml",
     }
 
 @registry.register_builder("nocaps")
