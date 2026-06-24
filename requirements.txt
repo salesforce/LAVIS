@@ -35,5 +35,5 @@ peft
 
 easydict==1.9
 pyyaml_env_tag==0.1
-open3d==0.13.0
+open3d>=0.13.0
 h5py
