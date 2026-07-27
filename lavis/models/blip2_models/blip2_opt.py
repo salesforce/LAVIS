@@ -23,10 +23,10 @@ class Blip2OPT(Blip2Base):
     """
     BLIP2 OPT model.
     Supported model types:
-        - pretrained_opt2.7b: pretrained model with OPT2.7b
-        - pretrained_opt6.7b: pretrained model with OPT6.7b
-        - caption_coco_opt2.7b: fintuned image captioning model with OPT2.7b
-        - caption_coco_opt6.7b: fintuned image captioning model with OPT6.7b
+        - pretrain_opt2.7b: pretrained model with OPT2.7b
+        - pretrain_opt6.7b: pretrained model with OPT6.7b
+        - caption_coco_opt2.7b: finetuned image captioning model with OPT2.7b
+        - caption_coco_opt6.7b: finetuned image captioning model with OPT6.7b
     Usage:
         >>> from lavis.models import load_model
         >>> model = load_model("blip2_opt", "caption_coco_opt2.7b")
