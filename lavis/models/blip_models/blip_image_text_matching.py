@@ -175,11 +175,13 @@ def compute_gradcam(model, visual_input, text_input, tokenized_text, block_num=6
         # assume using vit with 576 num image patch
         cams = cams[:, :, :, 1:].reshape(visual_input.size(0), 12, -1, 24, 24) * mask
         grads = (
-            grads[:, :, :, 1:].clamp(0).reshape(visual_input.size(0), 12, -1, 24, 24)
+            grads[:, :, :, 1:].reshape(visual_input.size(0), 12, -1, 24, 24)
             * mask
         )
 
-        gradcams = cams * grads
+        # Apply ReLU to the final gradcam, not to intermediate gradients
+        # as per the original GradCAM paper
+        gradcams = (cams * grads).clamp(min=0)
         gradcam_list = []
 
         for ind in range(visual_input.size(0)):
