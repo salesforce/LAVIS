@@ -768,6 +768,7 @@ class Blip2VicunaXInstruct(Blip2Base):
                 if self.prefix and self.clean_tokenization:
                      att_list.extend([self.att_cue[modality][:,1:].repeat(bs, 1).to(self.device), atts_llm[modality]])
                      inp_list.extend([self.emb_cue[modality][:,1:].repeat(bs, 1, 1).to(self.device), inputs_llm[modality]])
+                     continue
                 att_list.extend([self.att_cue[modality].repeat(bs, 1).to(self.device), atts_llm[modality]])
                 inp_list.extend([self.emb_cue[modality].repeat(bs, 1, 1).to(self.device), inputs_llm[modality]])
             else:
@@ -1434,8 +1435,8 @@ class Blip2VicunaXInstruct(Blip2Base):
                     enumeration_atts_llm = enumeration_pos.attention_mask.to(self.device)
                     inp_list.extend([enumeration_inputs_llm])
                     att_list.extend([enumeration_atts_llm])
-                if self.use_cues:
-                    for modality in ['video', 'audio']:
+                for modality in ['video', 'audio']:
+                    if self.use_cues:
                         if self.clean_tokenization:
                             if self.prefix or pos > 1 or self.enumerate_inputs or modality == 'audio':
                                 att_list.extend([torch.tensor(self.tokenized_cue[modality].attention_mask[:,1:]).to(self.device).repeat(atts_llm[modality].shape[0], 1), atts_llm[modality].view(bs,  num[modality], self.num_query_token)[:, pos, :]])
@@ -1443,9 +1444,9 @@ class Blip2VicunaXInstruct(Blip2Base):
                                 continue
                         att_list.extend([torch.tensor(self.tokenized_cue[modality].attention_mask).to(self.device).repeat(atts_llm[modality].shape[0], 1), atts_llm[modality].view(bs,  num[modality], self.num_query_token)[:, pos, :]])
                         inp_list.extend([self.emb_cue[modality].to(self.device).repeat(inputs_llm[modality].shape[0], 1, 1), inputs_llm[modality].view(bs,  num[modality], self.num_query_token, -1)[:, pos, :, :]])
-                else:
-                    att_list.extend([atts_llm[modality].view(bs, num[modality], self.num_query_token)[:, pos, :]])
-                    inp_list.extend([inputs_llm[modality].view(bs, num[modality], self.num_query_token, -1)[:, pos, :, :]])
+                    else:
+                        att_list.extend([atts_llm[modality].view(bs, num[modality], self.num_query_token)[:, pos, :]])
+                        inp_list.extend([inputs_llm[modality].view(bs, num[modality], self.num_query_token, -1)[:, pos, :, :]])
         else:
             for modality in curr_modalities:
                 if self.enumerate_inputs:
