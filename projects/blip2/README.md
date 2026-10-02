@@ -104,6 +104,32 @@ Finetune for image captioning:
 
 The [config files](https://github.com/salesforce/LAVIS/tree/main/lavis/projects/blip2/train) can be modified for customized training.
 
+### Convert a Retrieval Checkpoint to Hugging Face
+
+Trained BLIP-2 retrieval checkpoints can be converted to the Hugging Face Transformers format for `Blip2ForImageTextRetrieval`. This requires a recent Transformers version that includes `Blip2ForImageTextRetrieval`.
+
+```bash
+python projects/blip2/convert_blip2_retrieval_to_hf.py \
+  --checkpoint-path output/BLIP2/Retrieval_coco/checkpoint_best.pth \
+  --output-dir output/BLIP2/Retrieval_coco/hf_model \
+  --model-type coco
+```
+
+If the checkpoint was produced by LAVIS training, the saved model config is read from the checkpoint automatically. Pass `--config-path lavis/projects/blip2/train/retrieval_coco_ft.yaml` if the checkpoint does not include a config.
+
+To upload the converted model and processor to the Hub:
+
+```bash
+python projects/blip2/convert_blip2_retrieval_to_hf.py \
+  --checkpoint-path output/BLIP2/Retrieval_coco/checkpoint_best.pth \
+  --output-dir output/BLIP2/Retrieval_coco/hf_model \
+  --model-type coco \
+  --push-to-hub \
+  --repo-id your-namespace/your-blip2-retrieval-model
+```
+
+Add `--validate --device cuda` to compare LAVIS and Transformers ITM/ITC outputs on the demo image before saving. If your training checkpoint omitted frozen parameters, add `--load-base-weights` so the converter first loads the base LAVIS checkpoint from the model config.
+
 ### Citing BLIP-2
 <pre>
 @inproceedings{li2023blip2,
